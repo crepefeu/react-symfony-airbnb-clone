@@ -23,6 +23,22 @@ class Property
     #[ORM\Column]
     private ?int $price = null;
 
+    #[ORM\Column]
+    private ?int $maxGuests = null;
+
+    #[ORM\Column]
+    private ?int $bedrooms = null;
+
+    #[ORM\Column]
+    private ?int $bathrooms = null;
+
+    #[ORM\Column(type: 'geometry')]
+    private $location = null;
+
+    #[ORM\OneToOne(inversedBy: 'property', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Address $address = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -60,6 +76,66 @@ class Property
     public function setPrice(int $price): static
     {
         $this->price = $price;
+
+        return $this;
+    }
+
+    public function getMaxGuests(): ?int
+    {
+        return $this->maxGuests;
+    }
+
+    public function setMaxGuests(int $maxGuests): static
+    {
+        $this->maxGuests = $maxGuests;
+
+        return $this;
+    }
+
+    public function getBedrooms(): ?int
+    {
+        return $this->bedrooms;
+    }
+
+    public function setBedrooms(int $bedrooms): static
+    {
+        $this->bedrooms = $bedrooms;
+
+        return $this;
+    }
+
+    public function getBathrooms(): ?int
+    {
+        return $this->bathrooms;
+    }
+
+    public function setBathrooms(int $bathrooms): static
+    {
+        $this->bathrooms = $bathrooms;
+
+        return $this;
+    }
+
+    public function getLocation()
+    {
+        return $this->location;
+    }
+
+    public function setLocation($location): static
+    {
+        $this->location = $location;
+
+        return $this;
+    }
+
+    public function getAddress(): ?Address
+    {
+        return $this->address;
+    }
+
+    public function setAddress(Address $address): static
+    {
+        $this->address = $address;
 
         return $this;
     }
