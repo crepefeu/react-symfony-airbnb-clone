@@ -128,6 +128,30 @@ class Property
         return $this;
     }
 
+    public function setCoordinates(float $latitude, float $longitude): static
+    {
+        $this->location = sprintf('POINT(%f %f)', $longitude, $latitude);
+        return $this;
+    }
+
+    public function getLatitude(): ?float
+    {
+        if (!$this->location) {
+            return null;
+        }
+        $point = \substr($this->location, 6, -1);
+        return (float) \explode(' ', $point)[1];
+    }
+
+    public function getLongitude(): ?float
+    {
+        if (!$this->location) {
+            return null;
+        }
+        $point = \substr($this->location, 6, -1);
+        return (float) \explode(' ', $point)[0];
+    }
+
     public function getAddress(): ?Address
     {
         return $this->address;

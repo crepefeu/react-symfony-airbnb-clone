@@ -31,6 +31,9 @@ class Address
     #[ORM\Column(length: 255)]
     private ?string $country = null;
 
+    #[ORM\Column(type: 'geometry', nullable: false)]
+    private $location;
+
     #[ORM\OneToOne(mappedBy: 'address', cascade: ['persist', 'remove'])]
     private ?Property $property = null;
 
@@ -109,6 +112,30 @@ class Address
         $this->country = $country;
 
         return $this;
+    }
+
+    public function setCoordinates(float $latitude, float $longitude): static
+    {
+        $this->location = sprintf('POINT(%f %f)', $longitude, $latitude);
+        return $this;
+    }
+
+    public function getLatitude(): ?float
+    {
+        if (!$this->location) {
+            return null;
+        }
+        $point = \substr($this->location, 6, -1);
+        return (float) \explode(' ', $point)[1];
+    }
+
+    public function getLongitude(): ?float
+    {
+        if (!$this->location) {
+            return null;
+        }
+        $point = \substr($this->location, 6, -1);
+        return (float) \explode(' ', $point)[0];
     }
 
     public function getProperty(): ?Property
