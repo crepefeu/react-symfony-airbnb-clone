@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
 const Map = () => {
@@ -8,6 +8,7 @@ const Map = () => {
         lng: 2.3522
     });
     const [selectedProperty, setSelectedProperty] = useState(null);
+    const mapRef = useRef(null);
 
     const loadPropertiesInBounds = async (bounds) => {
         const response = await fetch(`/api/properties/bounds?` + new URLSearchParams({
@@ -30,9 +31,14 @@ const Map = () => {
                 mapContainerClassName="w-full h-[600px]"
                 center={center}
                 zoom={13}
-                onBoundsChanged={(map) => {
-                    const bounds = map.getBounds();
-                    loadPropertiesInBounds(bounds);
+                onLoad={map => {
+                    mapRef.current = map;
+                }}
+                onIdle={() => {
+                    if (mapRef.current) {
+                        const bounds = mapRef.current.getBounds();
+                        loadPropertiesInBounds(bounds);
+                    }
                 }}
             >
                 {properties.map(property => (
