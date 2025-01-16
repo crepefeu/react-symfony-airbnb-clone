@@ -10,6 +10,8 @@ doctrine:
         use_savepoints: true
         types:
             geometry: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
+            geography: 'Jsor\Doctrine\PostGIS\Types\GeographyType'
+            point: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

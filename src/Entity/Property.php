@@ -33,7 +33,13 @@ class Property
     #[ORM\Column]
     private ?int $bathrooms = null;
 
-    #[ORM\Column(type: 'geometry')]
+    #[ORM\Column(type: 'float')]
+    private ?float $latitude = null;
+
+    #[ORM\Column(type: 'float')]
+    private ?float $longitude = null;
+
+    #[ORM\Column(type: 'geometry', nullable: true)]
     private $location = null;
 
     #[ORM\OneToOne(inversedBy: 'property', cascade: ['persist', 'remove'])]
@@ -127,37 +133,36 @@ class Property
         return $this->location;
     }
 
-    public function setLocation($location): static
+    public function setLocation($location): self
     {
         $this->location = $location;
-
-        return $this;
-    }
-
-    public function setCoordinates(float $latitude, float $longitude): static
-    {
-        $this->location = sprintf('POINT(%f %f)', $longitude, $latitude);
         return $this;
     }
 
     #[Groups(['property:read'])]
     public function getLatitude(): ?float
     {
-        if (!$this->location) {
-            return null;
-        }
-        $point = \substr($this->location, 6, -1);
-        return (float) \explode(' ', $point)[1];
+        return $this->latitude;
+    }
+
+    public function setLatitude(?float $latitude): static
+    {
+        $this->latitude = $latitude;
+
+        return $this;
     }
 
     #[Groups(['property:read'])]
     public function getLongitude(): ?float
     {
-        if (!$this->location) {
-            return null;
-        }
-        $point = \substr($this->location, 6, -1);
-        return (float) \explode(' ', $point)[0];
+        return $this->longitude;
+    }
+
+    public function setLongitude(?float $longitude): static
+    {
+        $this->longitude = $longitude;
+
+        return $this;
     }
 
     #[Groups(['property:read'])]

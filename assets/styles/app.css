@@ -4,4 +4,86 @@
 
 body {
     background-color: skyblue;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.gm-style-iw {
+    padding: 0 !important;
+}
+
+.gm-style-iw-d {
+    overflow: hidden !important;
+}
+
+.gm-style-iw button {
+    top: 0 !important;
+    right: 0 !important;
+}
+
+.gm-style-iw-tc {
+    display: none;
+}
+
+/* Price Marker Animations */
+@keyframes markerPop {
+    0% { transform: translate(-50%, -100%) scale(0.8); }
+    50% { transform: translate(-50%, -100%) scale(1.1); }
+    100% { transform: translate(-50%, -100%) scale(1); }
+}
+
+.price-marker-enter {
+    animation: markerPop 0.3s ease-out forwards;
+}
+
+/* Custom shadow for price markers */
+.price-marker-shadow {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+}
+
+/* Price Pin Styles */
+.price-pin {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    min-width: 65px;
+    text-align: center;
+}
+
+.pin-triangle {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid white; /* Default color */
+}
+
+.price-pin:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Header styles */
+.header-shadow {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 
+                0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.header-search-shadow:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+}
+
+/* Zoom Control styles */
+.zoom-control-button {
+    @apply transition-transform active:scale-95;
+}
+
+.zoom-control-button:hover {
+    @apply shadow-xl;
 }
