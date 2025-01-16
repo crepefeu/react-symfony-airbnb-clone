@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\PropertyRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PropertyRepository::class)]
 class Property
@@ -39,11 +40,13 @@ class Property
     #[ORM\JoinColumn(nullable: false)]
     private ?Address $address = null;
 
+    #[Groups(['property:read'])]
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    #[Groups(['property:read'])]
     public function getTitle(): ?string
     {
         return $this->title;
@@ -68,6 +71,7 @@ class Property
         return $this;
     }
 
+    #[Groups(['property:read'])]
     public function getPrice(): ?int
     {
         return $this->price;
@@ -92,6 +96,7 @@ class Property
         return $this;
     }
 
+    #[Groups(['property:read'])]
     public function getBedrooms(): ?int
     {
         return $this->bedrooms;
@@ -104,6 +109,7 @@ class Property
         return $this;
     }
 
+    #[Groups(['property:read'])]
     public function getBathrooms(): ?int
     {
         return $this->bathrooms;
@@ -134,6 +140,7 @@ class Property
         return $this;
     }
 
+    #[Groups(['property:read'])]
     public function getLatitude(): ?float
     {
         if (!$this->location) {
@@ -143,6 +150,7 @@ class Property
         return (float) \explode(' ', $point)[1];
     }
 
+    #[Groups(['property:read'])]
     public function getLongitude(): ?float
     {
         if (!$this->location) {
@@ -152,6 +160,7 @@ class Property
         return (float) \explode(' ', $point)[0];
     }
 
+    #[Groups(['property:read'])]
     public function getAddress(): ?Address
     {
         return $this->address;

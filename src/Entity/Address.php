@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AddressRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
 class Address
@@ -66,6 +67,7 @@ class Address
         return $this;
     }
 
+    #[Groups(['address:read'])]
     public function getCity(): ?string
     {
         return $this->city;
@@ -102,6 +104,7 @@ class Address
         return $this;
     }
 
+    #[Groups(['address:read'])]
     public function getCountry(): ?string
     {
         return $this->country;
