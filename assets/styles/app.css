@@ -57,7 +57,6 @@ body {
     height: 0;
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
-    border-top: 8px solid white; /* Default color */
 }
 
 .price-pin:hover {

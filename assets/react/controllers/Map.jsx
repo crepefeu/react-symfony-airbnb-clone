@@ -31,7 +31,7 @@ const PriceMarker = ({ price, isSelected, onClick }) => {
             </div>
             <div 
                 className={`absolute left-1/2 -translate-x-1/2
-                    pin-triangle
+                    pin-triangle border-t-8 transition-all duration-200
                     ${isSelected ? 'border-t-black' : 'border-t-white'}
                 `}
             />
@@ -190,12 +190,12 @@ const Map = () => {
                         {selectedProperty && (
                             <InfoWindow
                                 position={{
-                                    lat: selectedProperty.latitude,
+                                    lat: selectedProperty.latitude + 0.0060,
                                     lng: selectedProperty.longitude
                                 }}
                                 onCloseClick={() => setSelectedProperty(null)}
                             >
-                                <div className="p-4 max-w-sm rounded-xl shadow-lg bg-white">
+                                <div className="p-4 max-w-sm min-w-80 rounded-xl shadow-lg bg-white">
                                     <h3 className="text-lg font-bold mb-2">{selectedProperty.title}</h3>
                                     <p className="text-gray-600 mb-2">{selectedProperty.price}€ / night</p>
                                     <p className="text-sm mb-2">
