@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
 const Map = () => {
@@ -25,7 +25,7 @@ const Map = () => {
     };
 
     return (
-        <LoadScript googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY}>
+        <LoadScript googleMapsApiKey={'AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA'}>
             <GoogleMap
                 mapContainerClassName="w-full h-[600px]"
                 center={center}

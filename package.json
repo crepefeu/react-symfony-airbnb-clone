@@ -1,13 +1,17 @@
 {
     "devDependencies": {
+        "@babel/cli": "^7.25.6",
         "@babel/core": "^7.17.0",
         "@babel/preset-env": "^7.16.0",
         "@babel/preset-react": "^7.26.3",
+        "@hotwired/stimulus": "^3.0.0",
         "@symfony/webpack-encore": "^5.0.0",
         "autoprefixer": "^10.4.20",
         "core-js": "^3.38.0",
         "postcss": "^8.5.1",
         "postcss-loader": "^8.1.1",
+        "react": "^18.0",
+        "react-dom": "^18.0",
         "regenerator-runtime": "^0.13.9",
         "tailwindcss": "^3.4.17",
         "webpack": "^5.74.0",
@@ -20,6 +24,11 @@
         "dev-server": "encore dev-server",
         "dev": "encore dev",
         "watch": "encore dev --watch",
-        "build": "encore production --progress"
+        "build": "babel ../src/ --out-dir ../dist/ --presets=@babel/preset-react --no-babelrc"
+    },
+    "dependencies": {
+        "@react-google-maps/api": "^2.20.5",
+        "@symfony/stimulus-bridge": "^3.2.3",
+        "@symfony/ux-react": "file:vendor/symfony/ux-react/assets"
     }
 }
