@@ -2,7 +2,7 @@ import React from 'react';
 
 const Filters = ({ onFilterChange, onSortChange, filters, sortBy }) => {
     return (
-        <div className="bg-white border-b sticky top-16 z-10 py-4">
+        <div className="bg-white border-b py-4">
             <div className="px-4 md:px-8 max-w-7xl mx-auto">
                 <div className="flex flex-wrap items-center gap-4">
                     <select

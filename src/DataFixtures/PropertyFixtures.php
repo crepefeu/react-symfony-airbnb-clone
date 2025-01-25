@@ -9,6 +9,8 @@ use Doctrine\Persistence\ObjectManager;
 
 class PropertyFixtures extends Fixture
 {
+    private const PROPERTY_TYPES = ['Apartment', 'House', 'Studio', 'Loft', 'Villa'];
+
     private const PARIS_PROPERTIES = [
         [
             'title' => 'Charming Montmartre Apartment',
@@ -26,7 +28,8 @@ class PropertyFixtures extends Fixture
                 'country' => 'France',
                 'zipcode' => '75018'
             ],
-            'description' => 'Beautiful apartment near Sacré-Cœur'
+            'description' => 'Beautiful apartment near Sacré-Cœur',
+            'propertyType' => 'Apartment',
         ],
         [
             'title' => 'Luxury Marais Loft',
@@ -44,7 +47,8 @@ class PropertyFixtures extends Fixture
                 'country' => 'France',
                 'zipcode' => '75004'
             ],
-            'description' => 'Spacious loft in the heart of Le Marais'
+            'description' => 'Spacious loft in the heart of Le Marais',
+            'propertyType' => 'Loft',
         ],
         [
             'title' => 'Eiffel Tower View Studio',
@@ -62,7 +66,8 @@ class PropertyFixtures extends Fixture
                 'country' => 'France',
                 'zipcode' => '75007'
             ],
-            'description' => 'Cozy studio with direct Eiffel Tower views'
+            'description' => 'Cozy studio with direct Eiffel Tower views',
+            'propertyType' => 'Studio',
         ],
         [
             'title' => 'Latin Quarter Charm',
@@ -80,7 +85,8 @@ class PropertyFixtures extends Fixture
                 'country' => 'France',
                 'zipcode' => '75005'
             ],
-            'description' => 'Traditional apartment in historic district'
+            'description' => 'Traditional apartment in historic district',
+            'propertyType' => 'Apartment',
         ],
         [
             'title' => 'Canal Saint-Martin Hideaway',
@@ -98,7 +104,103 @@ class PropertyFixtures extends Fixture
                 'country' => 'France',
                 'zipcode' => '75010'
             ],
-            'description' => 'Modern flat overlooking the canal'
+            'description' => 'Modern flat overlooking the canal',
+            'propertyType' => 'Apartment',
+        ],
+        [
+            'title' => 'Opéra District Penthouse',
+            'location' => ['lat' => 48.871799, 'lng' => 2.332069],
+            'price' => 320,
+            'bedrooms' => 3,
+            'bathrooms' => 2,
+            'maxGuests' => 6,
+            'address' => [
+                'streetNumber' => '32',
+                'streetName' => 'Rue de la Chaussée d\'Antin',
+                'complement' => 'Top Floor',
+                'city' => 'Paris',
+                'state' => 'Île-de-France',
+                'country' => 'France',
+                'zipcode' => '75009'
+            ],
+            'description' => 'Luxurious penthouse with panoramic views of Paris Opera',
+            'propertyType' => 'Penthouse',
+        ],
+        [
+            'title' => 'Champs-Élysées Luxury Suite',
+            'location' => ['lat' => 48.869547, 'lng' => 2.308562],
+            'price' => 450,
+            'bedrooms' => 2,
+            'bathrooms' => 2,
+            'maxGuests' => 4,
+            'address' => [
+                'streetNumber' => '88',
+                'streetName' => 'Avenue des Champs-Élysées',
+                'complement' => 'Building A',
+                'city' => 'Paris',
+                'state' => 'Île-de-France',
+                'country' => 'France',
+                'zipcode' => '75008'
+            ],
+            'description' => 'High-end apartment on the most beautiful avenue in the world',
+            'propertyType' => 'Apartment',
+        ],
+        [
+            'title' => 'Bastille Artist Studio',
+            'location' => ['lat' => 48.853675, 'lng' => 2.369186],
+            'price' => 140,
+            'bedrooms' => 1,
+            'bathrooms' => 1,
+            'maxGuests' => 2,
+            'address' => [
+                'streetNumber' => '15',
+                'streetName' => 'Rue de la Roquette',
+                'complement' => 'Studio 3B',
+                'city' => 'Paris',
+                'state' => 'Île-de-France',
+                'country' => 'France',
+                'zipcode' => '75011'
+            ],
+            'description' => 'Bohemian studio in the trendy Bastille neighborhood',
+            'propertyType' => 'Studio',
+        ],
+        [
+            'title' => 'Luxembourg Gardens Retreat',
+            'location' => ['lat' => 48.846937, 'lng' => 2.336164],
+            'price' => 260,
+            'bedrooms' => 2,
+            'bathrooms' => 1,
+            'maxGuests' => 4,
+            'address' => [
+                'streetNumber' => '41',
+                'streetName' => 'Rue Notre Dame des Champs',
+                'complement' => '4th Floor',
+                'city' => 'Paris',
+                'state' => 'Île-de-France',
+                'country' => 'France',
+                'zipcode' => '75006'
+            ],
+            'description' => 'Elegant apartment near the famous Luxembourg Gardens',
+            'propertyType' => 'Apartment',
+        ],
+        [
+            'title' => 'Belleville Modern Loft',
+            'location' => ['lat' => 48.872424, 'lng' => 2.377131],
+            'price' => 180,
+            'bedrooms' => 2,
+            'bathrooms' => 1,
+            'maxGuests' => 3,
+            'address' => [
+                'streetNumber' => '56',
+                'streetName' => 'Rue de Belleville',
+                'complement' => 'Loft 5',
+                'city' => 'Paris',
+                'state' => 'Île-de-France',
+                'country' => 'France',
+                'zipcode' => '75020'
+            ],
+            'description' => 'Contemporary loft in vibrant multicultural neighborhood',
+            'propertyType' => 'Loft',
         ]
     ];
 
@@ -114,6 +216,7 @@ class PropertyFixtures extends Fixture
             $property->setMaxGuests($propertyData['maxGuests']);
             $property->setLatitude($propertyData['location']['lat']);
             $property->setLongitude($propertyData['location']['lng']);
+            $property->setPropertyType($propertyData['propertyType']);
 
             // Create PostGIS point object for property location
             $point = sprintf('POINT(%f %f)', 

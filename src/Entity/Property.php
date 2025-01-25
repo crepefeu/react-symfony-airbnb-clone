@@ -49,6 +49,24 @@ class Property
     #[Groups(['property:read'])]
     private ?Address $address = null;
 
+    #[ORM\Column(length: 255, nullable: true)]  // Change this line to allow null temporarily
+    #[Groups(['property:read'])]
+    private ?string $propertyType = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]  // Add type here
+    #[Groups(['property:read'])]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]  // Add type here
+    #[Groups(['property:read'])]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
     #[Groups(['property:read'])]
     public function getId(): ?int
     {
@@ -178,6 +196,40 @@ class Property
     {
         $this->address = $address;
 
+        return $this;
+    }
+
+    #[Groups(['property:read'])]
+    public function getPropertyType(): ?string
+    {
+        return $this->propertyType;
+    }
+
+    public function setPropertyType(string $propertyType): static
+    {
+        $this->propertyType = $propertyType;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
         return $this;
     }
 }

@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ property.title }} - AirBnB Clone{% endblock %}
+
+{% block body %}
+    <div {{ react_component('PropertyDetails', { 
+        propertyId: property.id 
+    }) }}></div>
+{% endblock %}

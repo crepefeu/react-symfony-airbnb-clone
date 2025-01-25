@@ -70,7 +70,7 @@ const PropertiesList = () => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-screen">
+            <div className="flex justify-center items-center py-12 min-h-screen">
                 <div className="animate-spin h-8 w-8 border-4 border-rose-500 rounded-full border-t-transparent"></div>
             </div>
         );
@@ -78,7 +78,7 @@ const PropertiesList = () => {
 
     if (error) {
         return (
-            <div className="flex justify-center items-center h-full text-red-500">
+            <div className="flex justify-center items-center py-12 text-red-500">
                 {error}
             </div>
         );
@@ -92,11 +92,13 @@ const PropertiesList = () => {
                 filters={filters}
                 sortBy={sortBy}
             />
-            <div className="px-4 md:px-8 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
-                    {filteredProperties.map(property => (
-                        <PropertyCard key={property.id} property={property} />
-                    ))}
+            <div className="py-8">
+                <div className="px-4 md:px-8 max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {filteredProperties.map(property => (
+                            <PropertyCard key={property.id} property={property} />
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

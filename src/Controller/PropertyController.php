@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use Symfony\Component\HttpFoundation\Response;
 
 #[Route('/api/properties', name: 'api_properties_')]
 class PropertyController extends AbstractController
@@ -33,6 +34,19 @@ class PropertyController extends AbstractController
         return $this->json([
             'properties' => $properties,
         ]);
+    }
+
+    #[Route('/bounds', name: 'api_properties_bounds', methods: ['GET'])]
+    public function getPropertiesInBounds(Request $request, PropertyRepository $propertyRepository): JsonResponse
+    {
+        $properties = $propertyRepository->findInBounds(
+            (float) $request->query->get('north'),
+            (float) $request->query->get('south'),
+            (float) $request->query->get('east'),
+            (float) $request->query->get('west')
+        );
+
+        return $this->json(['properties' => $properties], 200, [], ['groups' => ['property:read']]);
     }
 
     #[Route('/', name: 'index', methods: ['GET'])]
@@ -62,16 +76,11 @@ class PropertyController extends AbstractController
         ]);
     }
 
-    #[Route('/bounds', name: 'api_properties_bounds', methods: ['GET'])]
-    public function getPropertiesInBounds(Request $request, PropertyRepository $propertyRepository): JsonResponse
+    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    public function show(Property $property): JsonResponse
     {
-        $properties = $propertyRepository->findInBounds(
-            (float) $request->query->get('north'),
-            (float) $request->query->get('south'),
-            (float) $request->query->get('east'),
-            (float) $request->query->get('west')
-        );
-
-        return $this->json(['properties' => $properties], 200, [], ['groups' => ['property:read']]);
+        return $this->json([
+            'property' => $property,
+        ], 200, [], ['groups' => ['property:read', 'property:details']]);
     }
 }

@@ -12,9 +12,9 @@ const PropertyCard = ({ property }) => {
         : "https://www.homelyyours.com/data/propertyPlaceholder.png";
 
     return (
-        <div 
-            className="border bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => window.location.href = `/properties/${property.id}`}
+        <a 
+            href={`/property/${property.id}`}
+            className="block border bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
         >
             <div className="aspect-[4/3] overflow-hidden relative">
                 <img 
@@ -31,7 +31,7 @@ const PropertyCard = ({ property }) => {
                     {property.address?.city}, {property.address?.country}
                 </div>
             </div>
-        </div>
+        </a>
     );
 };
 

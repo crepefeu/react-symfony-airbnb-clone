@@ -7,7 +7,7 @@ const ViewToggle = () => {
     return (
         <button
             onClick={() => setIsMapView(!isMapView)}
-            className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-50 
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 
                       bg-gray-900 text-white px-6 py-3 rounded-full
                       shadow-lg hover:shadow-xl transition-all duration-300
                       flex items-center space-x-2"
