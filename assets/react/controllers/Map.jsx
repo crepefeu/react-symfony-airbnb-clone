@@ -19,7 +19,7 @@ const PriceMarker = ({ price, isSelected, onClick }) => {
                 className={`
                     price-pin cursor-pointer
                     px-4 py-2 rounded-2xl
-                    shadow-lg transition-all duration-200
+                    shadow-sm transition-all duration-200
                     ${isSelected 
                         ? 'bg-black text-white scale-110' 
                         : 'bg-white text-gray-800 hover:scale-105'
@@ -31,7 +31,7 @@ const PriceMarker = ({ price, isSelected, onClick }) => {
             </div>
             <div 
                 className={`absolute left-1/2 -translate-x-1/2
-                    pin-triangle border-t-8 transition-all duration-200
+                    pin-triangle border-t-8 transition-all duration-200 shadow-sm
                     ${isSelected ? 'border-t-black' : 'border-t-white'}
                 `}
             />
@@ -147,9 +147,8 @@ const Map = () => {
         });
     };
     return (
-        <>
-            <Header />
-            <div className="absolute inset-x-0 bottom-0 top-16"> {/* Updated to match header height */}
+        <div className="w-full h-full"> {/* Changed from fragment to div and removed Header */}
+            <div className="h-full"> {/* Changed position styling */}
                 <LoadScript 
                     googleMapsApiKey={'AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA'}
                     mapIds={['43f679ecd42ba96e']}
@@ -239,7 +238,7 @@ const Map = () => {
                     <ZoomControl onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} />
                 </LoadScript>
             </div>
-        </>
+        </div>
     );
 };
 

@@ -35,20 +35,15 @@ class PropertyController extends AbstractController
         ]);
     }
 
-    // #[Route('/bounds', name: 'bounds', methods: ['GET'])]
-    // public function getPropertiesInBounds(Request $request): JsonResponse
-    // {
-    //     $properties = $this->propertyRepository->findWithinBounds(
-    //         (float) $request->query->get('south'),
-    //         (float) $request->query->get('north'),
-    //         (float) $request->query->get('west'),
-    //         (float) $request->query->get('east')
-    //     );
+    #[Route('/', name: 'index', methods: ['GET'])]
+    public function index(): JsonResponse
+    {
+        $properties = $this->propertyRepository->findAll();
 
-    //     return $this->json([
-    //         'properties' => $properties,
-    //     ], 200, [], ['groups' => ['property:read', 'address:read']]);
-    // }
+        return $this->json([
+            'properties' => $properties,
+        ], 200, [], ['groups' => ['property:read']]);
+    }
 
     #[Route('/{id}/distance', name: 'distance', methods: ['GET'])]
     public function getDistanceToProperty(Property $property, Request $request): JsonResponse
@@ -77,6 +72,6 @@ class PropertyController extends AbstractController
             (float) $request->query->get('west')
         );
 
-        return $this->json(['properties' => $properties], context: ['groups' => ['property:read']]);
+        return $this->json(['properties' => $properties], 200, [], ['groups' => ['property:read']]);
     }
 }

@@ -34,16 +34,19 @@ class Property
     private ?int $bathrooms = null;
 
     #[ORM\Column(type: 'float')]
+    #[Groups(['property:read'])]
     private ?float $latitude = null;
 
     #[ORM\Column(type: 'float')]
+    #[Groups(['property:read'])]
     private ?float $longitude = null;
 
     #[ORM\Column(type: 'geometry', nullable: true)]
     private $location = null;
 
-    #[ORM\OneToOne(inversedBy: 'property', cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: Address::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['property:read'])]
     private ?Address $address = null;
 
     #[Groups(['property:read'])]
