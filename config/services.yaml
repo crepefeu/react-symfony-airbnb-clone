@@ -23,5 +23,16 @@ services:
     App\Serializer\AmenityCategoryNormalizer:
         tags: [ serializer.normalizer ]
 
+    object_normalizer:
+        class: Symfony\Component\Serializer\Normalizer\ObjectNormalizer
+        public: false
+        tags: ['serializer.normalizer']
+
+    App\Serializer\PropertyNormalizer:
+        arguments:
+            $normalizer: '@object_normalizer'
+        tags:
+            - { name: 'serializer.normalizer', priority: 100 }
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

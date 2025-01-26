@@ -1,4 +1,5 @@
 import React from 'react';
+import StarRating from './StarRating';
 
 const PLACEHOLDER_IMAGE = 'https://a0.muscache.com/im/pictures/2a5aa8aa-c3c3-4f49-a94c-f1d335500e8f.jpg';
 
@@ -26,7 +27,14 @@ const PropertyCard = ({ property }) => {
             </div>
             <div className="p-4">
                 <h3 className="font-semibold truncate">{property.title}</h3>
-                <p className="text-gray-600">{property.price}€ / night</p>
+                <div className="text-gray-600">
+                    <div>{property.price}€ / night</div>
+                    {property.averageRating && (
+                        <div className="flex items-center gap-1 text-sm mt-1">
+                            <StarRating rating={property.averageRating} size="sm" />
+                        </div>
+                    )}
+                </div>
                 <div className="text-sm text-gray-500 mt-1">
                     {property.address?.city}, {property.address?.country}
                 </div>

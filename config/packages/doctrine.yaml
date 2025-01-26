@@ -9,7 +9,7 @@ doctrine:
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
         types:
-            geometry: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
+            geometry: CrEOF\Spatial\DBAL\Types\GeometryType
             geography: 'Jsor\Doctrine\PostGIS\Types\GeographyType'
             point: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
     orm:
@@ -30,6 +30,10 @@ doctrine:
                 alias: App
         controller_resolver:
             auto_mapping: false
+        dql:
+            numeric_functions:
+                st_distance: CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSQL\STDistance
+                st_point: CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSQL\STPoint
 
 when@test:
     doctrine:

@@ -37,6 +37,7 @@
         "@symfony/ux-react": "file:vendor/symfony/ux-react/assets",
         "@tailwindcss/postcss": "^4.0.0",
         "prop-types": "^15.8.1",
+        "react-datepicker": "^7.6.0",
         "react-router-dom": "^7.1.3"
     }
 }

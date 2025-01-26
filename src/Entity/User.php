@@ -3,9 +3,14 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -38,6 +43,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
+    /**
+     * @var Collection<int, Review>
+     */
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'author', orphanRemoval: true)]
+    #[Groups(['property:read'])]
+    #[MaxDepth(1)]
+    private Collection $reviews;
+
+    /**
+     * @var Collection<int, Property>
+     */
+    #[ORM\OneToMany(targetEntity: Property::class, mappedBy: 'owner', orphanRemoval: true)]
+    #[Groups(['property:read'])]
+    #[MaxDepth(1)]
+    private Collection $properties;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[Groups(['property:read'])]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    public function __construct()
+    {
+        $this->reviews = new ArrayCollection();
+        $this->properties = new ArrayCollection();
+    }
+
+    #[Groups(['property:read'])]
     public function getId(): ?int
     {
         return $this->id;
@@ -113,6 +145,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
+    #[Groups(['property:read'])]
     public function getFirstName(): ?string
     {
         return $this->firstName;
@@ -125,6 +158,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Groups(['property:read'])]
     public function getLastName(): ?string
     {
         return $this->lastName;
@@ -135,5 +169,116 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->lastName = $lastName;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Review>
+     */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Review $review): static
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+            $review->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Review $review): static
+    {
+        if ($this->reviews->removeElement($review)) {
+            // set the owning side to null (unless already changed)
+            if ($review->getAuthor() === $this) {
+                $review->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Property>
+     */
+    #[Groups(['property:read'])]
+    public function getProperties(): Collection
+    {
+        return $this->properties;
+    }
+
+    public function addProperty(Property $property): static
+    {
+        if (!$this->properties->contains($property)) {
+            $this->properties->add($property);
+            $property->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProperty(Property $property): static
+    {
+        if ($this->properties->removeElement($property)) {
+            // set the owning side to null (unless already changed)
+            if ($property->getOwner() === $this) {
+                $property->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    #[Groups(['property:read'])]
+    public function getAverageRating(): ?float
+    {
+        // Get all properties owned by this user
+        $properties = $this->properties;
+        if ($properties->isEmpty()) {
+            return null;
+        }
+
+        $totalPropertyRatings = 0;
+        $propertiesWithRatings = 0;
+
+        // Calculate average rating for each property
+        foreach ($properties as $property) {
+            $propertyRating = $property->getAverageRating();
+            if ($propertyRating !== null) {
+                $totalPropertyRatings += $propertyRating;
+                $propertiesWithRatings++;
+            }
+        }
+
+        // Return null if no properties have ratings
+        if ($propertiesWithRatings === 0) {
+            return null;
+        }
+
+        // Calculate overall average
+        return $totalPropertyRatings / $propertiesWithRatings;
+    }
+
+    #[Groups(['property:read'])]
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+
+    #[Groups(['property:read'])]
+    public function getFormattedCreatedAt(): string
+    {
+        return $this->createdAt?->format('Y-m-d\TH:i:s.u\Z') ?? '';
     }
 }

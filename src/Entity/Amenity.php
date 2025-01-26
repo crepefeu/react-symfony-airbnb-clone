@@ -25,7 +25,7 @@ class Amenity
     private ?AmenityCategory $category = null;
 
     #[ORM\ManyToOne(inversedBy: 'amenities')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]  // Change this to allow null temporarily
     private ?Property $property = null;
 
     public function getId(): ?int

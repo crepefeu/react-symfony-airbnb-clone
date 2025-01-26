@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250126102206 extends AbstractMigration
+final class Version20250126190945 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,12 +20,13 @@ final class Version20250126102206 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE SCHEMA topology');
         $this->addSql('CREATE SCHEMA public');
+        $this->addSql('CREATE SEQUENCE topology.topology_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
     }
 }

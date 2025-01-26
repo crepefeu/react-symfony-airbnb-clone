@@ -73,11 +73,24 @@ class Property
     #[Groups(['property:read'])]
     private Collection $amenities;
 
+    /**
+     * @var Collection<int, Review>
+     */
+    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Review::class, orphanRemoval: true)]
+    #[Groups(['property:read'])]
+    private Collection $reviews;
+
+    #[ORM\ManyToOne(inversedBy: 'properties')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['property:read'])]
+    private ?User $owner = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->amenities = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -92,7 +105,7 @@ class Property
         return $this->title;
     }
 
-    public function setTitle(string $title): static
+    public function setTitle(?string $title): static
     {
         $this->title = $title;
 
@@ -273,6 +286,63 @@ class Property
                 $amenity->setProperty(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Review>
+     */
+    #[Groups(['property:read'])]
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Review $review): static
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+            $review->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Review $review): static
+    {
+        if ($this->reviews->removeElement($review)) {
+            if ($review->getProperty() === $this) {
+                $review->setProperty(null);
+            }
+        }
+
+        return $this;
+    }
+
+    #[Groups(['property:read'])]
+    public function getAverageRating(): ?float
+    {
+        if ($this->reviews->isEmpty()) {
+            return null;
+        }
+
+        $total = 0;
+        foreach ($this->reviews as $review) {
+            $total += $review->getRating();
+        }
+
+        return $total / $this->reviews->count();
+    }
+
+    #[Groups(['property:read'])]
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }
