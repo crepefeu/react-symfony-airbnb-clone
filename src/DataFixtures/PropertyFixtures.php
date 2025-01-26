@@ -4,6 +4,8 @@ namespace App\DataFixtures;
 
 use App\Entity\Property;
 use App\Entity\Address;
+use App\Entity\Amenity;
+use App\Enum\AmenityCategory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -204,6 +206,72 @@ class PropertyFixtures extends Fixture
         ]
     ];
 
+    private const PROPERTY_AMENITIES = [
+        'Apartment' => [
+            ['name' => 'High-speed WiFi', 'category' => AmenityCategory::WIFI],
+            ['name' => 'Central heating', 'category' => AmenityCategory::HEATING],
+            ['name' => 'Air conditioning', 'category' => AmenityCategory::COOLING],
+            ['name' => 'Fully equipped kitchen', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Washing machine', 'category' => AmenityCategory::LAUNDRY],
+            ['name' => 'Modern bathroom', 'category' => AmenityCategory::BATHROOM],
+            ['name' => 'Smoke detector', 'category' => AmenityCategory::SAFETY],
+            ['name' => 'Smart TV', 'category' => AmenityCategory::ENTERTAINMENT],
+            ['name' => 'Coffee maker', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Dishwasher', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Iron & Board', 'category' => AmenityCategory::LAUNDRY],
+            ['name' => 'Hair dryer', 'category' => AmenityCategory::BATHROOM],
+            ['name' => 'Elevator', 'category' => AmenityCategory::ACCESSIBILITY],
+        ],
+        'Loft' => [
+            ['name' => 'Gigabit WiFi', 'category' => AmenityCategory::WIFI],
+            ['name' => '65" Smart TV', 'category' => AmenityCategory::ENTERTAINMENT],
+            ['name' => 'Chef\'s kitchen', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Rain shower', 'category' => AmenityCategory::BATHROOM],
+            ['name' => 'Security system', 'category' => AmenityCategory::SAFETY],
+            ['name' => 'Dedicated workspace', 'category' => AmenityCategory::WORKSPACE],
+            ['name' => 'Climate control', 'category' => AmenityCategory::COOLING],
+            ['name' => 'Washer & Dryer', 'category' => AmenityCategory::LAUNDRY],
+            ['name' => 'Wine fridge', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Surround sound system', 'category' => AmenityCategory::ENTERTAINMENT],
+            ['name' => 'High ceilings', 'category' => AmenityCategory::FEATURES],
+            ['name' => 'Floor-to-ceiling windows', 'category' => AmenityCategory::FEATURES],
+            ['name' => 'Smart home features', 'category' => AmenityCategory::FEATURES],
+            ['name' => 'Balcony', 'category' => AmenityCategory::OUTDOOR],
+        ],
+        'Studio' => [
+            ['name' => 'Fast WiFi', 'category' => AmenityCategory::WIFI],
+            ['name' => 'Kitchenette', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Smart TV', 'category' => AmenityCategory::ENTERTAINMENT],
+            ['name' => 'Compact washer', 'category' => AmenityCategory::LAUNDRY],
+            ['name' => 'Air conditioning unit', 'category' => AmenityCategory::COOLING],
+            ['name' => 'Working corner', 'category' => AmenityCategory::WORKSPACE],
+            ['name' => 'Microwave', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Mini fridge', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Storage solutions', 'category' => AmenityCategory::FEATURES],
+            ['name' => 'Blackout curtains', 'category' => AmenityCategory::FEATURES],
+        ],
+        'Penthouse' => [
+            ['name' => 'Enterprise WiFi', 'category' => AmenityCategory::WIFI],
+            ['name' => 'Private terrace', 'category' => AmenityCategory::OUTDOOR],
+            ['name' => 'Gourmet kitchen', 'category' => AmenityCategory::KITCHEN],
+            ['name' => 'Home cinema', 'category' => AmenityCategory::ENTERTAINMENT],
+            ['name' => '24/7 Security', 'category' => AmenityCategory::SAFETY],
+            ['name' => 'Luxury bathroom', 'category' => AmenityCategory::BATHROOM],
+            ['name' => 'Climate control', 'category' => AmenityCategory::COOLING],
+            ['name' => 'Floor heating', 'category' => AmenityCategory::HEATING],
+            ['name' => 'Private parking', 'category' => AmenityCategory::PARKING],
+            ['name' => 'Office room', 'category' => AmenityCategory::WORKSPACE],
+            ['name' => 'Laundry room', 'category' => AmenityCategory::LAUNDRY],
+            ['name' => 'Wheelchair access', 'category' => AmenityCategory::ACCESSIBILITY],
+            ['name' => 'Wine cellar', 'category' => AmenityCategory::FEATURES],
+            ['name' => 'Jacuzzi', 'category' => AmenityCategory::BATHROOM],
+            ['name' => 'Smart home system', 'category' => AmenityCategory::FEATURES],
+            ['name' => 'Private elevator', 'category' => AmenityCategory::ACCESSIBILITY],
+            ['name' => 'Panoramic views', 'category' => AmenityCategory::FEATURES],
+            ['name' => 'BBQ area', 'category' => AmenityCategory::OUTDOOR],
+        ],
+    ];
+
     public function load(ObjectManager $manager): void
     {
         foreach (self::PARIS_PROPERTIES as $propertyData) {
@@ -241,6 +309,17 @@ class PropertyFixtures extends Fixture
 
             $property->setAddress($address);
             
+            // Add amenities based on property type with fallback to Apartment amenities
+            $amenitiesList = self::PROPERTY_AMENITIES[$propertyData['propertyType']] ?? self::PROPERTY_AMENITIES['Apartment'];
+            foreach ($amenitiesList as $amenityData) {
+                $amenity = new Amenity();
+                $amenity->setName($amenityData['name']);
+                $amenity->setCategory($amenityData['category']);
+                $amenity->setProperty($property);
+                $manager->persist($amenity);
+                $property->addAmenity($amenity);
+            }
+
             $manager->persist($address);
             $manager->persist($property);
         }

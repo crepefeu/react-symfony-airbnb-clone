@@ -31,10 +31,12 @@
         "build": "encore production --progress"
     },
     "dependencies": {
+        "@headlessui/react": "^2.2.0",
         "@react-google-maps/api": "^2.20.5",
         "@symfony/stimulus-bridge": "^3.2.3",
         "@symfony/ux-react": "file:vendor/symfony/ux-react/assets",
         "@tailwindcss/postcss": "^4.0.0",
+        "prop-types": "^15.8.1",
         "react-router-dom": "^7.1.3"
     }
 }

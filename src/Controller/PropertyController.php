@@ -77,10 +77,18 @@ class PropertyController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(Property $property): JsonResponse
+    public function show(Property $property, Request $request): Response
     {
-        return $this->json([
+        // Return JSON for API requests
+        if ($request->headers->get('Accept') === 'application/json') {
+            return $this->json([
+                'property' => $property,
+            ], 200, [], ['groups' => ['property:read', 'property:details']]);
+        }
+
+        // Return HTML for browser requests
+        return $this->render('property/show.html.twig', [
             'property' => $property,
-        ], 200, [], ['groups' => ['property:read', 'property:details']]);
+        ]);
     }
 }

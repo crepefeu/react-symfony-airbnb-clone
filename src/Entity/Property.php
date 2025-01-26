@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PropertyRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -19,6 +21,7 @@ class Property
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['property:read', 'property:details'])]
     private ?string $description = null;
 
     #[ORM\Column]
@@ -27,11 +30,13 @@ class Property
     #[ORM\Column]
     private ?int $maxGuests = null;
 
-    #[ORM\Column]
-    private ?int $bedrooms = null;
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['property:read', 'property:details'])]
+    private int $bedrooms;
 
-    #[ORM\Column]
-    private ?int $bathrooms = null;
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['property:read', 'property:details'])]
+    private int $bathrooms;
 
     #[ORM\Column(type: 'float')]
     #[Groups(['property:read'])]
@@ -61,10 +66,18 @@ class Property
     #[Groups(['property:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /**
+     * @var Collection<int, Amenity>
+     */
+    #[ORM\OneToMany(targetEntity: Amenity::class, mappedBy: 'property', orphanRemoval: true)]
+    #[Groups(['property:read'])]
+    private Collection $amenities;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->amenities = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -230,6 +243,37 @@ class Property
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Amenity>
+     */
+    #[Groups(['property:read'])]
+    public function getAmenities(): Collection
+    {
+        return $this->amenities;
+    }
+
+    public function addAmenity(Amenity $amenity): static
+    {
+        if (!$this->amenities->contains($amenity)) {
+            $this->amenities->add($amenity);
+            $amenity->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAmenity(Amenity $amenity): static
+    {
+        if ($this->amenities->removeElement($amenity)) {
+            // set the owning side to null (unless already changed)
+            if ($amenity->getProperty() === $this) {
+                $amenity->setProperty(null);
+            }
+        }
+
         return $this;
     }
 }

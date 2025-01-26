@@ -14,5 +14,3 @@ registerReactControllerComponents(require.context(
     true,
     /\.(j|t)sx?$/
 ));
-
-console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');

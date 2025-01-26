@@ -122,7 +122,6 @@ const Map = () => {
         scaleControl: true,
         rotateControl: false,
         panControl: false,
-        locationButton: true, // This enables the native location button
         gestureHandling: 'greedy',
     }), []);
 
@@ -147,8 +146,8 @@ const Map = () => {
         });
     };
     return (
-        <div className="w-full h-full"> {/* Changed from fragment to div and removed Header */}
-            <div className="h-full"> {/* Changed position styling */}
+        <div className="w-full h-full">
+            <div className="h-full">
                 <LoadScript 
                     googleMapsApiKey={'AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA'}
                     mapIds={['43f679ecd42ba96e']}
@@ -205,7 +204,7 @@ const Map = () => {
                                     </div>
                                     <button 
                                         className="mt-3 bg-rose-500 text-white px-4 py-2 rounded-lg w-full hover:bg-rose-600"
-                                        onClick={() => window.location.href = `/properties/${selectedProperty.id}`}
+                                        onClick={() => window.location.href = `/property/${selectedProperty.id}`}
                                     >
                                         View Details
                                     </button>
