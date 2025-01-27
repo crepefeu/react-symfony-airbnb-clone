@@ -102,7 +102,7 @@ const ReservationCard = ({ property }) => {
     };
 
     return (
-        <div ref={cardRef} className="border rounded-xl p-6 shadow-lg h-fit sticky top-24 space-y-4 z-[100]">
+        <div ref={cardRef} className="border rounded-xl p-6 shadow-lg h-fit sticky top-24 space-y-4 z-40">
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <span className="text-2xl font-bold">€{property.price}</span>

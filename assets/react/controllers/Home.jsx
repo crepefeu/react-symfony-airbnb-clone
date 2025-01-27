@@ -19,7 +19,7 @@ const HomeContent = () => {
                     <Map />
                 </div>
             ) : (
-                <div className="container mx-auto h-full overflow-y-auto pb-24 px-4 mt-6">
+                <div className="container mx-auto h-full overflow-y-auto pb-16 px-4 mt-6">
                     <PropertiesList />
                 </div>
             )}

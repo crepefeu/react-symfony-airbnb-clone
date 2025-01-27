@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from './Header';
 import Breadcrumbs from './Breadcrumbs';
+import Footer from './Footer';
 
 const Layout = ({ children, breadcrumbs }) => {
     return (
@@ -10,6 +11,7 @@ const Layout = ({ children, breadcrumbs }) => {
             <main className="flex-1">
                 {children}
             </main>
+            <Footer />
         </div>
     );
 };
