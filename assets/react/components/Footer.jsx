@@ -19,7 +19,7 @@ const Footer = () => {
                         <ul className="space-y-3">
                             <li><a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Diversity & Belonging</a></li>
                             <li><a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Accessibility</a></li>
-                            <li><a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Airbnb Associates</a></li>
+                            <li><a href="#" className="text-gray-600 hover:text-gray-900 text-sm">HostMe Associates</a></li>
                             <li><a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Guest Referrals</a></li>
                         </ul>
                     </div>
@@ -33,7 +33,7 @@ const Footer = () => {
                         </ul>
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-4">Airbnb</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-4">HostMe</h3>
                         <ul className="space-y-3">
                             <li><a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Newsroom</a></li>
                             <li><a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Careers</a></li>
@@ -45,7 +45,7 @@ const Footer = () => {
                 <div className="border-t border-gray-200 mt-8 pt-8">
                     <div className="flex flex-col md:flex-row justify-between items-center">
                         <div className="flex items-center space-x-6 mb-4 md:mb-0">
-                            <span className="text-sm text-gray-600">© 2023 Airbnb, Inc.</span>
+                            <span className="text-sm text-gray-600">© 2023 HostMe, Inc.</span>
                             <span className="text-gray-600">·</span>
                             <a href="#" className="text-sm text-gray-600 hover:text-gray-900">Privacy</a>
                             <span className="text-gray-600">·</span>

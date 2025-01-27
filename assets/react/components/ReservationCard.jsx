@@ -192,7 +192,7 @@ const ReservationCard = ({ property }) => {
                                     inline
                                     monthsShown={2}
                                     minDate={new Date()}
-                                    calendarClassName="flex airbnb-style border-none"
+                                    calendarClassName="flex hostMe-style border-none"
                                 />
                             </div>
                             
