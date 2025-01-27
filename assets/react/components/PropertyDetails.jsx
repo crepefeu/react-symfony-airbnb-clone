@@ -22,13 +22,13 @@ const PropertyDetails = ({ property }) => {
           {property.propertyType} - {property.address.city},{" "}
           {property.address.country}
         </p>
-        <div className="flex gap-[1px] items-center">
+        <div className="flex items-center">
           <p>{property.bedrooms} bedrooms</p>
 
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
