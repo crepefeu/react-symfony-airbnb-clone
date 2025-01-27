@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import ImageGrid from "./ImageGrid";
 import AmenitiesSection from "./AmenitiesSection";
@@ -6,21 +6,34 @@ import HostInfo from "./HostInfo";
 import ReviewsList from "./ReviewsList";
 import ReservationCard from "./ReservationCard";
 import LocationSection from "./LocationSection";
+import ReviewsModal from "./ReviewsModal";
 
 const PropertyDetails = ({ property }) => {
+  const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-4">{property.title}</h1>
 
-      <div className="flex justify-between items-center mb-6">
+      <ImageGrid images={property.images} />
+
+      <div className="flex justify-between items-center my-4">
         <div className="flex gap-4 text-gray-600">
           <span className="flex items-center gap-2">
             <i className="fas fa-star text-yellow-400"></i>
-            {property.averageRating
-              ? `${property.averageRating.toFixed(1)} · ${
-                  property.reviews.length
-                } reviews`
-              : "New"}
+            {property.averageRating ? (
+              <>
+                {property.averageRating.toFixed(1)} ·{" "}
+                <button
+                  onClick={() => setIsReviewsModalOpen(true)}
+                  className="text-primary-600 hover:underline"
+                >
+                  {property.reviews.length} reviews
+                </button>
+              </>
+            ) : (
+              "New"
+            )}
           </span>
           <span className="flex items-center gap-2">
             <i className="fas fa-map-marker-alt"></i>
@@ -28,8 +41,6 @@ const PropertyDetails = ({ property }) => {
           </span>
         </div>
       </div>
-
-      <ImageGrid images={property.images} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
         <div className="flex flex-col md:col-span-2">
@@ -68,6 +79,13 @@ const PropertyDetails = ({ property }) => {
           country={property.address.country}
         />
       </div>
+
+      <ReviewsModal
+        isOpen={isReviewsModalOpen}
+        onClose={() => setIsReviewsModalOpen(false)}
+        reviews={property.reviews}
+        averageRating={property.averageRating}
+      />
     </div>
   );
 };

@@ -3,16 +3,18 @@ import PropTypes from 'prop-types';
 import Review from './Review';
 import StarRating from './StarRating';
 
-const ReviewsList = ({ reviews, averageRating }) => {
+const ReviewsList = ({ reviews, averageRating, hideTitle = false, fullWidth = false }) => {
     return (
         <div className="py-8 border-t border-gray-200">
-            <div className="flex items-center gap-4 mb-6">
-                <StarRating rating={averageRating} size="lg" />
-                <h3 className="text-2xl font-semibold">
-                    {averageRating.toFixed(1)} · {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
-                </h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {!hideTitle && (
+                <div className="flex items-center gap-4 mb-6">
+                    <StarRating rating={averageRating} size="lg" />
+                    <h3 className="text-2xl font-semibold">
+                        {averageRating.toFixed(1)} · {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+                    </h3>
+                </div>
+            )}
+            <div className={`grid grid-cols-1 ${fullWidth ? '' : 'md:grid-cols-2'} gap-8`}>
                 {reviews.map((review) => (
                     <Review key={review.id} review={review} />
                 ))}
@@ -29,7 +31,9 @@ ReviewsList.propTypes = {
         createdAt: PropTypes.string.isRequired,
         author: PropTypes.object.isRequired
     })).isRequired,
-    averageRating: PropTypes.number.isRequired
+    averageRating: PropTypes.number.isRequired,
+    hideTitle: PropTypes.bool,
+    fullWidth: PropTypes.bool,
 };
 
 export default ReviewsList;

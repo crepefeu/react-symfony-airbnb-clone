@@ -39,6 +39,7 @@ class PropertyNormalizer implements NormalizerInterface
                     'name' => $amenity->getCategory()->value,
                     'icon' => $amenity->getCategory()->getIcon()
                 ],
+                'icon' => $amenity->getCategory()->getIcon(), // Add this line
             ], $object->getAmenities()->toArray()),
             'averageRating' => $object->getAverageRating(),
             'owner' => [
@@ -67,6 +68,7 @@ class PropertyNormalizer implements NormalizerInterface
                             'name' => $amenity->getCategory()->value,
                             'icon' => $amenity->getCategory()->getIcon()
                         ],
+                        'icon' => $amenity->getCategory()->getIcon(), // Add this line
                     ], $property->getAmenities()->toArray()),
                     'averageRating' => $property->getAverageRating(),
                     'createdAt' => $property->getCreatedAt()->format('c'),
