@@ -19,10 +19,27 @@ const PropertyDetails = ({ property }) => {
 
       <div className="flex flex-col my-4">
         <p className="text-2xl font-medium">
-          {property.propertyType} - {property.address.city},{" "}
+          {property.propertyType} in {property.address.city},{" "}
           {property.address.country}
         </p>
         <div className="flex items-center">
+          <p>{property.maxGuests} guests</p>
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            className="lucide lucide-dot mt-[2px]"
+          >
+            <circle cx="12.1" cy="12.1" r="1" />
+          </svg>
+
           <p>{property.bedrooms} bedrooms</p>
 
           <svg

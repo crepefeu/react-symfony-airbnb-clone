@@ -13,6 +13,8 @@ const ReservationCard = ({ property }) => {
     const cardRef = useRef(null);
     const [calendarPosition, setCalendarPosition] = useState('left');
     const [calendarOffset, setCalendarOffset] = useState(0);
+    const [guests, setGuests] = useState({ adults: 1, children: 0, infants: 0 });
+    const [isGuestSelectorOpen, setIsGuestSelectorOpen] = useState(false);
 
     const handleClearDates = () => {
         setDateRange([null, null]);
@@ -58,8 +60,47 @@ const ReservationCard = ({ property }) => {
         });
     };
 
+    const GuestTypeSelector = ({ type, value, onChange, max, description }) => (
+        <div className="flex items-center justify-between py-3">
+            <div>
+                <div className="font-semibold">{type}</div>
+                <div className="text-sm text-gray-500">{description}</div>
+            </div>
+            <div className="flex items-center gap-3">
+                <button
+                    className={`rounded-full w-8 h-8 border flex items-center justify-center 
+                        ${value <= 0 ? 'border-gray-200 text-gray-200' : 'border-gray-500 text-gray-500 hover:border-black hover:text-black'}`}
+                    onClick={() => onChange(Math.max(0, value - 1))}
+                    disabled={value <= 0}
+                >
+                    -
+                </button>
+                <span className="w-6 text-center">{value}</span>
+                <button
+                    className={`rounded-full w-8 h-8 border flex items-center justify-center 
+                        ${getTotalGuests() >= property.maxGuests ? 'border-gray-200 text-gray-200' : 'border-gray-500 text-gray-500 hover:border-black hover:text-black'}`}
+                    onClick={() => onChange(value + 1)}
+                    disabled={getTotalGuests() >= property.maxGuests}
+                >
+                    +
+                </button>
+            </div>
+        </div>
+    );
+
+    const getTotalGuests = () => guests.adults + guests.children;
+
+    const formatGuestLabel = () => {
+        const total = getTotalGuests();
+        let label = `${total} ${total === 1 ? 'guest' : 'guests'}`;
+        if (guests.infants > 0) {
+            label += `, ${guests.infants} ${guests.infants === 1 ? 'infant' : 'infants'}`;
+        }
+        return label;
+    };
+
     return (
-        <div ref={cardRef} className="border rounded-xl p-6 shadow-lg h-fit sticky top-24 space-y-4">
+        <div ref={cardRef} className="border rounded-xl p-6 shadow-lg h-fit sticky top-24 space-y-4 z-[100]">
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <span className="text-2xl font-bold">€{property.price}</span>
@@ -172,15 +213,46 @@ const ReservationCard = ({ property }) => {
                     </>
                 )}
 
-                <div className="p-3 border-t">
-                    <label className="block text-xs uppercase font-semibold text-gray-600">Guests</label>
-                    <select className="w-full mt-1 border-none p-0 focus:ring-0">
-                        {[...Array(property.maxGuests)].map((_, i) => (
-                            <option key={i + 1} value={i + 1}>
-                                {i + 1} {i === 0 ? 'guest' : 'guests'}
-                            </option>
-                        ))}
-                    </select>
+                <div className="p-3 border-t relative">
+                    <button
+                        onClick={() => setIsGuestSelectorOpen(!isGuestSelectorOpen)}
+                        className="w-full text-left"
+                    >
+                        <label className="block text-xs uppercase font-semibold text-gray-600">Guests</label>
+                        <div className="mt-1">{formatGuestLabel()}</div>
+                    </button>
+
+                    {isGuestSelectorOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsGuestSelectorOpen(false)} />
+                            <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border p-4">
+                                <GuestTypeSelector
+                                    type="Adults"
+                                    description="Age 13+"
+                                    value={guests.adults}
+                                    onChange={(value) => setGuests({ ...guests, adults: value })}
+                                    max={property.maxGuests}
+                                />
+                                <GuestTypeSelector
+                                    type="Children"
+                                    description="Ages 2-12"
+                                    value={guests.children}
+                                    onChange={(value) => setGuests({ ...guests, children: value })}
+                                    max={property.maxGuests}
+                                />
+                                <GuestTypeSelector
+                                    type="Infants"
+                                    description="Under 2"
+                                    value={guests.infants}
+                                    onChange={(value) => setGuests({ ...guests, infants: value })}
+                                    max={5}
+                                />
+                                <div className="text-sm text-gray-500 mt-4">
+                                    {property.maxGuests} guests maximum. Infants don't count toward the guest total.
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
