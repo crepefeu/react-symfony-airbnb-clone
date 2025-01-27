@@ -143,7 +143,7 @@ const ReservationCard = ({ property }) => {
                         
                         {/* Calendar Menu - Now positioned relative to the reservation card */}
                         <div 
-                            className="absolute z-50 bg-white rounded-lg shadow-xl mt-2"
+                            className="absolute z-50 bg-white rounded-lg shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)] mt-2"
                             style={{
                                 width: '750px',
                                 left: `calc(70% - ${calendarOffset}px)`,

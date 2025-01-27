@@ -25,7 +25,7 @@ const ReviewsModal = ({ isOpen, onClose, reviews, averageRating }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="w-full" title={`${reviews.length} reviews · ${averageRating?.toFixed(1)} average`}>
-        <div className="flex justify-end mb-6">
+        <div className="flex mb-6">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
