@@ -12,6 +12,8 @@ class UserFixtures extends Fixture
     public const ADMIN_REFERENCE = 'user-admin';
     public const HOST1_REFERENCE = 'user-host-1';
     public const HOST2_REFERENCE = 'user-host-2';
+    public const HOST3_REFERENCE = 'user-host-3';
+    public const HOST4_REFERENCE = 'user-host-4';
     public const USER1_REFERENCE = 'user-regular-1';
     public const USER2_REFERENCE = 'user-regular-2';
 
@@ -23,22 +25,48 @@ class UserFixtures extends Fixture
             'firstName' => 'Admin',
             'lastName' => 'User',
             'createdAt' => '2023-01-01',
+            'profilePicture' => 'https://randomuser.me/api/portraits/men/1.jpg',
+            'bio' => 'Platform administrator'
         ],
         self::HOST1_REFERENCE => [
-            'email' => 'host1@example.com',
+            'email' => 'sophie.martin@example.com',
             'roles' => ['ROLE_HOST'],
             'password' => 'host123',
-            'firstName' => 'Jean',
-            'lastName' => 'Dupont',
+            'firstName' => 'Sophie',
+            'lastName' => 'Martin',
             'createdAt' => '2023-02-01',
+            'profilePicture' => 'https://randomuser.me/api/portraits/women/32.jpg',
+            'bio' => 'Interior designer and passionate about Parisian architecture. I love sharing the beauty of my properties with travelers from around the world.'
         ],
         self::HOST2_REFERENCE => [
-            'email' => 'host2@example.com',
+            'email' => 'pierre.dubois@example.com',
             'roles' => ['ROLE_HOST'],
             'password' => 'host123',
-            'firstName' => 'Marie',
-            'lastName' => 'Laurent',
-            'createdAt' => '2023-02-15',
+            'firstName' => 'Pierre',
+            'lastName' => 'Dubois',
+            'createdAt' => '2023-03-15',
+            'profilePicture' => 'https://randomuser.me/api/portraits/men/45.jpg',
+            'bio' => 'Retired architect with a passion for historic Parisian buildings.'
+        ],
+        self::HOST3_REFERENCE => [
+            'email' => 'isabelle.roux@example.com',
+            'roles' => ['ROLE_HOST'],
+            'password' => 'host123',
+            'firstName' => 'Isabelle',
+            'lastName' => 'Roux',
+            'createdAt' => '2023-04-01',
+            'profilePicture' => 'https://randomuser.me/api/portraits/women/68.jpg',
+            'bio' => 'Professional photographer and hospitality enthusiast.'
+        ],
+        self::HOST4_REFERENCE => [
+            'email' => 'louis.bernard@example.com',
+            'roles' => ['ROLE_HOST'],
+            'password' => 'host123',
+            'firstName' => 'Louis',
+            'lastName' => 'Bernard',
+            'createdAt' => '2023-05-01',
+            'profilePicture' => 'https://randomuser.me/api/portraits/men/55.jpg',
+            'bio' => 'Local guide and hospitality professional.'
         ],
         self::USER1_REFERENCE => [
             'email' => 'user1@example.com',
@@ -47,6 +75,7 @@ class UserFixtures extends Fixture
             'firstName' => 'John',
             'lastName' => 'Doe',
             'createdAt' => '2023-03-01',
+            'profilePicture' => 'https://randomuser.me/api/portraits/men/3.jpg'
         ],
         self::USER2_REFERENCE => [
             'email' => 'user2@example.com',
@@ -55,6 +84,7 @@ class UserFixtures extends Fixture
             'firstName' => 'Jane',
             'lastName' => 'Smith',
             'createdAt' => '2023-03-15',
+            'profilePicture' => 'https://randomuser.me/api/portraits/women/3.jpg'
         ],
     ];
 
@@ -70,6 +100,8 @@ class UserFixtures extends Fixture
                 ->setRoles($userData['roles'])
                 ->setFirstName($userData['firstName'])
                 ->setLastName($userData['lastName'])
+                ->setProfilePicture($userData['profilePicture'])
+                ->setBio($userData['bio'] ?? null)
                 ->setCreatedAt(new \DateTimeImmutable($userData['createdAt']));
 
             $hashedPassword = $this->passwordHasher->hashPassword(

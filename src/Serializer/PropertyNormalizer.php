@@ -31,6 +31,7 @@ class PropertyNormalizer implements NormalizerInterface
             'latitude' => $object->getLatitude(),
             'longitude' => $object->getLongitude(),
             'propertyType' => $object->getPropertyType(),
+            'images' => $object->getImages(), // Add images array
             'address' => $this->normalizer->normalize($object->getAddress(), $format, $context),
             'amenities' => array_map(fn($amenity) => [
                 'id' => $amenity->getId(),
@@ -46,6 +47,8 @@ class PropertyNormalizer implements NormalizerInterface
                 'id' => $object->getOwner()->getId(),
                 'firstName' => $object->getOwner()->getFirstName(),
                 'lastName' => $object->getOwner()->getLastName(),
+                'profilePicture' => $object->getOwner()->getProfilePicture(), // Add profile picture
+                'bio' => $object->getOwner()->getBio(), // Add bio
                 'propertiesCount' => $object->getOwner()->getProperties()->count(),
                 'averageRating' => $object->getOwner()->getAverageRating(),
                 'createdAt' => $object->getOwner()->getCreatedAt()->format('c'),
@@ -83,8 +86,11 @@ class PropertyNormalizer implements NormalizerInterface
                     'id' => $review->getAuthor()->getId(),
                     'firstName' => $review->getAuthor()->getFirstName(),
                     'lastName' => $review->getAuthor()->getLastName(),
+                    'profilePicture' => $review->getAuthor()->getProfilePicture(), // Add reviewer's profile picture
                 ],
             ], $object->getReviews()->toArray()),
+            'createdAt' => $object->getCreatedAt()->format('c'),
+            'updatedAt' => $object->getUpdatedAt()->format('c'),
         ];
     }
 

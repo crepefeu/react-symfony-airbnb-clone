@@ -94,7 +94,7 @@ const PropertiesList = () => {
         sortBy={sortBy}
       />
       <div className="py-8">
-        <div className="px-4 md:px-8 max-w-7xl mx-auto">
+        <div className="px-4 md:px-8 mx-auto">
           {filteredProperties.length === 0 ? (
             <div className="flex flex-col items-center gap-6 justify-center py-12 text-gray-500">
               <div className="w-48 h-48">
@@ -157,7 +157,7 @@ const PropertiesList = () => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredProperties.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}

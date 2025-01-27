@@ -20,7 +20,7 @@ const ImageGrid = ({ images = [] }) => {
   }
 
   return (
-    <div className="relative grid grid-cols-4 gap-2 rounded-lg overflow-hidden h-[50vh] mb-8">
+    <div className="relative grid grid-cols-4 grid-rows-2 gap-2 rounded-lg overflow-hidden h-[50vh] mb-8">
       <div className="col-span-2 row-span-2 relative">
         <img
           src={displayImages[0]}
@@ -28,34 +28,15 @@ const ImageGrid = ({ images = [] }) => {
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="relative">
-        <img
-          src={displayImages[1]}
-          alt="Property view 2"
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="relative">
-        <img
-          src={displayImages[2]}
-          alt="Property view 3"
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="relative">
-        <img
-          src={displayImages[3]}
-          alt="Property view 4"
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="relative">
-        <img
-          src={displayImages[4]}
-          alt="Property view 5"
-          className="w-full h-full object-cover"
-        />
-      </div>
+      {displayImages.slice(1, 5).map((image, index) => (
+        <div key={index} className="relative h-full">
+          <img
+            src={image}
+            alt={`Property view ${index + 2}`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ))}
       <button
         onClick={() => setShowAllImages(true)}
         className="flex items-center gap-4 absolute bottom-4 right-4 border border-black text-sm bg-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-colors"

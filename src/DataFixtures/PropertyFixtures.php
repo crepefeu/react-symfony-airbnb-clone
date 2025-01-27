@@ -9,269 +9,336 @@ use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use App\DataFixtures\AmenityFixtures;
 
 class PropertyFixtures extends Fixture implements DependentFixtureInterface
 {
     private const PROPERTY_TYPES = ['Apartment', 'House', 'Studio', 'Loft', 'Villa'];
 
-    private const PARIS_PROPERTIES = [
-        [
-            'title' => 'Charming Montmartre Apartment',
-            'location' => ['lat' => 48.886705, 'lng' => 2.334184],
-            'price' => 150,
-            'bedrooms' => 2,
-            'bathrooms' => 1,
-            'maxGuests' => 4,
-            'address' => [
-                'streetNumber' => '12',
-                'streetName' => 'Rue Lepic',
-                'complement' => 'Floor 3',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75018'
-            ],
-            'description' => 'Beautiful apartment near Sacré-Cœur',
-            'propertyType' => 'Apartment',
+    private const CITIES = [
+        'Paris' => [
+            'center' => ['lat' => 48.8566, 'lng' => 2.3522],
+            'radius' => 5,
+            'neighborhoods' => [
+                ['Montmartre', 48.886705, 2.334184],
+                ['Le Marais', 48.859405, 2.362233],
+                ['Latin Quarter', 48.848674, 2.344997]
+            ]
         ],
-        [
-            'title' => 'Luxury Marais Loft',
-            'location' => ['lat' => 48.859405, 'lng' => 2.362233],
-            'price' => 280,
-            'bedrooms' => 3,
-            'bathrooms' => 2,
-            'maxGuests' => 6,
-            'address' => [
-                'streetNumber' => '25',
-                'streetName' => 'Rue des Archives',
-                'complement' => '',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75004'
-            ],
-            'description' => 'Spacious loft in the heart of Le Marais',
-            'propertyType' => 'Loft',
+        'London' => [
+            'center' => ['lat' => 51.5074, 'lng' => -0.1278],
+            'radius' => 8,
+            'neighborhoods' => [
+                ['Shoreditch', 51.5229, -0.0777],
+                ['Notting Hill', 51.5115, -0.1960],
+                ['Greenwich', 51.4834, -0.0098]
+            ]
         ],
-        [
-            'title' => 'Eiffel Tower View Studio',
-            'location' => ['lat' => 48.857908, 'lng' => 2.294082],
-            'price' => 200,
-            'bedrooms' => 1,
-            'bathrooms' => 1,
-            'maxGuests' => 2,
-            'address' => [
-                'streetNumber' => '8',
-                'streetName' => 'Avenue de la Bourdonnais',
-                'complement' => '',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75007'
-            ],
-            'description' => 'Cozy studio with direct Eiffel Tower views',
-            'propertyType' => 'Studio',
+        'New York' => [
+            'center' => ['lat' => 40.7128, 'lng' => -74.0060],
+            'radius' => 8,
+            'neighborhoods' => [
+                ['Manhattan', 40.7831, -73.9712],
+                ['Brooklyn', 40.6782, -73.9442],
+                ['Williamsburg', 40.7081, -73.9571]
+            ]
         ],
-        [
-            'title' => 'Latin Quarter Charm',
-            'location' => ['lat' => 48.848674, 'lng' => 2.344997],
-            'price' => 175,
-            'bedrooms' => 2,
-            'bathrooms' => 1,
-            'maxGuests' => 3,
-            'address' => [
-                'streetNumber' => '15',
-                'streetName' => 'Rue Mouffetard',
-                'complement' => '',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75005'
-            ],
-            'description' => 'Traditional apartment in historic district',
-            'propertyType' => 'Apartment',
+        'Tokyo' => [
+            'center' => ['lat' => 35.6762, 'lng' => 139.6503],
+            'radius' => 10,
+            'neighborhoods' => [
+                ['Shibuya', 35.6588, 139.7015],
+                ['Shinjuku', 35.6938, 139.7033],
+                ['Roppongi', 35.6635, 139.7315]
+            ]
         ],
-        [
-            'title' => 'Canal Saint-Martin Hideaway',
-            'location' => ['lat' => 48.872328, 'lng' => 2.366447],
-            'price' => 160,
-            'bedrooms' => 1,
-            'bathrooms' => 1,
-            'maxGuests' => 2,
-            'address' => [
-                'streetNumber' => '95',
-                'streetName' => 'Quai de Valmy',
-                'complement' => '',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75010'
-            ],
-            'description' => 'Modern flat overlooking the canal',
-            'propertyType' => 'Apartment',
-        ],
-        [
-            'title' => 'Opéra District Penthouse',
-            'location' => ['lat' => 48.871799, 'lng' => 2.332069],
-            'price' => 320,
-            'bedrooms' => 3,
-            'bathrooms' => 2,
-            'maxGuests' => 6,
-            'address' => [
-                'streetNumber' => '32',
-                'streetName' => 'Rue de la Chaussée d\'Antin',
-                'complement' => 'Top Floor',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75009'
-            ],
-            'description' => 'Luxurious penthouse with panoramic views of Paris Opera',
-            'propertyType' => 'Penthouse',
-        ],
-        [
-            'title' => 'Champs-Élysées Luxury Suite',
-            'location' => ['lat' => 48.869547, 'lng' => 2.308562],
-            'price' => 450,
-            'bedrooms' => 2,
-            'bathrooms' => 2,
-            'maxGuests' => 4,
-            'address' => [
-                'streetNumber' => '88',
-                'streetName' => 'Avenue des Champs-Élysées',
-                'complement' => 'Building A',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75008'
-            ],
-            'description' => 'High-end apartment on the most beautiful avenue in the world',
-            'propertyType' => 'Apartment',
-        ],
-        [
-            'title' => 'Bastille Artist Studio',
-            'location' => ['lat' => 48.853675, 'lng' => 2.369186],
-            'price' => 140,
-            'bedrooms' => 1,
-            'bathrooms' => 1,
-            'maxGuests' => 2,
-            'address' => [
-                'streetNumber' => '15',
-                'streetName' => 'Rue de la Roquette',
-                'complement' => 'Studio 3B',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75011'
-            ],
-            'description' => 'Bohemian studio in the trendy Bastille neighborhood',
-            'propertyType' => 'Studio',
-        ],
-        [
-            'title' => 'Luxembourg Gardens Retreat',
-            'location' => ['lat' => 48.846937, 'lng' => 2.336164],
-            'price' => 260,
-            'bedrooms' => 2,
-            'bathrooms' => 1,
-            'maxGuests' => 4,
-            'address' => [
-                'streetNumber' => '41',
-                'streetName' => 'Rue Notre Dame des Champs',
-                'complement' => '4th Floor',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75006'
-            ],
-            'description' => 'Elegant apartment near the famous Luxembourg Gardens',
-            'propertyType' => 'Apartment',
-        ],
-        [
-            'title' => 'Belleville Modern Loft',
-            'location' => ['lat' => 48.872424, 'lng' => 2.377131],
-            'price' => 180,
-            'bedrooms' => 2,
-            'bathrooms' => 1,
-            'maxGuests' => 3,
-            'address' => [
-                'streetNumber' => '56',
-                'streetName' => 'Rue de Belleville',
-                'complement' => 'Loft 5',
-                'city' => 'Paris',
-                'state' => 'Île-de-France',
-                'country' => 'France',
-                'zipcode' => '75020'
-            ],
-            'description' => 'Contemporary loft in vibrant multicultural neighborhood',
-            'propertyType' => 'Loft',
+        'Barcelona' => [
+            'center' => ['lat' => 41.3851, 'lng' => 2.1734],
+            'radius' => 5,
+            'neighborhoods' => [
+                ['Gothic Quarter', 41.3827, 2.1777],
+                ['Eixample', 41.3927, 2.1638],
+                ['Gracia', 41.4026, 2.1532]
+            ]
         ]
     ];
 
+    private const PROPERTY_DESCRIPTIONS = [
+        '%s with stunning views in %s. %s featuring modern amenities and local charm.',
+        'Luxurious %s in the heart of %s. %s perfect for your city adventure.',
+        'Charming %s located in %s. %s offering an authentic local experience.',
+        'Contemporary %s situated in vibrant %s. %s with easy access to attractions.'
+    ];
+
+    private const LOCAL_FEATURES = [
+        'Paris' => [
+            'Near charming cafes and boutiques',
+            'Walking distance to museums',
+            'Close to Seine River',
+            'Near Metro stations'
+        ],
+        'London' => [
+            'Close to Underground stations',
+            'Near Royal Parks',
+            'Walking distance to pubs',
+            'Near historic landmarks'
+        ],
+        'New York' => [
+            'Close to subway stations',
+            'Near Central Park',
+            'Walking distance to restaurants',
+            'Easy access to attractions'
+        ],
+        'Tokyo' => [
+            'Near train stations',
+            'Close to shopping districts',
+            'Walking distance to temples',
+            'Near food markets'
+        ],
+        'Barcelona' => [
+            'Near tapas bars',
+            'Close to beaches',
+            'Walking distance to markets',
+            'Near Gothic architecture'
+        ]
+    ];
+
+    private const ADJECTIVES = ['Lovely', 'Beautiful', 'Modern', 'Cozy', 'Stylish'];
+
+    private const PROPERTY_IMAGES = [
+        'Apartment' => [
+            'Modern' => [
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&q=80'
+            ],
+            'Luxury' => [
+                'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1575517111478-7f6afd0973db?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=800&q=80'
+            ]
+        ],
+        'House' => [
+            'Modern' => [
+                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1576941089067-2de3c901e126?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1598228723793-52759bba239c?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80'
+            ],
+            'Traditional' => [
+                'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1604014237800-1c9102c219da?auto=format&fit=crop&w=800&q=80'
+            ]
+        ],
+        'Studio' => [
+            'Urban' => [
+                'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1630699144867-37acec97df5a?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1626178793926-22b28830aa30?auto=format&fit=crop&w=800&q=80'
+            ],
+            'Cozy' => [
+                'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&w=800&q=80'
+            ]
+        ],
+        'Loft' => [
+            'Industrial' => [
+                'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1515263487990-61b07816b324?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=800&q=80'
+            ]
+        ],
+        'Villa' => [
+            'Luxury' => [
+                'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1600607687644-aaca8f1a8409?auto=format&fit=crop&w=800&q=80'
+            ]
+        ]
+    ];
+
+    private function generateRandomLocation(float $baseLat, float $baseLng, float $radiusKm): array
+    {
+        $radiusEarthKm = 6371;
+        
+        // Convert radius from kilometers to radians
+        $radiusRadian = $radiusKm / $radiusEarthKm;
+        
+        // Random angle
+        $u = rand(0, 1000000) / 1000000;
+        $v = rand(0, 1000000) / 1000000;
+        
+        $w = $radiusRadian * sqrt($u);
+        $t = 2 * pi() * $v;
+        
+        $x = $w * cos($t);
+        $y = $w * sin($t);
+        
+        // Convert to latitude and longitude
+        $newLng = $baseLng + ($x / cos(deg2rad($baseLat)));
+        $newLat = $baseLat + $y;
+        
+        return [$newLat, $newLng];
+    }
+
+    private function generateStreetName(string $neighborhood): string
+    {
+        $streets = [
+            'Paris' => ['Rue de', 'Avenue', 'Boulevard', 'Place'],
+            'London' => ['Street', 'Road', 'Lane', 'Square'],
+            'New York' => ['Street', 'Avenue', 'Boulevard', 'Place'],
+            'Tokyo' => ['Dori', 'Street', 'Avenue'],
+            'Barcelona' => ['Carrer de', 'Avinguda', 'Passeig de'],
+        ];
+
+        $numbers = range(1, 150);
+        $number = $numbers[array_rand($numbers)];
+
+        $city = explode(',', $neighborhood)[0];
+        $prefixes = $streets[$city] ?? ['Street'];
+        $prefix = $prefixes[array_rand($prefixes)];
+
+        return $number . ' ' . $prefix . ' ' . $neighborhood;
+    }
+
     public function load(ObjectManager $manager): void
     {
-        // Get host users from UserFixtures
-        $host1 = $this->getReference(UserFixtures::HOST1_REFERENCE, User::class);
-        $host2 = $this->getReference(UserFixtures::HOST2_REFERENCE, User::class);
+        $hosts = [
+            $this->getReference(UserFixtures::HOST1_REFERENCE, User::class),
+            $this->getReference(UserFixtures::HOST2_REFERENCE, User::class),
+            $this->getReference(UserFixtures::HOST3_REFERENCE, User::class),
+            $this->getReference(UserFixtures::HOST4_REFERENCE, User::class),
+        ];
 
-        foreach (self::PARIS_PROPERTIES as $index => $propertyData) {
-            $property = new Property();
-            $property->setTitle($propertyData['title']);
-            $property->setDescription($propertyData['description']);
-            $property->setPrice($propertyData['price']);
-            $property->setBedrooms($propertyData['bedrooms']);
-            $property->setBathrooms($propertyData['bathrooms']);
-            $property->setMaxGuests($propertyData['maxGuests']);
-            $property->setLatitude($propertyData['location']['lat']);
-            $property->setLongitude($propertyData['location']['lng']);
-            $property->setPropertyType($propertyData['propertyType']);
+        // Get references for essential amenities
+        $wifiAmenity = $this->getReference('amenity_template_0', Amenity::class);
+        $smokeAlarmAmenity = $this->getReference('amenity_template_5', Amenity::class);
+        
+        // Get total number of amenities
+        $amenityRefs = range(0, count(AmenityFixtures::AMENITIES) - 1);
 
-            // Create PostGIS point object for property location
-            $point = sprintf('POINT(%f %f)', 
-                $propertyData['location']['lng'],
-                $propertyData['location']['lat']
-            );
-            $property->setLocation($point);
-
-            $address = new Address();
-            $address->setStreetNumber($propertyData['address']['streetNumber']);
-            $address->setStreetName($propertyData['address']['streetName']);
-            $address->setCity($propertyData['address']['city']);
-            $address->setState($propertyData['address']['state']);
-            $address->setCountry($propertyData['address']['country']);
-            $address->setZipcode($propertyData['address']['zipcode']);
+        $index = 0;
+        foreach (self::CITIES as $cityName => $cityData) {
+            // Create 4-6 properties per city
+            $numProperties = rand(4, 6);
             
-            // Set coordinates for both Property and Address
-            $address->setCoordinates(
-                $propertyData['location']['lat'],
-                $propertyData['location']['lng']
-            );
+            for ($i = 0; $i < $numProperties; $i++) {
+                $property = new Property();
+                
+                // Select random neighborhood
+                $neighborhood = $cityData['neighborhoods'][array_rand($cityData['neighborhoods'])];
+                [$lat, $lng] = $this->generateRandomLocation($neighborhood[1], $neighborhood[2], 1);
+                
+                $propertyType = self::PROPERTY_TYPES[array_rand(self::PROPERTY_TYPES)];
+                
+                $property->setTitle(sprintf("%s %s in %s", 
+                    self::ADJECTIVES[array_rand(self::ADJECTIVES)],  // Fix here
+                    $propertyType,
+                    $neighborhood[0]
+                ));
+                
+                $property->setLatitude($lat);
+                $property->setLongitude($lng);
+                $property->setPropertyType($propertyType);
+                $property->setPrice(rand(80, 500));
+                $property->setBedrooms(rand(1, 4));
+                $property->setBathrooms(rand(1, 3));
+                $property->setMaxGuests(rand(2, 8));
+                
+                // Create description using city-specific features
+                $description = sprintf(
+                    self::PROPERTY_DESCRIPTIONS[array_rand(self::PROPERTY_DESCRIPTIONS)],
+                    $propertyType,
+                    $neighborhood[0],
+                    self::LOCAL_FEATURES[$cityName][array_rand(self::LOCAL_FEATURES[$cityName])]
+                );
+                $property->setDescription($description);
+                
+                // Set address
+                $address = new Address();
+                $address->setCity($cityName);
+                $address->setCountry($this->getCityCountry($cityName));
+                $address->setStreetNumber((string)rand(1, 150));
+                $address->setStreetName($this->generateStreetName($neighborhood[0]));
+                $address->setZipcode(sprintf('%05d', rand(10000, 99999)));
+                $address->setState('');  // Optional for most cities
+                $address->setCoordinates($lat, $lng);
 
-            $property->setAddress($address);
-            
-            // Set the owner (alternate between hosts)
-            $property->setOwner($index % 2 === 0 ? $host1 : $host2);
+                // Important: Set the address before persisting the property
+                $property->setAddress($address);
 
-            // Create new amenities for each property based on templates
-            $numAmenities = rand(5, 10);
-            $amenityIndices = (array)array_rand(range(0, 17), $numAmenities);
-            
-            foreach ($amenityIndices as $amenityIndex) {
-                $amenityTemplate = $this->getReference('amenity_template_' . $amenityIndex, Amenity::class);
-                $amenity = new Amenity();
-                $amenity->setName($amenityTemplate->getName());
-                $amenity->setCategory($amenityTemplate->getCategory());
-                $amenity->setProperty($property);
-                $manager->persist($amenity);
-                $property->addAmenity($amenity);
+                // Select random style based on property type
+                $propertyStyles = array_keys(self::PROPERTY_IMAGES[$propertyType]);
+                $selectedStyle = $propertyStyles[array_rand($propertyStyles)];
+                $imagePool = self::PROPERTY_IMAGES[$propertyType][$selectedStyle];
+                
+                // Ensure we have at least 5 images by repeating if necessary
+                while (count($imagePool) < 5) {
+                    $imagePool = array_merge($imagePool, $imagePool);
+                }
+                
+                // Take first 5 images after shuffling
+                shuffle($imagePool);
+                $selectedImages = array_slice($imagePool, 0, 5);
+
+                $property->setImages($selectedImages);
+
+                // Make sure createdAt and updatedAt are set
+                $property->setCreatedAt(new \DateTimeImmutable());
+                $property->setUpdatedAt(new \DateTimeImmutable());
+
+                // Add amenities (between 6 and 12 amenities per property)
+                $numAmenities = rand(6, 12);
+                
+                // Always include essential amenities
+                $property->addAmenity(clone $wifiAmenity);
+                $property->addAmenity(clone $smokeAlarmAmenity);
+                
+                // Shuffle remaining amenities and select random number
+                $remainingAmenities = array_diff($amenityRefs, [0, 5]);
+                shuffle($remainingAmenities);
+                $selectedAmenities = array_slice($remainingAmenities, 0, $numAmenities - 2);
+                
+                foreach ($selectedAmenities as $amenityIndex) {
+                    $amenity = $this->getReference('amenity_template_' . $amenityIndex, Amenity::class);
+                    $property->addAmenity(clone $amenity);
+                }
+
+                $property->setOwner($hosts[array_rand($hosts)]);
+                
+                $this->addReference('property_' . $index, $property);
+                $manager->persist($property);
+                $manager->persist($address);
+                
+                $index++;
             }
-
-            // Add reference for the property
-            $this->addReference('property_' . $index, $property);
-            $manager->persist($address);
-            $manager->persist($property);
         }
 
         $manager->flush();
+    }
+
+    private function getCityCountry(string $city): string
+    {
+        return match($city) {
+            'Paris' => 'France',
+            'London' => 'United Kingdom',
+            'New York' => 'United States',
+            'Tokyo' => 'Japan',
+            'Barcelona' => 'Spain',
+            default => 'Unknown'
+        };
     }
 
     public function getDependencies(): array

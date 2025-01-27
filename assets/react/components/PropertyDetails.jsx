@@ -15,7 +15,10 @@ const PropertyDetails = ({ property }) => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-medium mb-4">{property.title}</h1>
 
-      <ImageGrid images={property.images} />
+      {/* Updated ImageGrid component */}
+      <div className="mb-8">
+        <ImageGrid images={property.images} />
+      </div>
 
       <div className="flex flex-col my-4">
         <p className="text-2xl font-medium">

@@ -43,6 +43,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['property:read'])]
+    private ?string $profilePicture = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['property:read'])]
+    private ?string $bio = null;
+
     /**
      * @var Collection<int, Review>
      */
@@ -168,6 +176,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->lastName = $lastName;
 
+        return $this;
+    }
+
+    public function getProfilePicture(): ?string
+    {
+        return $this->profilePicture;
+    }
+
+    public function setProfilePicture(?string $profilePicture): self
+    {
+        $this->profilePicture = $profilePicture;
+        return $this;
+    }
+
+    public function getBio(): ?string
+    {
+        return $this->bio;
+    }
+
+    public function setBio(?string $bio): self
+    {
+        $this->bio = $bio;
         return $this;
     }
 

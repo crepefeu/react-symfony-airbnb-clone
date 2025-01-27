@@ -66,10 +66,14 @@ class Property
     #[Groups(['property:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $images = [];
+
     /**
      * @var Collection<int, Amenity>
      */
-    #[ORM\OneToMany(targetEntity: Amenity::class, mappedBy: 'property', orphanRemoval: true)]
+    #[ORM\ManyToMany(targetEntity: Amenity::class, cascade: ['persist'])]
+    #[ORM\JoinTable(name: 'property_amenities')]
     #[Groups(['property:read'])]
     private Collection $amenities;
 
@@ -256,6 +260,17 @@ class Property
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    public function getImages(): ?array
+    {
+        return $this->images;
+    }
+
+    public function setImages(?array $images): self
+    {
+        $this->images = $images;
         return $this;
     }
 
