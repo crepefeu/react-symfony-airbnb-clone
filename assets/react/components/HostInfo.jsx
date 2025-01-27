@@ -11,7 +11,7 @@ const HostInfo = ({ host, propertiesCount }) => {
   };
 
   return (
-    <div className="flex items-start gap-4 py-6 border-t border-gray-200">
+    <div className="flex items-start gap-4 p-6 border-t border-gray-200">
       <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center">
         <span className="text-xl text-gray-600">
           {host.firstName.charAt(0)}

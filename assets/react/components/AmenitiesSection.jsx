@@ -16,7 +16,7 @@ const AmenitiesSection = ({ amenities }) => {
 
     return (
         <>
-            <div className="mt-8">
+            <div className="py-6">
                 <h3 className="text-xl font-semibold mb-4">What this place offers</h3>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {visibleAmenities.map(renderAmenityItem)}

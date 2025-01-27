@@ -35,7 +35,10 @@ class PropertyNormalizer implements NormalizerInterface
             'amenities' => array_map(fn($amenity) => [
                 'id' => $amenity->getId(),
                 'name' => $amenity->getName(),
-                'category' => $amenity->getCategory()->value,
+                'category' => [
+                    'name' => $amenity->getCategory()->value,
+                    'icon' => $amenity->getCategory()->getIcon()
+                ],
             ], $object->getAmenities()->toArray()),
             'averageRating' => $object->getAverageRating(),
             'owner' => [
@@ -60,7 +63,10 @@ class PropertyNormalizer implements NormalizerInterface
                     'amenities' => array_map(fn($amenity) => [
                         'id' => $amenity->getId(),
                         'name' => $amenity->getName(),
-                        'category' => $amenity->getCategory()->value,
+                        'category' => [
+                            'name' => $amenity->getCategory()->value,
+                            'icon' => $amenity->getCategory()->getIcon()
+                        ],
                     ], $property->getAmenities()->toArray()),
                     'averageRating' => $property->getAverageRating(),
                     'createdAt' => $property->getCreatedAt()->format('c'),
