@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import StarRating from './StarRating';
+import Modal from './Modal';
 
 const ReservationCard = ({ property }) => {
     const [dateRange, setDateRange] = useState([null, null]);
@@ -15,6 +16,7 @@ const ReservationCard = ({ property }) => {
     const [calendarOffset, setCalendarOffset] = useState(0);
     const [guests, setGuests] = useState({ adults: 1, children: 0, infants: 0 });
     const [isGuestSelectorOpen, setIsGuestSelectorOpen] = useState(false);
+    const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
     const handleClearDates = () => {
         setDateRange([null, null]);
@@ -196,12 +198,20 @@ const ReservationCard = ({ property }) => {
                             
                             {/* Bottom section */}
                             <div className="p-4 border-t flex justify-between items-center">
-                                <button
-                                    onClick={handleClearDates}
-                                    className="text-sm font-semibold underline"
-                                >
-                                    Clear dates
-                                </button>
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={handleClearDates}
+                                        className="text-sm font-semibold underline"
+                                    >
+                                        Clear dates
+                                    </button>
+                                    <button
+                                        onClick={() => setShowKeyboardHelp(true)}
+                                        className="text-sm font-semibold underline"
+                                    >
+                                        Keyboard shortcuts
+                                    </button>
+                                </div>
                                 <button
                                     onClick={() => setIsCalendarOpen(false)}
                                     className="bg-black text-white px-4 py-2 rounded-lg hover:bg-rose-600"
@@ -275,6 +285,19 @@ const ReservationCard = ({ property }) => {
                     </div>
                 </div>
             )}
+
+            <Modal isOpen={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)}>
+                <div title="Keyboard Controls">
+                    <ul className="space-y-2 mb-4">
+                        <li>← → : Navigate days</li>
+                        <li>↑ ↓ : Navigate weeks</li>
+                        <li>PgUp/PgDn : Switch months</li>
+                        <li>Home/End : Go to start/end of week</li>
+                        <li>Enter/Space : Select date</li>
+                        <li>Esc : Close calendar</li>
+                    </ul>
+                </div>
+            </Modal>
         </div>
     );
 };
