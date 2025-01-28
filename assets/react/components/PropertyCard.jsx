@@ -159,20 +159,7 @@ const PropertyCard = ({ property }) => {
 
         <div className="text-gray-600">
           <div className="flex items-center gap-2">
-            {property.owner.profilePicture ? (
-              <img 
-                src={property.owner.profilePicture} 
-                alt={`${property.owner.firstName} ${property.owner.lastName}`}
-                className="w-6 h-6 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-xs text-gray-600">
-                  {property.owner.firstName[0]}
-                </span>
-              </div>
-            )}
-            <p>Host: {property.owner.firstName} {property.owner.lastName}</p>
+            <p>Host : {property.owner.firstName} {property.owner.lastName}</p>
           </div>
           <div><span className="text-black font-medium">{property.price}€</span> / night</div>
         </div>
