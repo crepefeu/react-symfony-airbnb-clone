@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useSwipeable } from "react-swipeable";
+import { motion, AnimatePresence } from "framer-motion";
 
 const PropertyCard = ({ property }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [showControls, setShowControls] = useState(false);
 
   // Add quality parameters to Unsplash URLs
@@ -19,11 +21,13 @@ const PropertyCard = ({ property }) => {
 
   const handlePrevImage = (e) => {
     e.preventDefault();
+    setDirection(-1);
     setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const handleNextImage = (e) => {
     e.preventDefault();
+    setDirection(1);
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
@@ -32,33 +36,76 @@ const PropertyCard = ({ property }) => {
     onSwipedRight: handlePrevImage,
   });
 
+  const slideVariants = {
+    enter: (direction) => ({
+      x: 0,
+      y: direction > 0 ? -20 : 20,
+      scale: 0.95,
+      zIndex: 0,
+      rotateX: direction > 0 ? 10 : -10,
+    }),
+    center: {
+      x: 0,
+      y: 0,
+      scale: 1,
+      zIndex: 2,
+      rotateX: 0,
+    },
+    exit: (direction) => ({
+      x: 0,
+      y: direction > 0 ? 20 : -20,
+      scale: 0.95,
+      opacity: 0,
+      zIndex: 1,
+      rotateX: direction > 0 ? -10 : 10,
+    }),
+  };
+
   return (
     <a
       href={`/property/${property.id}`}
-      className="block bg-white overflow-hidden transition-shadow group"
+      className="block bg-white transition-shadow group"
     >
       <div
-        className="aspect-square overflow-hidden relative"
+        className="aspect-square relative"
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
         {...swipeHandlers}
       >
-        <div className="relative w-full h-full">
-          <img
-            src={images[currentImageIndex]}
-            alt={property.title}
-            className="w-full h-full rounded-lg object-cover"
-            onError={(e) => {
-              e.target.src = "https://www.homelyyours.com/data/propertyPlaceholder.png";
-            }}
-          />
+        <div className="relative w-full h-full" style={{ perspective: '1000px' }}>
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.img
+              key={currentImageIndex}
+              src={images[currentImageIndex]}
+              alt={property.title}
+              className="w-full h-full rounded-lg object-cover absolute inset-0"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                y: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.5 },
+                scale: { duration: 0.5 },
+                rotateX: { duration: 0.5 },
+              }}
+              onError={(e) => {
+                e.target.src = "https://www.homelyyours.com/data/propertyPlaceholder.png";
+              }}
+              style={{ 
+                transformStyle: 'preserve-3d',
+                backfaceVisibility: 'hidden'
+              }}
+            />
+          </AnimatePresence>
           
           {/* Navigation Buttons */}
           {(showControls || images.length > 1) && (
             <>
               <button
                 onClick={handlePrevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-90 transition-opacity"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-90 transition-opacity z-10"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -66,7 +113,7 @@ const PropertyCard = ({ property }) => {
               </button>
               <button
                 onClick={handleNextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-90 transition-opacity"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white rounded-full p-1.5 opacity-0 group-hover:opacity-90 transition-opacity z-10"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -77,7 +124,7 @@ const PropertyCard = ({ property }) => {
 
           {/* Dots indicator */}
           {images.length > 1 && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
               {images.map((_, index) => (
                 <div
                   key={index}
