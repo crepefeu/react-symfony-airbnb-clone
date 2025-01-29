@@ -66,9 +66,6 @@ class Property
     #[Groups(['property:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $images = [];
-
     /**
      * @var Collection<int, Amenity>
      */
@@ -89,12 +86,19 @@ class Property
     #[Groups(['property:read'])]
     private ?User $owner = null;
 
+    /**
+     * @var Collection<int, PropertyMedia>
+     */
+    #[ORM\OneToMany(targetEntity: PropertyMedia::class, mappedBy: 'property', orphanRemoval: true)]
+    private Collection $propertyMedias;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->amenities = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->propertyMedias = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -263,17 +267,6 @@ class Property
         return $this;
     }
 
-    public function getImages(): ?array
-    {
-        return $this->images;
-    }
-
-    public function setImages(?array $images): self
-    {
-        $this->images = $images;
-        return $this;
-    }
-
     /**
      * @return Collection<int, Amenity>
      */
@@ -358,6 +351,36 @@ class Property
     public function setOwner(?User $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PropertyMedia>
+     */
+    public function getPropertyMedias(): Collection
+    {
+        return $this->propertyMedias;
+    }
+
+    public function addPropertyMedia(PropertyMedia $propertyMedia): static
+    {
+        if (!$this->propertyMedias->contains($propertyMedia)) {
+            $this->propertyMedias->add($propertyMedia);
+            $propertyMedia->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removePropertyMedia(PropertyMedia $propertyMedia): static
+    {
+        if ($this->propertyMedias->removeElement($propertyMedia)) {
+            // set the owning side to null (unless already changed)
+            if ($propertyMedia->getProperty() === $this) {
+                $propertyMedia->setProperty(null);
+            }
+        }
 
         return $this;
     }
