@@ -71,10 +71,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['property:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
+    /**
+     * @var Collection<int, Wishlist>
+     */
+    #[ORM\OneToMany(targetEntity: Wishlist::class, mappedBy: 'owner', orphanRemoval: true)]
+    private Collection $wishlists;
+
     public function __construct()
     {
         $this->reviews = new ArrayCollection();
         $this->properties = new ArrayCollection();
+        $this->wishlists = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -310,5 +317,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getFormattedCreatedAt(): string
     {
         return $this->createdAt?->format('Y-m-d\TH:i:s.u\Z') ?? '';
+    }
+
+    /**
+     * @return Collection<int, Wishlist>
+     */
+    public function getWishlists(): Collection
+    {
+        return $this->wishlists;
+    }
+
+    public function addWishlist(Wishlist $wishlist): static
+    {
+        if (!$this->wishlists->contains($wishlist)) {
+            $this->wishlists->add($wishlist);
+            $wishlist->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWishlist(Wishlist $wishlist): static
+    {
+        if ($this->wishlists->removeElement($wishlist)) {
+            // set the owning side to null (unless already changed)
+            if ($wishlist->getOwner() === $this) {
+                $wishlist->setOwner(null);
+            }
+        }
+
+        return $this;
     }
 }
