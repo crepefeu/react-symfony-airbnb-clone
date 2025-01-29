@@ -1,10 +1,13 @@
 import React from 'react';
 import Layout from './Layout';
 
-const Wishlists = () => {
-    // Mock data (replace with real data later)
-    const wishlists = [];
+const Wishlists = ({ wishlists = [] }) => {
     const isEmpty = wishlists.length === 0;
+
+    const getWishlistCoverImage = (wishlist) => {
+        const firstItem = wishlist.wishlistItems[0];
+        return firstItem ? firstItem.property.images[0] : null;
+    };
 
     return (
         <Layout>
@@ -30,9 +33,9 @@ const Wishlists = () => {
                                 className="group block"
                             >
                                 <div className="aspect-w-16 aspect-h-9 rounded-2xl overflow-hidden bg-gray-200">
-                                    {wishlist.coverImage ? (
+                                    {getWishlistCoverImage(wishlist) ? (
                                         <img 
-                                            src={wishlist.coverImage} 
+                                            src={getWishlistCoverImage(wishlist)} 
                                             alt={wishlist.name}
                                             className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                                         />
@@ -46,7 +49,7 @@ const Wishlists = () => {
                                 </div>
                                 <div className="mt-3">
                                     <h3 className="text-lg font-medium">{wishlist.name}</h3>
-                                    <p className="text-gray-500">{wishlist.itemsCount} saved items</p>
+                                    <p className="text-gray-500">{wishlist.wishlistItems.length} saved items</p>
                                 </div>
                             </a>
                         ))}

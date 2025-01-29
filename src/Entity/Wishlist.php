@@ -22,6 +22,9 @@ class Wishlist
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $name = null;
+
     /**
      * @var Collection<int, WishlistItem>
      */
@@ -59,6 +62,17 @@ class Wishlist
     {
         $this->createdAt = $createdAt;
 
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
         return $this;
     }
 

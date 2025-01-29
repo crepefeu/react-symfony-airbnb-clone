@@ -2,14 +2,8 @@ import React from 'react';
 import Layout from './Layout';
 import PropertyCard from './PropertyCard';
 
-const WishlistDetails = () => {
-    // Mock data (replace with real data later)
-    const wishlist = {
-        id: 1,
-        name: "Summer Vacation Ideas",
-        itemsCount: 0,
-        items: []
-    };
+const WishlistDetails = ({ wishlist }) => {
+    const items = wishlist?.wishlistItems || [];
 
     return (
         <Layout>
@@ -18,7 +12,7 @@ const WishlistDetails = () => {
                     <div>
                         <h1 className="text-3xl font-semibold">{wishlist.name}</h1>
                         <p className="text-gray-500 mt-1">
-                            {wishlist.itemsCount} saved items
+                            {items.length} saved items
                         </p>
                     </div>
                     <button className="text-gray-600 hover:text-gray-900">
@@ -28,7 +22,7 @@ const WishlistDetails = () => {
                     </button>
                 </div>
 
-                {wishlist.items.length === 0 ? (
+                {items.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="mb-4">
                             <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,8 +34,12 @@ const WishlistDetails = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {wishlist.items.map(item => (
-                            <PropertyCard key={item.id} property={item} showHeartButton />
+                        {items.map(item => (
+                            <PropertyCard 
+                                key={item.id} 
+                                property={item.property} 
+                                showHeartButton 
+                            />
                         ))}
                     </div>
                 )}
