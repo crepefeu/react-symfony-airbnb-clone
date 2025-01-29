@@ -1,6 +1,20 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const Header = () => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     return (
         <header className="fixed top-0 left-0 right-0 h-16 bg-white shadow-md z-50">
             <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
@@ -27,7 +41,7 @@ const Header = () => {
                 </div>
 
                 {/* User Menu */}
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 relative" ref={menuRef}>
                     <a href="/host" className="hidden md:block text-gray-600 hover:text-gray-900">
                         Become a host
                     </a>
@@ -37,7 +51,10 @@ const Header = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                         </svg>
                     </button>
-                    <button className="flex items-center space-x-2 border border-gray-200 rounded-full p-2 hover:shadow-md transition-shadow">
+                    <button 
+                        className="flex items-center space-x-2 border border-gray-200 rounded-full p-2 hover:shadow-md transition-shadow"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
                         <svg className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
@@ -47,6 +64,29 @@ const Header = () => {
                             </svg>
                         </div>
                     </button>
+
+                    {/* Dropdown Menu */}
+                    {isMenuOpen && (
+                        <div className="absolute right-0 top-16 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2">
+                            <a href="/wishlists" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Messages
+                            </a>
+                            <a href="/wishlists" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Trips
+                            </a>
+                            <a href="/wishlists" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Wishlists
+                            </a>
+                            <hr className="my-2" />
+                            {/* Add other menu items here */}
+                            <a href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Profile
+                            </a>
+                            <a href="/logout" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Log out
+                            </a>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>

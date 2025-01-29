@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wishlist Details{% endblock %}
+
+{% block body %}
+    <div {{ react_component('WishlistDetails', { 
+        wishlistId: wishlistId 
+    }) }}></div>
+{% endblock %}
