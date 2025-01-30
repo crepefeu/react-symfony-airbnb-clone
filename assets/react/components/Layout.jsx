@@ -6,20 +6,7 @@ import useAuth from "../hooks/useAuth";
 import Unauthorized from "./Unauthorized";
 
 const Layout = ({ children, breadcrumbs, needAuthentication }) => {
-  const { token } = useAuth();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const authentication = async () => {
-    const response = await fetch("/api/is-authenticated", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.ok) {
-      setIsAuthenticated(true);
-    }
-  };
+  const { authentication, isAuthenticated } = useAuth();
   if (needAuthentication) {
     authentication();
   }

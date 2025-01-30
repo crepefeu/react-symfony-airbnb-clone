@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 const useAuth = () => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -11,8 +12,24 @@ const useAuth = () => {
     if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
+      setIsAuthenticated(true);
     }
   }, []);
+
+  const authentication = async () => {
+    const response = await fetch("/api/is-authenticated", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  };
 
   const login = (userData, authToken) => {
     setUser(userData);
@@ -29,7 +46,7 @@ const useAuth = () => {
     location.href = "/";
   };
 
-  return { user, token, login, logout };
+  return { user, isAuthenticated, token, login, logout, authentication };
 };
 
 export default useAuth;

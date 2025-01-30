@@ -7,7 +7,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -147,7 +147,7 @@ const Header = () => {
                 </a>
                 <hr className="my-2" />
                 {/* Add other menu items here */}
-                {!user && (
+                {!isAuthenticated && (
                   <div>
                     <span
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
@@ -163,7 +163,7 @@ const Header = () => {
                     </span>
                   </div>
                 )}
-                {user && (
+                {isAuthenticated && (
                   <div>
                     <a
                       href="/profile"
@@ -171,12 +171,12 @@ const Header = () => {
                     >
                       Profile
                     </a>
-                    <a
-                      href="/logout"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <span
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
+                      onClick={() => logout()}
                     >
                       Log out
-                    </a>
+                    </span>
                   </div>
                 )}
               </div>
