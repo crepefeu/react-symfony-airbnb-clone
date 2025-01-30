@@ -3,5 +3,7 @@
 {% block title %}Welcome to HostMe Clone{% endblock %}
 
 {% block body %}
-    <div {{ react_component('Home') }}></div>
+    <div {{ react_component('Home', {
+        user: app.user
+    }) }}></div>
 {% endblock %}
