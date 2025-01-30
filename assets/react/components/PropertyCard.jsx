@@ -16,7 +16,7 @@ const PropertyCard = ({ property }) => {
   };
 
   const images = property.images?.length > 0
-    ? property.images.map(processImageUrl)
+    ? property.images
     : ["https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=800&q=80"];
 
   const handlePrevImage = (e) => {

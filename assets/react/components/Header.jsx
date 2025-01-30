@@ -1,13 +1,26 @@
-import React, { useContext, useState } from "react";
-import SignUpModal from "./SignUpModal";
+import React, { useState, useRef, useEffect } from "react";
 import LogInModal from "./LogInModal";
+import SignUpModal from "./SignUpModal";
 import useAuth from "../hooks/useAuth";
 
 const Header = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const { user, logout } = useAuth();
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div>
       <header className="fixed top-0 left-0 right-0 h-16 bg-white shadow-md z-50">
@@ -51,7 +64,7 @@ const Header = () => {
           </div>
 
           {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 relative" ref={menuRef}>
             <a
               href="/host"
               className="hidden md:block text-gray-600 hover:text-gray-900"
@@ -79,79 +92,105 @@ const Header = () => {
                 />
               </svg>
             </button>
-            <div className="relative">
-              <button
-                onClick={() => setIsVisible(!isVisible)}
-                className="flex items-center space-x-2 border border-gray-200 rounded-full p-2 hover:shadow-md transition-shadow"
+            <button
+              className="flex items-center space-x-2 border border-gray-200 rounded-full p-2 hover:shadow-md transition-shadow"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <svg
+                className="h-5 w-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              <div className="h-8 w-8 bg-gray-500 rounded-full text-white flex items-center justify-center">
                 <svg
-                  className="h-5 w-5 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
                 >
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
+                    fillRule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clipRule="evenodd"
                   />
                 </svg>
-                <div className="h-8 w-8 bg-gray-500 rounded-full text-white flex items-center justify-center">
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </button>
-              {isVisible && (
-                <ul className="absolute right-0 bg-white shadow-md rounded-xl w-28 text-gray-500 text-sm">
-                  {!user && (
-                    <div>
-                      <li
-                        className="py-2 px-4 hover:bg-gray-100 rounded-t-xl hover:text-gray-700 hover:cursor-pointer"
-                        onClick={() => setIsLogInModalOpen(true)}
-                      >
-                        Log In
-                      </li>
-                      <li
-                        className="py-2 px-4 hover:bg-gray-100 hover:text-gray-700 hover:cursor-pointer"
-                        onClick={() => setIsSignUpModalOpen(true)}
-                      >
-                        Sign Up
-                      </li>
-                    </div>
-                  )}
-                  {user && (
-                    <li
-                      className="py-2 px-4 rounded-b-xl hover:bg-gray-100 hover:text-gray-700 hover:cursor-pointer"
-                      onClick={() => logout()}
+              </div>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isMenuOpen && (
+              <div className="absolute right-0 top-16 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2">
+                <a
+                  href="/wishlists"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Messages
+                </a>
+                <a
+                  href="/wishlists"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Trips
+                </a>
+                <a
+                  href="/wishlists"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  Wishlists
+                </a>
+                <hr className="my-2" />
+                {/* Add other menu items here */}
+                {!user && (
+                  <div>
+                    <span
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
+                      onClick={() => setIsLogInModalOpen(true)}
                     >
-                      Log Out
-                    </li>
-                  )}
-                </ul>
-              )}
-            </div>
+                      Log In
+                    </span>
+                    <span
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
+                      onClick={() => setIsSignUpModalOpen(true)}
+                    >
+                      Sign Up
+                    </span>
+                  </div>
+                )}
+                {user && (
+                  <div>
+                    <a
+                      href="/profile"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile
+                    </a>
+                    <a
+                      href="/logout"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Log out
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </header>
-
-      <SignUpModal
-        isOpen={isSignUpModalOpen}
-        onClose={() => setIsSignUpModalOpen(false)}
-      />
-
       <LogInModal
         isOpen={isLogInModalOpen}
         onClose={() => setIsLogInModalOpen(false)}
+      />
+      <SignUpModal
+        isOpen={isSignUpModalOpen}
+        onClose={() => setIsSignUpModalOpen(false)}
       />
     </div>
   );

@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ wishlist is not null ? wishlist.name : 'Wishlist Not Found' }}{% endblock %}
+
+{% block body %}
+    <div {{ react_component('WishlistDetails', { 
+        wishlist: wishlist is not null ? wishlist : null
+    }) }}></div>
+{% endblock %}

@@ -20,6 +20,10 @@ class PropertyNormalizer implements NormalizerInterface
     {
         $context[self::ALREADY_CALLED] = true;
 
+        $images = $object->getPropertyMedias()->map(function ($media) {
+            return $media->getUrl();
+        })->toArray();
+
         return [
             'id' => $object->getId(),
             'title' => $object->getTitle(),
@@ -31,7 +35,7 @@ class PropertyNormalizer implements NormalizerInterface
             'latitude' => $object->getLatitude(),
             'longitude' => $object->getLongitude(),
             'propertyType' => $object->getPropertyType(),
-            'images' => $object->getImages(), // Add images array
+            'images' => $images, // Replace old images field with new mapping
             'address' => $this->normalizer->normalize($object->getAddress(), $format, $context),
             'amenities' => array_map(fn($amenity) => [
                 'id' => $amenity->getId(),

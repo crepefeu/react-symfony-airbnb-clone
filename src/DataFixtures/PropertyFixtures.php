@@ -10,6 +10,8 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use App\DataFixtures\AmenityFixtures;
+use App\Entity\PropertyMedia;
+use App\Enum\MediaType;
 
 class PropertyFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -293,7 +295,17 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
                 shuffle($imagePool);
                 $selectedImages = array_slice($imagePool, 0, 5);
 
-                $property->setImages($selectedImages);
+                // Convert images array to PropertyMedia entities
+                foreach ($selectedImages as $imageUrl) {
+                    $propertyMedia = new PropertyMedia();
+                    $propertyMedia->setUrl($imageUrl);
+                    $propertyMedia->setType(MediaType::IMAGE);
+                    $propertyMedia->setProperty($property);
+                    $manager->persist($propertyMedia);
+                }
+
+                // Remove the old images array setting
+                // $property->setImages($selectedImages); -- Remove this line
 
                 // Make sure createdAt and updatedAt are set
                 $property->setCreatedAt(new \DateTimeImmutable());
