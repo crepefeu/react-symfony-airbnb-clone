@@ -15,9 +15,11 @@ class Property
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['booking:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['booking:read'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -92,6 +94,12 @@ class Property
     #[ORM\OneToMany(targetEntity: PropertyMedia::class, mappedBy: 'property', orphanRemoval: true)]
     private Collection $propertyMedias;
 
+    /**
+     * @var Collection<int, Booking>
+     */
+    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'Property')]
+    private Collection $bookings;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -99,6 +107,7 @@ class Property
         $this->amenities = new ArrayCollection();
         $this->reviews = new ArrayCollection();
         $this->propertyMedias = new ArrayCollection();
+        $this->bookings = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -379,6 +388,36 @@ class Property
             // set the owning side to null (unless already changed)
             if ($propertyMedia->getProperty() === $this) {
                 $propertyMedia->setProperty(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Booking>
+     */
+    public function getBookings(): Collection
+    {
+        return $this->bookings;
+    }
+
+    public function addBooking(Booking $booking): static
+    {
+        if (!$this->bookings->contains($booking)) {
+            $this->bookings->add($booking);
+            $booking->setProperty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBooking(Booking $booking): static
+    {
+        if ($this->bookings->removeElement($booking)) {
+            // set the owning side to null (unless already changed)
+            if ($booking->getProperty() === $this) {
+                $booking->setProperty(null);
             }
         }
 

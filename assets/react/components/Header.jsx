@@ -127,25 +127,29 @@ const Header = () => {
             {/* Dropdown Menu */}
             {isMenuOpen && (
               <div className="absolute right-0 top-16 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2">
-                <a
-                  href="/wishlists"
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Messages
-                </a>
-                <a
-                  href="/wishlists"
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Trips
-                </a>
-                <a
-                  href="/wishlists"
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Wishlists
-                </a>
-                <hr className="my-2" />
+                {isAuthenticated && (
+                  <div>
+                    <a
+                      href="/wishlists"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Messages
+                    </a>
+                    <a
+                      href="/trips"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Trips
+                    </a>
+                    <a
+                      href="/wishlists"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Wishlists
+                    </a>
+                    <hr className="my-2" />
+                  </div>
+                )}
                 {/* Add other menu items here */}
                 {!isAuthenticated && (
                   <div>

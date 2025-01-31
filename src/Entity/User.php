@@ -77,11 +77,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Wishlist::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $wishlists;
 
+    /**
+     * @var Collection<int, Booking>
+     */
+    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'Guest')]
+    private Collection $bookings;
+
     public function __construct()
     {
         $this->reviews = new ArrayCollection();
         $this->properties = new ArrayCollection();
         $this->wishlists = new ArrayCollection();
+        $this->bookings = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -343,6 +350,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($wishlist->getOwner() === $this) {
                 $wishlist->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Booking>
+     */
+    public function getBookings(): Collection
+    {
+        return $this->bookings;
+    }
+
+    public function addBooking(Booking $booking): static
+    {
+        if (!$this->bookings->contains($booking)) {
+            $this->bookings->add($booking);
+            $booking->setGuest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBooking(Booking $booking): static
+    {
+        if ($this->bookings->removeElement($booking)) {
+            // set the owning side to null (unless already changed)
+            if ($booking->getGuest() === $this) {
+                $booking->setGuest(null);
             }
         }
 
