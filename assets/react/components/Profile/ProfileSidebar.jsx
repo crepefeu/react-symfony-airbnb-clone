@@ -1,4 +1,5 @@
 import React from 'react';
+import ProfileAvatar from './ProfileAvatar';
 
 const ProfileSidebar = ({ user, onUpdatePhoto }) => {
   return (
@@ -6,20 +7,7 @@ const ProfileSidebar = ({ user, onUpdatePhoto }) => {
       <div className="sticky top-20">
         <div className="mb-6">
           <div className="w-32 h-32 mx-auto relative group">
-            {user?.profilePicture ? (
-              <img
-                src={user.profilePicture}
-                alt="Profile"
-                className="w-full h-full rounded-full object-cover border-4 border-white shadow-lg"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-full border-4 border-white shadow-lg">
-                <span className="text-4xl text-gray-500">
-                  {user?.firstName?.[0]}
-                  {user?.lastName?.[0]}
-                </span>
-              </div>
-            )}
+            <ProfileAvatar user={user} className="w-full h-full" />
             <input
               type="file"
               id="profilePicture"
