@@ -227,7 +227,7 @@ const HostLanding = () => {
               <div className="md:col-span-4 space-y-8">
                 <div className="text-center">
                   <h1 className="text-6xl font-bold mb-6">
-                    Votre logement pourrait vous rapporter{' '}
+                    Your home could earn you{' '}
                     <span className="inline-flex items-center">
                       {formatNumberToArray(potentialEarnings).map((digit, index) => (
                         <RollingDigit 
@@ -238,13 +238,13 @@ const HostLanding = () => {
                       ))}
                       <span className="ml-1">€</span>
                     </span>
-                    {' '}sur Airbnb
+                    {' '}on Hostme
                   </h1>
                   <p className="text-xl text-gray-600 mt-4">
-                    Pour {nights} nuits à {averagePrice}€ par nuit
+                    For {nights} nights at {averagePrice}€ per night
                     {!hasProperties && (
                       <span className="block text-sm text-gray-500 mt-2">
-                        *Prix estimé basé sur les moyennes de la région
+                        *Price estimated based on nearby properties in the area
                       </span>
                     )}
                   </p>
