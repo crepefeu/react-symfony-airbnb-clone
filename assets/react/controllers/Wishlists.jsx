@@ -1,8 +1,15 @@
 import React from 'react';
+import Layout from '../components/Layout';
 import WishlistsComponent from '../components/Wishlists';
 
 const Wishlists = () => {
-    return <WishlistsComponent />;
+    const breadcrumbs = [{ label: "Wishlists" }];
+
+    return (
+        <Layout breadcrumbs={breadcrumbs}>
+            <WishlistsComponent />
+        </Layout>
+    );
 };
 
 export default Wishlists;
