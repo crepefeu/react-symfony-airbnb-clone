@@ -64,9 +64,9 @@ class PropertyRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findInBounds(float $north, float $south, float $east, float $west): array
+    public function findInBounds(float $north, float $south, float $east, float $west, ?int $bedrooms = null): array
     {
-        return $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->where('p.latitude <= :north')
             ->andWhere('p.latitude >= :south')
             ->andWhere('p.longitude <= :east')
@@ -74,10 +74,14 @@ class PropertyRepository extends ServiceEntityRepository
             ->setParameter('north', $north)
             ->setParameter('south', $south)
             ->setParameter('east', $east)
-            ->setParameter('west', $west)
-            ->getQuery()
-            ->getResult()
-        ;
+            ->setParameter('west', $west);
+
+        if ($bedrooms !== null) {
+            $qb->andWhere('p.bedrooms = :bedrooms')
+               ->setParameter('bedrooms', $bedrooms);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
 //    /**

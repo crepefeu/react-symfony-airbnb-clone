@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { GoogleMap, LoadScript, InfoWindow, OverlayView, Marker, Circle } from '@react-google-maps/api';
-import Header from '../components/Header';
 import ZoomControl from '../components/ZoomControl';
+import PriceMarker from '../components/Map/PriceMarker';
 
 const LoadingSpinner = () => (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white px-4 py-2 rounded-full shadow-lg z-10">
@@ -11,33 +11,6 @@ const LoadingSpinner = () => (
         </div>
     </div>
 );
-
-const PriceMarker = ({ price, isSelected, onClick }) => {
-    return (
-        <div className="relative w-fit" style={{ transform: 'translate(-50%, -100%)' }}>
-            <div
-                className={`
-                    price-pin cursor-pointer
-                    px-4 py-2 rounded-2xl
-                    shadow-sm transition-all duration-200
-                    ${isSelected 
-                        ? 'bg-black text-white scale-110' 
-                        : 'bg-white text-gray-800 hover:scale-105'
-                    }
-                `}
-                onClick={onClick}
-            >
-                <span className="font-semibold text-sm whitespace-nowrap">{price}€</span>
-            </div>
-            <div 
-                className={`absolute left-1/2 -translate-x-1/2
-                    pin-triangle border-t-8 transition-all duration-200 shadow-sm
-                    ${isSelected ? 'border-t-black' : 'border-t-white'}
-                `}
-            />
-        </div>
-    );
-};
 
 const Map = () => {
     const [properties, setProperties] = useState([]);
@@ -194,6 +167,15 @@ const Map = () => {
                                 onCloseClick={() => setSelectedProperty(null)}
                             >
                                 <div className="p-4 max-w-sm min-w-80 rounded-xl shadow-lg bg-white">
+                                    {selectedProperty.propertyMedias?.length > 0 && (
+                                        <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
+                                            <img 
+                                                src={selectedProperty.propertyMedias[0].url} 
+                                                alt={selectedProperty.title}
+                                                className="w-full h-full object-cover rounded-lg"
+                                            />
+                                        </div>
+                                    )}
                                     <h3 className="text-lg font-bold mb-2">{selectedProperty.title}</h3>
                                     <p className="text-gray-600 mb-2">{selectedProperty.price}€ / night</p>
                                     <p className="text-sm mb-2">

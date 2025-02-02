@@ -3,7 +3,17 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
 
-const Modal = ({ isOpen, onClose, children }) => {
+const Modal = ({ isOpen, onClose, children, maxWidth = "2xl" }) => {
+  const maxWidthClasses = {
+    sm: 'md:max-w-sm',
+    md: 'md:max-w-md',
+    lg: 'md:max-w-lg',
+    xl: 'md:max-w-xl',
+    '2xl': 'md:max-w-2xl',
+    '3xl': 'md:max-w-3xl',
+    '4xl': 'md:max-w-4xl',
+  };
+
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === 'Escape') {
@@ -46,7 +56,7 @@ const Modal = ({ isOpen, onClose, children }) => {
                 damping: 20,
                 stiffness: 300
               }}
-              className="relative w-full bg-white shadow-xl overflow-hidden rounded-xl md:max-w-4xl max-h-[90vh] flex flex-col"
+              className={`relative w-full bg-white shadow-xl overflow-hidden rounded-xl ${maxWidthClasses[maxWidth]} max-h-[90vh] flex flex-col`}
             >
               <div className="sticky top-0 z-10 bg-white border-b flex-shrink-0">
                 <div className="px-6 py-4 flex items-center">
@@ -94,6 +104,7 @@ Modal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
+  maxWidth: PropTypes.oneOf(['sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl']),
 };
 
 export default Modal;

@@ -92,6 +92,7 @@ class Property
      * @var Collection<int, PropertyMedia>
      */
     #[ORM\OneToMany(targetEntity: PropertyMedia::class, mappedBy: 'property', orphanRemoval: true)]
+    #[Groups(['property:read'])] // Add this line to include propertyMedia in API responses
     private Collection $propertyMedias;
 
     /**
@@ -367,6 +368,7 @@ class Property
     /**
      * @return Collection<int, PropertyMedia>
      */
+    #[Groups(['property:read'])] // Add this line to include the getter in API responses
     public function getPropertyMedias(): Collection
     {
         return $this->propertyMedias;

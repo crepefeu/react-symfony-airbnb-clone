@@ -8,7 +8,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Route('/api/properties', name: 'api_properties_')]
@@ -43,7 +42,8 @@ class PropertyController extends AbstractController
             (float) $request->query->get('north'),
             (float) $request->query->get('south'),
             (float) $request->query->get('east'),
-            (float) $request->query->get('west')
+            (float) $request->query->get('west'),
+            (int) $request->query->get('bedrooms', 0)
         );
 
         return $this->json(['properties' => $properties], 200, [], ['groups' => ['property:read']]);
@@ -89,6 +89,24 @@ class PropertyController extends AbstractController
         // Return HTML for browser requests
         return $this->render('property/show.html.twig', [
             'property' => $property,
+        ]);
+    }
+
+    #[Route('/average-price', name: 'average_price', methods: ['GET'])]
+    public function getAveragePrice(Request $request): JsonResponse
+    {
+        $lat = $request->query->get('lat');
+        $lng = $request->query->get('lng');
+        $bedrooms = $request->query->get('bedrooms', 2);
+
+        $averagePrice = $this->propertyRepository->getAveragePriceInArea(
+            (float) $lat,
+            (float) $lng,
+            (int) $bedrooms
+        );
+
+        return $this->json([
+            'averagePrice' => $averagePrice,
         ]);
     }
 }

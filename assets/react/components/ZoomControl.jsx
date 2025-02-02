@@ -1,8 +1,8 @@
 import React from 'react';
 
-const ZoomControl = ({ onZoomIn, onZoomOut }) => {
+const ZoomControl = ({ onZoomIn, onZoomOut, className = "right-5 top-20" }) => {
     return (
-        <div className="absolute right-5 top-20 flex flex-col shadow-xl bg-white rounded-md h-24 w-10 border">
+        <div className={`absolute flex flex-col shadow-xl bg-white rounded-md h-24 w-10 border ${className}`}>
             <button
                 onClick={onZoomIn}
                 className="bg-white px-1 py-3 w-full h-full flex items-center justify-center hover:bg-gray-50 transition-colors rounded-l-md rounded-r-md"
