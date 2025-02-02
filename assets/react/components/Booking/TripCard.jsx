@@ -1,7 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import StatusBadge from "./StatusBadge";
+import useAuth from "../../hooks/useAuth";
+import Toast from "../UI/Toast";
 
 const TripCard = ({ trip }) => {
+  const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState("info");
+  const [toastMessage, setToastMessage] = useState("");
+  const { token } = useAuth();
+
   const formatDate = (date) => {
     return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
@@ -9,6 +16,28 @@ const TripCard = ({ trip }) => {
       year: "numeric",
     }).format(new Date(date));
   };
+
+  const cancelBooking = async () => {
+    const response = await fetch("/api/bookings/cancel", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ bookingId: trip.id }),
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+      setShowToast(true);
+      setToastMessage(data.message);
+      setToastType("success");
+    } else {
+      setShowToast(true);
+      setToastMessage(data.error);
+      setToastType("error");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 items-center">
       <a
@@ -50,9 +79,20 @@ const TripCard = ({ trip }) => {
         </div>
       </a>
       {trip.status == "pending" && (
-        <button className="bg-rose-500 text-white w-full py-1 rounded">
+        <button
+          className="bg-rose-500 text-white w-full py-1 rounded"
+          onClick={() => cancelBooking()}
+        >
           Cancel
         </button>
+      )}
+      {showToast && (
+        <Toast
+          type={toastType}
+          message={toastMessage}
+          onClose={() => setShowToast(false)}
+          onClick={() => setShowToast(false)}
+        />
       )}
     </div>
   );

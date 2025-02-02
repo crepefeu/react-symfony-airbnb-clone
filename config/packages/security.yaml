@@ -50,7 +50,8 @@ security:
     - { path: ^/api/bookings/user, roles: ROLE_USER }
     - { path: ^/api/bookings/manage, roles: ROLE_HOST }
     - { path: ^/api/bookings/confirm, roles: ROLE_HOST }
-    - { path: ^/api/bookings/cancel, roles: ROLE_HOST }
+    - { path: ^/api/bookings/cancel, roles: ROLE_USER }
+    - { path: ^/api/bookings/create, roles: ROLE_USER }
 
 when@test:
   security:

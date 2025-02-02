@@ -49,7 +49,6 @@ const SignUpModal = ({ isOpen, onClose }) => {
       }
     } else {
       setErrors(["Something went wrong during registration"]);
-      console.log("Erreur lors de l'inscription", response);
     }
   };
   return (

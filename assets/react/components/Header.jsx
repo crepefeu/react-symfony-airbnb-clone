@@ -65,12 +65,14 @@ const Header = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4 relative" ref={menuRef}>
-            <a
-              href="/host"
-              className="hidden md:block text-gray-600 hover:text-gray-900"
-            >
-              Become a host
-            </a>
+            {(!user || (user.roles && !user.roles.includes("ROLE_HOST"))) && (
+              <a
+                href="/host"
+                className="hidden md:block text-gray-600 hover:text-gray-900"
+              >
+                Become a host
+              </a>
+            )}
             <button className="p-2 rounded-full hover:bg-gray-100">
               <svg
                 className="h-5 w-5 text-gray-600"
@@ -141,14 +143,14 @@ const Header = () => {
                     >
                       Trips
                     </a>
-                    {/* {user.roles.include("ROLE_HOST") && ( */}
-                    <a
-                      href="/bookings"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      Manage bookings
-                    </a>
-                    {/* )} */}
+                    {user && user.roles.includes("ROLE_HOST") && (
+                      <a
+                        href="/bookings"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Manage bookings
+                      </a>
+                    )}
                     <a
                       href="/wishlists"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"

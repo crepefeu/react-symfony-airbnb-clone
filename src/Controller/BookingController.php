@@ -6,6 +6,7 @@ use App\Entity\Booking;
 use App\Enum\BookingStatus;
 use App\Form\BookingType;
 use App\Repository\BookingRepository;
+use App\Repository\PropertyRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -65,6 +66,44 @@ final class BookingController extends AbstractController
         return $this->changeBookingStatus($request, $security, $bookingRepository, $entityManager, BookingStatus::CANCELED);
     }
 
+    #[Route('/create', name: 'create-booking', methods: ['POST'])]
+    public function createBooking(Request $request, Security $security, PropertyRepository $propertyRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $security->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (empty($data['checkInDate']) || empty($data['checkOutDate']) || empty($data['numberOfGuests']) || empty($data['totalPrice']) || empty($data['propertyId'])) {
+            return new JsonResponse(['error' => 'Missing required fields'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $property = $propertyRepository->find($data['propertyId']);
+
+        if (!$property) {
+            return new JsonResponse(['error' => 'Property not found'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $booking = new Booking();
+        $booking->setCheckInDate(new \DateTime($data['checkInDate']));
+        $booking->setCheckOutDate(new \DateTime($data['checkOutDate']));
+        $booking->setNumberOfGuests($data['numberOfGuests']);
+        $booking->setTotalPrice($data['totalPrice']);
+        $booking->setCreatedAt(new \DateTimeImmutable());
+        $booking->setProperty($property);
+        $booking->setGuest($user);
+        $booking->setStatus(BookingStatus::PENDING);
+
+        $entityManager->persist($booking);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'message' => 'Booking created successfully',
+        ], JsonResponse::HTTP_CREATED);
+    }
+
     private function changeBookingStatus(Request $request, Security $security, BookingRepository $bookingRepository, EntityManagerInterface $entityManager, BookingStatus $status) {
         $user = $security->getUser();
         if (!$user) {
@@ -84,7 +123,13 @@ final class BookingController extends AbstractController
             return new JsonResponse(['error' => 'Booking not found'], Response::HTTP_NOT_FOUND);
         }
 
-        if ($booking->getProperty()->getOwner()->getId() !== $user->getId()) {
+        if (
+            ($status == BookingStatus::CANCELED &&
+                $booking->getProperty()->getOwner()->getId() !== $user->getId() &&
+                $booking->getGuest()->getId() !== $user->getId()) 
+            || ($status == BookingStatus::VALIDATED &&
+                $booking->getProperty()->getOwner()->getId() !== $user->getId())
+        ) {
             return new JsonResponse(['error' => 'You are not authorized to confirm this booking'], Response::HTTP_FORBIDDEN);
         }
 

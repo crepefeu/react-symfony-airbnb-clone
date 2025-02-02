@@ -36,7 +36,6 @@ const useAuth = () => {
     const storedToken = localStorage.getItem("token");
 
     if (storedUser && storedToken) {
-      console.log(storedUser);
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
       setIsAuthenticated(true);
