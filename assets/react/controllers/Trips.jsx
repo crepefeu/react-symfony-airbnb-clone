@@ -55,7 +55,7 @@ const Trips = () => {
   const hasNoTrips = upcomingTrips.length === 0 && pastTrips.length === 0;
 
   return (
-    <Layout breadcrumbs={breadcrumbs}>
+    <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
       <div className="px-4 py-6 m-auto flex flex-col gap-3 max-w-7xl">
         {hasNoTrips ? (
           <NoTrips />

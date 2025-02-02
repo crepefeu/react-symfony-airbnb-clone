@@ -10,7 +10,7 @@ const WishlistDetails = (props) => {
 
     if (!props.wishlist) {
         return (
-            <Layout breadcrumbs={breadcrumbs}>
+            <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="text-center py-16">
                         <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

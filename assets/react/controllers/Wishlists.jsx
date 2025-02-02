@@ -6,7 +6,7 @@ const Wishlists = () => {
     const breadcrumbs = [{ label: "Wishlists" }];
 
     return (
-        <Layout breadcrumbs={breadcrumbs}>
+        <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
             <WishlistsComponent />
         </Layout>
     );
