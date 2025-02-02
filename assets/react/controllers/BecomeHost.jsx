@@ -249,10 +249,8 @@ const BecomeHost = () => {
   };
 
   const handleStepClick = (newStep) => {
-    // Allow navigation to any completed step or the next available step
-    if (completedSteps.includes(newStep) || newStep === step || newStep === step + 1) {
-      setStep(newStep);
-    }
+    // Allow navigation to any step
+    setStep(newStep);
   };
 
   const renderStepContent = () => {
