@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import useAuth from "../hooks/useAuth";
-import TripsList from "../components/Booking/TripsList";
+import LoadingSpinner from "../components/UI/LoadingSpinner";
+import NoTrips from "../components/Booking/NoTrips";
+import TripsSection from "../components/Booking/TripsSection";
 
 const Trips = () => {
   const breadcrumbs = [{ label: "Trips" }];
-  const { token } = useAuth();
   const [upcomingTrips, setUpcomingTrips] = useState([]);
   const [pastTrips, setPastTrips] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,30 +49,22 @@ const Trips = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-12 min-h-screen">
-        <div className="animate-spin h-8 w-8 border-4 border-rose-500 rounded-full border-t-transparent"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
+
+  const hasNoTrips = upcomingTrips.length === 0 && pastTrips.length === 0;
 
   return (
     <Layout breadcrumbs={breadcrumbs}>
       <div className="px-4 py-6 m-auto flex flex-col gap-3 max-w-7xl">
-        {upcomingTrips.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold">Upcoming Trip</h2>
-            <TripsList trips={upcomingTrips}></TripsList>
-          </div>
-        )}
-        {upcomingTrips.length > 0 && pastTrips.length > 0 && (
-          <hr className="mb-3" />
-        )}
-        {pastTrips.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold">Past Trip</h2>
-            <TripsList trips={pastTrips}></TripsList>
-          </div>
+        {hasNoTrips ? (
+          <NoTrips />
+        ) : (
+          <>
+            <TripsSection title="Upcoming Trips" trips={upcomingTrips} />
+            {upcomingTrips.length > 0 && pastTrips.length > 0 && <hr className="mb-3" />}
+            <TripsSection title="Past Trips" trips={pastTrips} />
+          </>
         )}
       </div>
     </Layout>
