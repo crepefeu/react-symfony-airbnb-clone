@@ -29,7 +29,6 @@ const Bookings = () => {
         setBookingsToValidate(getBookingsToValidate(data.bookings));
         setUpcomingBookings(getUpcomingBookings(data.bookings));
         setPastBookings(getPastBookings(data.bookings));
-        console.log(data);
       } catch (error) {
         console.error("Error fetching bookings:", error);
         setError(error.message);

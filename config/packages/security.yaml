@@ -48,6 +48,9 @@ security:
     - { path: ^/api/reviews, roles: ROLE_USER }
     - { path: ^/api/admin, roles: ROLE_ADMIN }
     - { path: ^/api/bookings/user, roles: ROLE_USER }
+    - { path: ^/api/bookings/manage, roles: ROLE_HOST }
+    - { path: ^/api/bookings/confirm, roles: ROLE_HOST }
+    - { path: ^/api/bookings/cancel, roles: ROLE_HOST }
 
 when@test:
   security:

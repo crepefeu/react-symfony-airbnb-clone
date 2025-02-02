@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Booking;
+use App\Enum\BookingStatus;
 use App\Form\BookingType;
 use App\Repository\BookingRepository;
 use App\Repository\UserRepository;
@@ -44,68 +45,66 @@ final class BookingController extends AbstractController
         return $this->json(['bookings' => $bookings], 200, [], ['groups' => ['booking:read']]);
     }
 
-    // #[Route(name: 'app_booking_index', methods: ['GET'])]
-    // public function index(BookingRepository $bookingRepository): Response
-    // {
-    //     return $this->render('booking/index.html.twig', [
-    //         'bookings' => $bookingRepository->findAll(),
-    //     ]);
-    // }
+    #[Route('/confirm', name: 'confirm-booking', methods: ['POST'])]
+    public function confirmBooking(
+        Request $request,
+        Security $security,
+        BookingRepository $bookingRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        return $this->changeBookingStatus($request, $security, $bookingRepository, $entityManager, BookingStatus::VALIDATED);
+    }
 
-    // #[Route('/new', name: 'app_booking_new', methods: ['GET', 'POST'])]
-    // public function new(Request $request, EntityManagerInterface $entityManager): Response
-    // {
-    //     $booking = new Booking();
-    //     $form = $this->createForm(BookingType::class, $booking);
-    //     $form->handleRequest($request);
+    #[Route('/cancel', name: 'cancel-booking', methods: ['POST'])]
+    public function cancelBooking(
+        Request $request,
+        Security $security,
+        BookingRepository $bookingRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        return $this->changeBookingStatus($request, $security, $bookingRepository, $entityManager, BookingStatus::CANCELED);
+    }
 
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $entityManager->persist($booking);
-    //         $entityManager->flush();
+    private function changeBookingStatus(Request $request, Security $security, BookingRepository $bookingRepository, EntityManagerInterface $entityManager, BookingStatus $status) {
+        $user = $security->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
 
-    //         return $this->redirectToRoute('app_booking_index', [], Response::HTTP_SEE_OTHER);
-    //     }
+        $data = json_decode($request->getContent(), true);
+        $bookingId = $data['bookingId'] ?? null;
 
-    //     return $this->render('booking/new.html.twig', [
-    //         'booking' => $booking,
-    //         'form' => $form,
-    //     ]);
-    // }
+        if (!$bookingId) {
+            return new JsonResponse(['error' => 'Booking ID is required'], Response::HTTP_BAD_REQUEST);
+        }
 
-    // #[Route('/{id}', name: 'app_booking_show', methods: ['GET'])]
-    // public function show(Booking $booking): Response
-    // {
-    //     return $this->render('booking/show.html.twig', [
-    //         'booking' => $booking,
-    //     ]);
-    // }
+        $booking = $bookingRepository->find($bookingId);
 
-    // #[Route('/{id}/edit', name: 'app_booking_edit', methods: ['GET', 'POST'])]
-    // public function edit(Request $request, Booking $booking, EntityManagerInterface $entityManager): Response
-    // {
-    //     $form = $this->createForm(BookingType::class, $booking);
-    //     $form->handleRequest($request);
+        if (!$booking) {
+            return new JsonResponse(['error' => 'Booking not found'], Response::HTTP_NOT_FOUND);
+        }
 
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $entityManager->flush();
+        if ($booking->getProperty()->getOwner()->getId() !== $user->getId()) {
+            return new JsonResponse(['error' => 'You are not authorized to confirm this booking'], Response::HTTP_FORBIDDEN);
+        }
 
-    //         return $this->redirectToRoute('app_booking_index', [], Response::HTTP_SEE_OTHER);
-    //     }
+        $booking->setStatus($status);
+        
+        $entityManager->persist($booking);
+        $entityManager->flush();
 
-    //     return $this->render('booking/edit.html.twig', [
-    //         'booking' => $booking,
-    //         'form' => $form,
-    //     ]);
-    // }
+        $statusMessage = "";
 
-    // #[Route('/{id}', name: 'app_booking_delete', methods: ['POST'])]
-    // public function delete(Request $request, Booking $booking, EntityManagerInterface $entityManager): Response
-    // {
-    //     if ($this->isCsrfTokenValid('delete'.$booking->getId(), $request->getPayload()->getString('_token'))) {
-    //         $entityManager->remove($booking);
-    //         $entityManager->flush();
-    //     }
+        if ($status == BookingStatus::CANCELED) {
+            $statusMessage = "canceled";
+        }
+        if ($status == BookingStatus::VALIDATED) {
+            $statusMessage = "validated";
+        }
 
-    //     return $this->redirectToRoute('app_booking_index', [], Response::HTTP_SEE_OTHER);
-    // }
+        return new JsonResponse([
+            'message' => 'Booking '. $statusMessage .' successfully',
+        ], Response::HTTP_OK);
+
+    }
 }
