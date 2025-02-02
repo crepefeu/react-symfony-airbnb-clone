@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Address;
 use App\Entity\PropertyMedia;
+use App\Entity\Amenity;
 
 #[Route('/api/properties', name: 'api_properties_')]
 class PropertyController extends AbstractController
@@ -166,6 +167,18 @@ class PropertyController extends AbstractController
                     $media->setProperty($property);
                     $media->setUrl($file);
                     $entityManager->persist($media);
+                }
+            }
+
+            // Handle amenities
+            if (isset($propertyData['amenities']) && is_array($propertyData['amenities'])) {
+                $amenityRepo = $entityManager->getRepository(Amenity::class);
+                foreach ($propertyData['amenities'] as $amenityId) {
+                    $amenity = $amenityRepo->find($amenityId);
+                    if ($amenity) {
+                        $property->addAmenity($amenity);
+                        $entityManager->persist($amenity); // Explicitly persist each amenity
+                    }
                 }
             }
 

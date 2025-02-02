@@ -85,6 +85,31 @@ const Review = ({ formData }) => {
       </div>
 
       <div className="bg-gray-50 rounded-xl p-6">
+        <h3 className="text-xl font-semibold mb-4">Amenities</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {formData.amenities.length > 0 ? (
+            formData.amenities.map((amenityId) => {
+              // Find the amenity object from the API response in formData
+              const amenity = formData.amenitiesData?.find(a => a.id === amenityId);
+              return (
+                <div key={amenityId} className="flex items-center gap-2">
+                  <div 
+                    className="w-5 h-5 text-gray-600"
+                    dangerouslySetInnerHTML={{ 
+                      __html: amenity?.categoryIcon || '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>' 
+                    }} 
+                  />
+                  <span>{amenity?.name || 'Unknown Amenity'}</span>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-gray-500 col-span-2">No amenities selected</p>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-gray-50 rounded-xl p-6">
         <h3 className="text-xl font-semibold mb-4">Description</h3>
         <h4 className="font-medium mb-2">{formData.title}</h4>
         <p className="text-gray-600">{formData.description}</p>

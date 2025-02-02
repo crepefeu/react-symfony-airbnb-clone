@@ -7,6 +7,7 @@ import Photos from '../components/BecomeHost/Photos';
 import Description from '../components/BecomeHost/Description';
 import Price from '../components/BecomeHost/Price';
 import Review from '../components/BecomeHost/Review';
+import Amenities from '../components/BecomeHost/Amenities';
 
 const StepNavigation = ({ steps, currentStep, onStepClick, completedSteps }) => {
   return (
@@ -66,6 +67,7 @@ const BecomeHost = () => {
       bedrooms: 1,
       bathrooms: 1,
       amenities: [],
+      amenitiesData: [], // Add this line
       photos: [],
       title: '',
       description: '',
@@ -192,6 +194,7 @@ const BecomeHost = () => {
     { title: 'What type of place will you host?', component: 'PropertyType' },
     { title: "Where's your place located?", component: "Location" },
     { title: 'How many guests can your place accommodate?', component: 'Capacity' },
+    { title: 'What amenities do you offer?', component: 'Amenities' }, // Add new step
     { title: "Let's add some photos of your place", component: "Photos" },
     { title: "Create your description", component: "Description" },
     { title: 'Now, set your price', component: 'Price' },
@@ -207,12 +210,14 @@ const BecomeHost = () => {
       case 3:
         return !!formData.guests && !!formData.bedrooms && !!formData.bathrooms;
       case 4:
-        return formData.photos.length > 0;
+        return formData.amenities.length > 0;
       case 5:
-        return !!formData.title && !!formData.description;
+        return formData.photos.length > 0;
       case 6:
-        return !!formData.price;
+        return !!formData.title && !!formData.description;
       case 7:
+        return !!formData.price;
+      case 8:
         return true; // Review step is always accessible if previous steps are complete
       default:
         return false;
@@ -262,12 +267,14 @@ const BecomeHost = () => {
       case 3:
         return <Capacity formData={formData} setFormData={setFormData} />;
       case 4:
-        return <Photos formData={formData} setFormData={setFormData} />;
+        return <Amenities formData={formData} setFormData={setFormData} />;
       case 5:
-        return <Description formData={formData} setFormData={setFormData} />;
+        return <Photos formData={formData} setFormData={setFormData} />;
       case 6:
-        return <Price formData={formData} setFormData={setFormData} />;
+        return <Description formData={formData} setFormData={setFormData} />;
       case 7:
+        return <Price formData={formData} setFormData={setFormData} />;
+      case 8:
         return <Review formData={formData} />;
       default:
         return null;
