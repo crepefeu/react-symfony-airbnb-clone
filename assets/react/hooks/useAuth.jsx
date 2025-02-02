@@ -5,6 +5,32 @@ const useAuth = () => {
   const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const fetchUser = async (authToken = token) => {
+    if (!authToken) return;
+    
+    try {
+      const response = await fetch('/api/me', {
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem("user", JSON.stringify(userData));
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
@@ -13,6 +39,7 @@ const useAuth = () => {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
       setIsAuthenticated(true);
+      fetchUser(storedToken); // Fetch fresh user data with stored token
     }
   }, []);
 
@@ -31,11 +58,11 @@ const useAuth = () => {
     }
   };
 
-  const login = (userData, authToken) => {
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", authToken);
+  const login = (response) => {
+    setUser(response.user);
+    setToken(response.token);
+    localStorage.setItem("user", JSON.stringify(response.user));
+    localStorage.setItem("token", response.token);
   };
 
   const logout = () => {
@@ -46,7 +73,16 @@ const useAuth = () => {
     location.href = "/";
   };
 
-  return { user, isAuthenticated, token, login, logout, authentication };
+  return { 
+    user, 
+    setUser, 
+    isAuthenticated, 
+    token, 
+    login, 
+    logout, 
+    authentication,
+    fetchUser, 
+  };
 };
 
 export default useAuth;

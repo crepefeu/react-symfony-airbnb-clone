@@ -26,11 +26,15 @@ class AuthenticationController extends AbstractController
         }
 
         return new JsonResponse([
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
             'profilePicture' => $user->getProfilePicture(),
             'bio' => $user->getBio(),
             'roles' => $user->getRoles(),
+            'createdAt' => $user->getFormattedCreatedAt(),
+            'averageRating' => $user->getAverageRating(),
         ]);
     }
 
@@ -70,8 +74,20 @@ class AuthenticationController extends AbstractController
         $em->persist($user);
         $em->flush();
 
+        // Return complete user data along with the token
         return $this->json([
             'token' => $jwtManager->create($user),
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstName' => $user->getFirstName(),
+                'lastName' => $user->getLastName(),
+                'profilePicture' => $user->getProfilePicture(),
+                'bio' => $user->getBio(),
+                'roles' => $user->getRoles(),
+                'createdAt' => $user->getFormattedCreatedAt(),
+                'averageRating' => $user->getAverageRating(),
+            ]
         ]);
     }
 
