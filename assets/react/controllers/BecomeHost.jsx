@@ -298,9 +298,9 @@ const BecomeHost = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20"> {/* Add padding bottom to prevent content from being hidden behind footer */}
       {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200">
+      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-10">
         <div 
           className="h-full bg-rose-600 transition-all duration-500"
           style={{ width: `${(step / steps.length) * 100}%` }}
@@ -324,22 +324,38 @@ const BecomeHost = () => {
           <div className="mb-8">
             {renderStepContent()}
           </div>
+        </div>
+      </div>
 
-          {/* Navigation buttons */}
-          <div className="flex justify-between">
-            {step > 1 && (
+      {/* Fixed footer with navigation buttons */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
+        <div className="max-w-screen-xl mx-auto px-6">
+          <div className="max-w-2xl mx-auto py-4 flex justify-between items-center">
+            {step > 1 ? (
               <button
                 onClick={handleBack}
-                className="px-6 py-3 border border-gray-300 rounded-lg"
+                className="px-6 py-3 hover:bg-gray-50 rounded-lg flex items-center gap-2 text-gray-900"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
                 Back
               </button>
+            ) : (
+              <div></div>
             )}
             <button
               onClick={handleNext}
-              className="ml-auto px-6 py-3 bg-rose-600 text-white rounded-lg"
+              className="ml-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center gap-2"
             >
-              {step === steps.length ? 'Publish listing' : 'Next'}
+              {step === steps.length ? 'Publish listing' : (
+                <>
+                  Next
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </div>
