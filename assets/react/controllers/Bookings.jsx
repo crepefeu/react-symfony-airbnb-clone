@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import useAuth from "../hooks/useAuth";
-import TripsList from "../components/Booking/TripsList";
-import BookingsList from "../components/Booking/BookingsList";
+import BookingsSection from "../components/Booking/BookingsSection";
+import LoadingSpinner from "../components/UI/LoadingSpinner";
+import NoBookings from "../components/Booking/NoBookings";
 
 const Bookings = () => {
   const breadcrumbs = [{ label: "Manage bookings" }];
@@ -72,27 +73,27 @@ const Bookings = () => {
     );
   };
 
+  const noBookings =
+    bookingsToValidate.length < 1 &&
+    upcomingBookings.length < 1 &&
+    pastBookings.length < 1;
+
   return (
     <Layout breadcrumbs={breadcrumbs}>
-      {isLoading && (
-        <div className="flex justify-center items-center py-12 min-h-screen">
-          <div className="animate-spin h-8 w-8 border-4 border-rose-500 rounded-full border-t-transparent"></div>
-        </div>
-      )}
-      {!isLoading && (
+      {isLoading && <LoadingSpinner />}
+      {!isLoading && noBookings ? (
+        <NoBookings />
+      ) : (
         <div className="px-4 py-6 m-auto flex flex-col gap-3 max-w-7xl">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Booking to validate
-          </h2>
-          <BookingsList bookings={bookingsToValidate} />
-          <h2 className="text-lg font-semibold text-gray-900 mt-8">
-            Upcoming booking
-          </h2>
-          <BookingsList bookings={upcomingBookings} />
-          <h2 className="text-lg font-semibold text-gray-900 mt-8">
-            Past booking
-          </h2>
-          <BookingsList bookings={pastBookings} />
+          <BookingsSection
+            title="Booking to validate"
+            bookings={bookingsToValidate}
+          />
+          <BookingsSection
+            title="Upcoming booking"
+            bookings={upcomingBookings}
+          />
+          <BookingsSection title="Past bookings" bookings={pastBookings} />
         </div>
       )}
     </Layout>
