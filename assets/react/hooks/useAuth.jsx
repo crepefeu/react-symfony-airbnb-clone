@@ -7,10 +7,10 @@ const useAuth = () => {
 
   const fetchUser = async (authToken = token) => {
     if (!authToken) return;
-    
+
     try {
-      const response = await fetch('/api/me', {
-        credentials: 'include',
+      const response = await fetch("/api/me", {
+        credentials: "include",
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -25,7 +25,7 @@ const useAuth = () => {
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Error fetching user:', error);
+      console.error("Error fetching user:", error);
       setUser(null);
       setIsAuthenticated(false);
     }
@@ -36,6 +36,7 @@ const useAuth = () => {
     const storedToken = localStorage.getItem("token");
 
     if (storedUser && storedToken) {
+      console.log(storedUser);
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
       setIsAuthenticated(true);
@@ -73,15 +74,15 @@ const useAuth = () => {
     location.href = "/";
   };
 
-  return { 
-    user, 
-    setUser, 
-    isAuthenticated, 
-    token, 
-    login, 
-    logout, 
+  return {
+    user,
+    setUser,
+    isAuthenticated,
+    token,
+    login,
+    logout,
     authentication,
-    fetchUser, 
+    fetchUser,
   };
 };
 

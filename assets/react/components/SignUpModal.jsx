@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import Modal from "./Modal";
+import useAuth from "../hooks/useAuth";
 
 const SignUpModal = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState([]);
@@ -7,6 +8,7 @@ const SignUpModal = ({ isOpen, onClose }) => {
   const lastNameRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
+  const { login } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -26,22 +28,24 @@ const SignUpModal = ({ isOpen, onClose }) => {
 
     if (response.ok) {
       const data = await response.json();
-      localStorage.setItem("hostMeJWT", data.token);
+      localStorage.setItem("token", data.token);
 
       const me = await fetch("/api/me", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("hostMeJWT")}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
       if (me.ok) {
-        const meData = await response.json();
-        login({
+        const meData = await me.json();
+        const user = {
           firstName: meData.firstName,
           lastName: meData.lastName,
           roles: meData.roles,
-        });
+        };
+        login({ user, token: data.token });
+        location.href = "/profile";
       }
     } else {
       setErrors(["Something went wrong during registration"]);

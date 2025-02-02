@@ -39,7 +39,7 @@ const LogInModal = ({ isOpen, onClose }) => {
           lastName: meData.lastName,
           roles: meData.roles,
         };
-        login(user, data.token);
+        login({ user, token: data.token });
         location.href = "/profile";
       }
     } else {
