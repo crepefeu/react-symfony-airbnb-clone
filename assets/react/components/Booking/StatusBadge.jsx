@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, absolute }) => {
   const [label, setLabel] = useState("Undefined");
   const [bgColor, setBgColor] = useState("bg-gray-200");
   const [textColor, setTextColor] = useState("text-gray-800");
   const [shadowColor, setShadowColor] = useState("shadow-gray-800");
+  const [position, setPosition] = useState("relative");
 
   const statusStyle = {
     pending: {
@@ -50,11 +51,14 @@ const StatusBadge = ({ status }) => {
     setBgColor(statusStyle[status].bgColor);
     setTextColor(statusStyle[status].textColor);
     setShadowColor(statusStyle[status].shadowColor);
+    if (absolute) {
+      setPosition("absolute top-2 right-2");
+    }
   }, [status]);
 
   return (
     <span
-      className={`px-3 py-1 rounded ${bgColor} ${textColor} text-sm h-fit font-semibold shadow-sm ${shadowColor}`}
+      className={`px-3 py-1 rounded ${bgColor} ${textColor} text-sm h-fit font-semibold shadow-sm ${shadowColor} ${position}`}
     >
       {label}
     </span>

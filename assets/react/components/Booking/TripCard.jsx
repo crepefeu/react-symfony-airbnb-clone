@@ -45,7 +45,7 @@ const TripCard = ({ trip }) => {
                 </span>
               </div>
             </div>
-            <StatusBadge status={trip.status} />
+            <StatusBadge status={trip.status} absolute={true} />
           </div>
         </div>
       </a>
