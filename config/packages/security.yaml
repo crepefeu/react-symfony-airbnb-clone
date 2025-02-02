@@ -44,7 +44,8 @@ security:
   access_control:
     - { path: ^/api/auth, roles: PUBLIC_ACCESS }
     - { path: ^/api/properties, roles: PUBLIC_ACCESS, methods: [GET] }
-    - { path: ^/api/properties, roles: ROLE_HOST, methods: [POST, PUT, DELETE] }
+    - { path: ^/api/properties, roles: ROLE_USER, methods: [POST, PUT, DELETE] }
+    - { path: ^/api/properties/create, roles: ROLE_USER, methods: [POST, PUT, DELETE] }
     - { path: ^/api/reviews, roles: ROLE_USER }
     - { path: ^/api/admin, roles: ROLE_ADMIN }
     - { path: ^/api/bookings/user, roles: ROLE_USER }
