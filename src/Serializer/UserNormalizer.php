@@ -29,6 +29,7 @@ class UserNormalizer implements NormalizerInterface
             'bio' => $object->getBio(),
             'createdAt' => $object->getCreatedAt()?->format('c'),
             'averageRating' => $object->getAverageRating(),
+            'roles' => $object->getRoles(),
             'properties' => array_map(function($property) use ($format, $context) {
                 return [
                     'id' => $property->getId(),
