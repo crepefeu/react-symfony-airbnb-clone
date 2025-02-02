@@ -7,7 +7,6 @@ use App\Entity\Booking;
 use App\Entity\User;
 use App\Entity\Property;
 use App\Enum\BookingStatus;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Faker\Factory;
 use DateTime;
