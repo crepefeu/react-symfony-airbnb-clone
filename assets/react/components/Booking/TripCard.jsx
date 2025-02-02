@@ -3,7 +3,6 @@ import StatusBadge from "./StatusBadge";
 
 const TripCard = ({ trip }) => {
   const formatDate = (date) => {
-    console.log(date);
     return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "2-digit",

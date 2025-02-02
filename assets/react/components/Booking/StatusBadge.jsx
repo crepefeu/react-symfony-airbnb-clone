@@ -1,44 +1,60 @@
 import React, { useEffect, useState } from "react";
 
 const StatusBadge = ({ status }) => {
+  const [label, setLabel] = useState("Undefined");
+  const [bgColor, setBgColor] = useState("bg-gray-200");
+  const [textColor, setTextColor] = useState("text-gray-800");
+  const [shadowColor, setShadowColor] = useState("shadow-gray-800");
+
   const statusStyle = {
     pending: {
       label: "Pending",
-      color: "yellow",
+      bgColor: "bg-yellow-200",
+      textColor: "text-yellow-800",
+      shadowColor: "shadow-yellow-800",
     },
     validated: {
       label: "Validated",
-      color: "green",
+      bgColor: "bg-green-200",
+      textColor: "text-green-800",
+      shadowColor: "shadow-green-800",
     },
     ongoing: {
       label: "Ongoing",
-      color: "blue",
+      bgColor: "bg-blue-200",
+      textColor: "text-blue-800",
+      shadowColor: "shadow-blue-800",
     },
     finished: {
       label: "Finished",
-      color: "gray",
+      bgColor: "bg-gray-200",
+      textColor: "text-gray-800",
+      shadowColor: "shadow-gray-800",
     },
     missed: {
       label: "Missed",
-      color: "red",
+      bgColor: "bg-red-200",
+      textColor: "text-red-800",
+      shadowColor: "shadow-red-800",
     },
     canceled: {
       label: "Canceled",
-      color: "red",
+      bgColor: "bg-red-200",
+      textColor: "text-red-800",
+      shadowColor: "shadow-red-800",
     },
   };
 
-  const [label, setLabel] = useState("Pending");
-  const [color, setColor] = useState("yellow");
-
   useEffect(() => {
     setLabel(statusStyle[status].label);
-    setColor(statusStyle[status].color);
+    setBgColor(statusStyle[status].bgColor);
+    setTextColor(statusStyle[status].textColor);
+    setShadowColor(statusStyle[status].shadowColor);
   }, [status]);
 
   return (
     <span
-      className={`px-3 py-1 rounded bg-${color}-200 text-${color}-800 text-sm font-semibold absolute top-2 right-2 shadow-sm shadow-${color}-800`}
+      className={`px-3 py-1 rounded ${bgColor} ${textColor} text-sm font-semibold absolute top-2 right-2 shadow-sm ${shadowColor}`}
     >
       {label}
     </span>
