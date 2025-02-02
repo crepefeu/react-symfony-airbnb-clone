@@ -7,7 +7,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -141,6 +141,14 @@ const Header = () => {
                     >
                       Trips
                     </a>
+                    {/* {user.roles.include("ROLE_HOST") && ( */}
+                    <a
+                      href="/bookings"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Manage bookings
+                    </a>
+                    {/* )} */}
                     <a
                       href="/wishlists"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"

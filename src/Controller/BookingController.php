@@ -28,10 +28,20 @@ final class BookingController extends AbstractController
         }
 
         $bookings = $bookingRepository->findBy(['Guest' => $user]);
-        // $jsonContent = $serializer->serialize($bookings, 'json', ['groups' => 'booking:read']);
-        // return new JsonResponse($jsonContent, JsonResponse::HTTP_OK);
-
         return $this->json(['trips' => $bookings], 200, [], ['groups' => ['booking:read']]);
+    }
+
+    #[Route('/manage', name: 'get-host-bookings', methods: ['GET'])]
+    public function getHostBookings(Security $security, SerializerInterface $serializer, BookingRepository $bookingRepository): JsonResponse
+    {
+        $user = $security->getUser();
+
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
+
+        $bookings = $bookingRepository->findBookingsByOwner($user->getId());
+        return $this->json(['bookings' => $bookings], 200, [], ['groups' => ['booking:read']]);
     }
 
     // #[Route(name: 'app_booking_index', methods: ['GET'])]

@@ -54,7 +54,7 @@ const StatusBadge = ({ status }) => {
 
   return (
     <span
-      className={`px-3 py-1 rounded ${bgColor} ${textColor} text-sm font-semibold absolute top-2 right-2 shadow-sm ${shadowColor}`}
+      className={`px-3 py-1 rounded ${bgColor} ${textColor} text-sm h-fit font-semibold shadow-sm ${shadowColor}`}
     >
       {label}
     </span>
