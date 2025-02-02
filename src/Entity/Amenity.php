@@ -6,6 +6,8 @@ use App\Repository\AmenityRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\AmenityCategory;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: AmenityRepository::class)]
 class Amenity
@@ -24,9 +26,25 @@ class Amenity
     #[Groups(['property:read'])]
     private ?AmenityCategory $category = null;
 
-    #[ORM\ManyToOne(inversedBy: 'amenities')]
-    #[ORM\JoinColumn(nullable: true)]  // Change this to allow null temporarily
-    private ?Property $property = null;
+    #[Groups(['property:read'])]
+    public function getCategoryName(): string
+    {
+        return $this->category?->name ?? '';
+    }
+
+    #[Groups(['property:read'])]
+    public function getCategoryIcon(): ?string
+    {
+        return $this->category?->getIcon();
+    }
+
+    #[ORM\ManyToMany(targetEntity: Property::class, mappedBy: 'amenities', cascade: ['persist'])]
+    private Collection $properties;
+
+    public function __construct()
+    {
+        $this->properties = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -57,15 +75,29 @@ class Amenity
         return $this;
     }
 
-    public function getProperty(): ?Property
+    public function getProperties(): Collection
     {
-        return $this->property;
+        return $this->properties;
     }
 
-    public function setProperty(?Property $property): static
+    public function addProperty(Property $property): static
     {
-        $this->property = $property;
+        if (!$this->properties->contains($property)) {
+            $this->properties->add($property);
+        }
 
         return $this;
+    }
+
+    public function removeProperty(Property $property): static
+    {
+        $this->properties->removeElement($property);
+
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name ?? 'Unnamed Amenity';
     }
 }

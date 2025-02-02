@@ -13,29 +13,21 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-
+use Symfony\Component\Serializer\SerializerInterface;
 
 class AuthenticationController extends AbstractController
 {
     #[Route('/api/me', name: 'get-me', methods: ['GET'])]
-    public function getMe(Security $security): JsonResponse {
+    public function getMe(Security $security, SerializerInterface $serializer): JsonResponse 
+    {
         $user = $security->getUser();
 
         if (!$user) {
             return new JsonResponse(['error' => 'Unauthorized'], 401);
         }
 
-        return new JsonResponse([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'profilePicture' => $user->getProfilePicture(),
-            'bio' => $user->getBio(),
-            'roles' => $user->getRoles(),
-            'createdAt' => $user->getFormattedCreatedAt(),
-            'averageRating' => $user->getAverageRating(),
-        ]);
+        $normalizedUser = $serializer->normalize($user, null, ['groups' => ['user:read']]);
+        return new JsonResponse($normalizedUser);
     }
 
     #[Route('/api/is-authenticated', name: 'is-authenticated', methods: ['GET'])]

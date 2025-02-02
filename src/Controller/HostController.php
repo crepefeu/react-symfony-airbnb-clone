@@ -14,7 +14,7 @@ class HostController extends AbstractController
         return $this->render('host/index.html.twig');
     }
 
-    #[Route('/become-host/intro', name: 'app_become_host')]
+    #[Route('/become-a-host/start', name: 'app_become_host')]
     public function becomeHost(): Response
     {
         return $this->render('host/become.html.twig');

@@ -71,8 +71,7 @@ class Property
     /**
      * @var Collection<int, Amenity>
      */
-    #[ORM\ManyToMany(targetEntity: Amenity::class, cascade: ['persist'])]
-    #[ORM\JoinTable(name: 'property_amenities')]
+    #[ORM\ManyToMany(targetEntity: Amenity::class, inversedBy: 'properties', cascade: ['persist'])]
     #[Groups(['property:read'])]
     private Collection $amenities;
 
@@ -290,7 +289,7 @@ class Property
     {
         if (!$this->amenities->contains($amenity)) {
             $this->amenities->add($amenity);
-            $amenity->setProperty($this);
+            $amenity->addProperty($this); // Change this line
         }
 
         return $this;
@@ -299,10 +298,7 @@ class Property
     public function removeAmenity(Amenity $amenity): static
     {
         if ($this->amenities->removeElement($amenity)) {
-            // set the owning side to null (unless already changed)
-            if ($amenity->getProperty() === $this) {
-                $amenity->setProperty(null);
-            }
+            $amenity->removeProperty($this); // Change this line
         }
 
         return $this;

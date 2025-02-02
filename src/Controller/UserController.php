@@ -57,4 +57,34 @@ class UserController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
+
+    #[Route('/api/user/update-profile', name: 'update_profile', methods: ['PUT'])]
+    public function updateProfile(
+        Request $request, 
+        Security $security, 
+        EntityManagerInterface $em
+    ): JsonResponse
+    {
+        /** @var User $user */
+        $user = $security->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        
+        if (isset($data['bio'])) {
+            $user->setBio($data['bio']);
+        }
+
+        $em->persist($user);
+        $em->flush();
+
+        return new JsonResponse([
+            'message' => 'Profile updated successfully',
+            'user' => [
+                'bio' => $user->getBio(),
+            ]
+        ]);
+    }
 }

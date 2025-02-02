@@ -1,10 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import ProfileSidebar from "../components/Profile/ProfileSidebar";
 import ProfileContent from "../components/Profile/ProfileContent";
 import useAuth from "../hooks/useAuth";
 
 const Profile = () => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [bio, setBio] = useState("");
   const breadcrumbs = [{ label: "Profile" }];
   const { user, token, fetchUser } = useAuth();
 
@@ -38,6 +40,25 @@ const Profile = () => {
     }
   };
 
+  const handleUpdateProfile = async (updatedData) => {
+    try {
+      const response = await fetch('/api/user/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedData),
+      });
+      
+      if (!response.ok) throw new Error('Update failed');
+      await fetchUser();
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
   if (!token) {
     return (
       <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
@@ -52,7 +73,13 @@ const Profile = () => {
         <div className="max-w-screen-xl mx-auto px-6 py-16">
           <div className="flex flex-col md:flex-row gap-8">
             <ProfileSidebar user={user} onUpdatePhoto={handleProfilePictureUpdate} />
-            <ProfileContent user={user} />
+            <ProfileContent 
+              user={user} 
+              isOwner={true} 
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
+              onUpdateProfile={handleUpdateProfile}
+            />
           </div>
         </div>
       ) : (

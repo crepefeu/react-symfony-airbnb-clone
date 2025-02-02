@@ -215,6 +215,41 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
         return $number . ' ' . $prefix . ' ' . $neighborhood;
     }
 
+    private function addBasicAmenities(Property $property, ObjectManager $manager): void
+    {
+        // Essential amenities that most properties should have (Wifi and Kitchen)
+        foreach ([0, 2] as $index) { // Wifi and Kitchen
+            $refName = 'amenity_template_' . $index;
+            if ($this->hasReference($refName, Amenity::class)) {
+                $amenity = $this->getReference($refName, Amenity::class);
+                $property->addAmenity($amenity);
+            }
+        }
+
+        // Safety amenities that all properties should have (23-26: smoke detector, first aid, extinguisher, CO detector)
+        foreach ([23, 24, 25, 26] as $index) {
+            $refName = 'amenity_template_' . $index;
+            if ($this->hasReference($refName, Amenity::class)) {
+                $amenity = $this->getReference($refName, Amenity::class);
+                $property->addAmenity($amenity);
+            }
+        }
+
+        // Add 2-4 random amenities from the remaining pool
+        $otherAmenityIndices = range(3, 22); // Amenities 3-22 (excluding essential and safety ones)
+        shuffle($otherAmenityIndices);
+        $selectedCount = rand(2, 4);
+        $selectedAmenities = array_slice($otherAmenityIndices, 0, $selectedCount);
+
+        foreach ($selectedAmenities as $index) {
+            $refName = 'amenity_template_' . $index;
+            if ($this->hasReference($refName, Amenity::class)) {
+                $amenity = $this->getReference($refName, Amenity::class);
+                $property->addAmenity($amenity);
+            }
+        }
+    }
+
     public function load(ObjectManager $manager): void
     {
         $hosts = [
@@ -311,22 +346,8 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
                 $property->setCreatedAt(new \DateTimeImmutable());
                 $property->setUpdatedAt(new \DateTimeImmutable());
 
-                // Add amenities (between 6 and 12 amenities per property)
-                $numAmenities = rand(6, 12);
-                
-                // Always include essential amenities
-                $property->addAmenity(clone $wifiAmenity);
-                $property->addAmenity(clone $smokeAlarmAmenity);
-                
-                // Shuffle remaining amenities and select random number
-                $remainingAmenities = array_diff($amenityRefs, [0, 5]);
-                shuffle($remainingAmenities);
-                $selectedAmenities = array_slice($remainingAmenities, 0, $numAmenities - 2);
-                
-                foreach ($selectedAmenities as $amenityIndex) {
-                    $amenity = $this->getReference('amenity_template_' . $amenityIndex, Amenity::class);
-                    $property->addAmenity(clone $amenity);
-                }
+                // Add amenities using the new method
+                $this->addBasicAmenities($property, $manager);
 
                 $property->setOwner($hosts[array_rand($hosts)]);
                 

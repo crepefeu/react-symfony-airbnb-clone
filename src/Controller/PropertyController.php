@@ -9,6 +9,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Address;
+use App\Entity\PropertyMedia;
+use App\Entity\Amenity;
 
 #[Route('/api/properties', name: 'api_properties_')]
 class PropertyController extends AbstractController
@@ -108,5 +112,90 @@ class PropertyController extends AbstractController
         return $this->json([
             'averagePrice' => $averagePrice,
         ]);
+    }
+
+    #[Route('/create', name: 'create', methods: ['POST'])]
+    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        try {
+            $user = $this->getUser();
+            $propertyData = json_decode($request->request->get('property'), true);
+            
+            // Debug the received data
+            error_log('Received property data: ' . print_r($propertyData, true));
+            
+            $property = new Property();
+            $property->setTitle($propertyData['title']);
+            $property->setDescription($propertyData['description']);
+            $property->setPrice($propertyData['price']);
+            $property->setPropertyType($propertyData['propertyType']);
+            $property->setMaxGuests($propertyData['maxGuests']);
+            $property->setBedrooms($propertyData['bedrooms']);
+            $property->setBathrooms($propertyData['bathrooms']);
+            $property->setLatitude($propertyData['latitude']);
+            $property->setLongitude($propertyData['longitude']);
+            $user->addProperty($property);
+
+            // debug the address data
+            error_log('Received address data: ' . print_r($propertyData['address'], true));
+
+            // debug each address field
+            error_log('Street Name: ' . $propertyData['address']['streetName']);
+            error_log('Street Number: ' . $propertyData['address']['streetNumber']);
+            error_log('City: ' . $propertyData['address']['city']);
+            error_log('State: ' . $propertyData['address']['state']);
+            error_log('Zipcode: ' . $propertyData['address']['zipcode']);
+            error_log('Country: ' . $propertyData['address']['country']);
+
+            $address = new Address();
+            $address->setStreetName($propertyData['address']['streetName']);
+            $address->setStreetNumber($propertyData['address']['streetNumber'] ?? '');
+            $address->setCity($propertyData['address']['city']);
+            $address->setState($propertyData['address']['state']);
+            $address->setZipcode($propertyData['address']['zipcode']);
+            $address->setCountry($propertyData['address']['country']);
+            $address->setCoordinates($propertyData['latitude'], $propertyData['longitude']);
+            
+            $entityManager->persist($address);
+            $property->setAddress($address);
+
+            // Handle photo uploads
+            $files = $request->files->get('photos');
+            if ($files) {
+                foreach ($files as $file) {
+                    $media = new PropertyMedia();
+                    $media->setProperty($property);
+                    $media->setUrl($file);
+                    $entityManager->persist($media);
+                }
+            }
+
+            // Handle amenities
+            if (isset($propertyData['amenities']) && is_array($propertyData['amenities'])) {
+                $amenityRepo = $entityManager->getRepository(Amenity::class);
+                foreach ($propertyData['amenities'] as $amenityId) {
+                    $amenity = $amenityRepo->find($amenityId);
+                    if ($amenity) {
+                        $property->addAmenity($amenity);
+                        $entityManager->persist($amenity); // Explicitly persist each amenity
+                    }
+                }
+            }
+
+            $entityManager->persist($property);
+            $entityManager->flush();            
+
+            return $this->json([
+                'message' => 'Property created successfully',
+                'id' => $property->getId()
+            ], Response::HTTP_CREATED);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'message' => 'Error creating property: ' . $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'data' => $propertyData ?? null
+            ], Response::HTTP_BAD_REQUEST);
+        }
     }
 }

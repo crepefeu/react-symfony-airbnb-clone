@@ -224,7 +224,7 @@ const HostLanding = () => {
             </a>
           </div>
           <a
-            href="/become-host/intro"
+            href="/become-a-host/start"
             className="inline-flex px-6 py-3 rounded-lg bg-rose-500 text-white font-medium hover:bg-rose-600 transition-colors"
           >
             Get started
