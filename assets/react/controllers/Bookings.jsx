@@ -80,8 +80,9 @@ const Bookings = () => {
 
   return (
     <Layout breadcrumbs={breadcrumbs}>
-      {isLoading && <LoadingSpinner />}
-      {!isLoading && noBookings ? (
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : noBookings ? (
         <NoBookings />
       ) : (
         <div className="px-4 py-6 m-auto flex flex-col gap-3 max-w-7xl">

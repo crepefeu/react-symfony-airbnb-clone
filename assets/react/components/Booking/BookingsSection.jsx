@@ -1,4 +1,5 @@
 import React from "react";
+import BookingsList from "./BookingsList";
 
 const BookingsSection = ({ title, bookings }) => {
   if (bookings.length === 0) return null;
@@ -6,7 +7,7 @@ const BookingsSection = ({ title, bookings }) => {
   return (
     <div>
       <h2 className="text-lg font-semibold">{title}</h2>
-      <BookingsSection bookings={bookings} />
+      <BookingsList bookings={bookings} />
     </div>
   );
 };
