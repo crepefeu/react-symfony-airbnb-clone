@@ -47,6 +47,7 @@ security:
     - { path: ^/api/properties, roles: ROLE_HOST, methods: [POST, PUT, DELETE] }
     - { path: ^/api/reviews, roles: ROLE_USER }
     - { path: ^/api/admin, roles: ROLE_ADMIN }
+    - { path: ^/api/bookings/user, roles: ROLE_USER }
 
 when@test:
   security:

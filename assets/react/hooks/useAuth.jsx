@@ -83,6 +83,7 @@ const useAuth = () => {
     logout,
     authentication,
     fetchUser,
+    setToken,
   };
 };
 
