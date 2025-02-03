@@ -298,7 +298,7 @@ const HeaderContent = () => {
             >
               {(!user || (user.roles && !user.roles.includes("ROLE_HOST"))) && (
                 <a
-                  href="/host"
+                  href="/become-a-host"
                   className="hidden md:block text-gray-600 hover:text-gray-900"
                 >
                   Become a host

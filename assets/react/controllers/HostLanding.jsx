@@ -12,6 +12,8 @@ import HostFAQ from "../components/Host/HostFAQ";
 import RollingDigit from "../components/RollingDigit";
 import PropertyDetailsModal from "../components/PropertyDetailsModal";
 import ZoomControl from "../components/ZoomControl";
+import useAuth from '../hooks/useAuth';  // Add this import at the top
+import LogInModal from "../components/LogInModal";
 
 const HostLanding = () => {
   const [nights, setNights] = useState(30);
@@ -30,6 +32,8 @@ const HostLanding = () => {
   const [isMapMoved, setIsMapMoved] = useState(false);
   const [hasProperties, setHasProperties] = useState(true);
   const mapRef = useRef(null);
+  const { token, isAuthenticated } = useAuth();  // Add isAuthenticated
+  const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
 
   const mapOptions = {
     disableDefaultUI: true,
@@ -207,6 +211,32 @@ const HostLanding = () => {
     }
   }, [bedrooms]);
 
+  const createNewDraft = async () => {
+    try {
+      const response = await fetch('/property-drafts/api/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      window.location.href = `/property-drafts/become-a-host/${data.draftId}`;
+    } catch (error) {
+      console.error('Error creating draft:', error);
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (!isAuthenticated) {
+      setIsLogInModalOpen(true);
+      return;
+    }
+    
+    // If authenticated, proceed with creating draft
+    createNewDraft();
+  };
+
   return (
     <div className="min-h-screen">
       {/* Fixed Header */}
@@ -226,12 +256,12 @@ const HostLanding = () => {
               </span>
             </a>
           </div>
-          <a
-            href="/become-a-host/start"
+          <button
+            onClick={handleGetStarted}
             className="inline-flex px-6 py-3 rounded-lg bg-rose-500 text-white font-medium hover:bg-rose-600 transition-colors"
           >
             Get started
-          </a>
+          </button>
         </div>
       </header>
 
@@ -437,6 +467,12 @@ const HostLanding = () => {
       <HostSetupSteps />
       <HostStats />
       <HostFAQ />
+
+      {/* Add LogInModal at the end of the component */}
+      <LogInModal
+        isOpen={isLogInModalOpen}
+        onClose={() => setIsLogInModalOpen(false)}
+      />
     </div>
   );
 };
