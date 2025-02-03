@@ -84,6 +84,29 @@ class PropertyRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function searchProperties(string $location, int $guests, ?array $coordinates = null): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.maxGuests >= :guests')
+            ->setParameter('guests', $guests);
+
+        if ($coordinates) {
+            $radius = 0.5;
+            $qb->andWhere('p.latitude BETWEEN :minLat AND :maxLat')
+               ->andWhere('p.longitude BETWEEN :minLng AND :maxLng')
+               ->setParameter('minLat', $coordinates['lat'] - $radius)
+               ->setParameter('maxLat', $coordinates['lat'] + $radius)
+               ->setParameter('minLng', $coordinates['lng'] - $radius)
+               ->setParameter('maxLng', $coordinates['lng'] + $radius);
+        } else {
+            $qb->leftJoin('p.address', 'a')
+                ->andWhere('a.city LIKE :location OR a.country LIKE :location')
+                ->setParameter('location', '%' . $location . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return Property[] Returns an array of Property objects
 //     */

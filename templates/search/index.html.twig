@@ -1,0 +1,12 @@
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block body %}
+    <div {{ react_component('Search', { 
+        initialSearchParams: searchParams
+    }) }}>
+        Loading...
+    </div>
+{% endblock %}

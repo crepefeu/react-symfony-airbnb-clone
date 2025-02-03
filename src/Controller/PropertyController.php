@@ -14,7 +14,7 @@ use App\Entity\Address;
 use App\Entity\PropertyMedia;
 use App\Entity\Amenity;
 
-#[Route('/api/properties', name: 'api_properties_')]
+#[Route('/api/properties', name: 'app_properties_')]
 class PropertyController extends AbstractController
 {
     public function __construct(
@@ -83,16 +83,18 @@ class PropertyController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(Property $property, Request $request): Response
+    public function show(?Property $property, Request $request): Response
     {
-        // Return JSON for API requests
+        if (!$property) {
+            throw $this->createNotFoundException('Property not found');
+        }
+
         if ($request->headers->get('Accept') === 'application/json') {
             return $this->json([
                 'property' => $property,
             ], 200, [], ['groups' => ['property:read', 'property:details']]);
         }
 
-        // Return HTML for browser requests
         return $this->render('property/show.html.twig', [
             'property' => $property,
         ]);

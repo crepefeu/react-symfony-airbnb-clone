@@ -2,7 +2,7 @@ import React from 'react';
 
 const Breadcrumbs = ({ items }) => {
     return (
-        <nav className="bg-gray-50 border-b mt-16">
+        <nav className="bg-gray-50 border-b mt-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center h-12">
                     <ol className="flex items-center space-x-2 text-sm text-gray-500">
