@@ -217,34 +217,44 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
 
     private function addBasicAmenities(Property $property, ObjectManager $manager): void
     {
-        // Essential amenities that most properties should have (Wifi and Kitchen)
-        foreach ([0, 2] as $index) { // Wifi and Kitchen
-            $refName = 'amenity_template_' . $index;
-            if ($this->hasReference($refName, Amenity::class)) {
-                $amenity = $this->getReference($refName, Amenity::class);
-                $property->addAmenity($amenity);
-            }
+        // Add essential amenities
+        $essentialReferences = [
+            AmenityFixtures::WIFI_REFERENCE,
+            AmenityFixtures::KITCHEN_REFERENCE,
+        ];
+
+        foreach ($essentialReferences as $reference) {
+            $amenity = $this->getReference($reference, Amenity::class);
+            $property->addAmenity($amenity);
         }
 
-        // Safety amenities that all properties should have (23-26: smoke detector, first aid, extinguisher, CO detector)
-        foreach ([23, 24, 25, 26] as $index) {
-            $refName = 'amenity_template_' . $index;
-            if ($this->hasReference($refName, Amenity::class)) {
-                $amenity = $this->getReference($refName, Amenity::class);
-                $property->addAmenity($amenity);
-            }
-        }
+        // Add safety amenities
+        $safetyAmenities = [
+            'amenity_smoke_detector',
+            'amenity_first_aid',
+            'amenity_fire_extinguisher',
+            'amenity_carbon_monoxide_detector'
+        ];
 
-        // Add 2-4 random amenities from the remaining pool
-        $otherAmenityIndices = range(3, 22); // Amenities 3-22 (excluding essential and safety ones)
-        shuffle($otherAmenityIndices);
+        // Add random additional amenities
+        $otherReferences = [
+            AmenityFixtures::TV_REFERENCE,
+            AmenityFixtures::WASHER_REFERENCE,
+            AmenityFixtures::PARKING_REFERENCE,
+            AmenityFixtures::AIR_CONDITIONING_REFERENCE,
+            AmenityFixtures::HEATING_REFERENCE,
+            AmenityFixtures::POOL_REFERENCE,
+            AmenityFixtures::WORKSPACE_REFERENCE,
+        ];
+
+        // Add 2-4 random amenities
+        shuffle($otherReferences);
         $selectedCount = rand(2, 4);
-        $selectedAmenities = array_slice($otherAmenityIndices, 0, $selectedCount);
+        $selectedAmenities = array_slice($otherReferences, 0, $selectedCount);
 
-        foreach ($selectedAmenities as $index) {
-            $refName = 'amenity_template_' . $index;
-            if ($this->hasReference($refName, Amenity::class)) {
-                $amenity = $this->getReference($refName, Amenity::class);
+        foreach ($selectedAmenities as $reference) {
+            if ($this->hasReference($reference, Amenity::class)) {
+                $amenity = $this->getReference($reference, Amenity::class);
                 $property->addAmenity($amenity);
             }
         }
@@ -258,13 +268,6 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
             $this->getReference(UserFixtures::HOST3_REFERENCE, User::class),
             $this->getReference(UserFixtures::HOST4_REFERENCE, User::class),
         ];
-
-        // Get references for essential amenities
-        $wifiAmenity = $this->getReference('amenity_template_0', Amenity::class);
-        $smokeAlarmAmenity = $this->getReference('amenity_template_5', Amenity::class);
-        
-        // Get total number of amenities
-        $amenityRefs = range(0, count(AmenityFixtures::AMENITIES) - 1);
 
         $index = 0;
         foreach (self::CITIES as $cityName => $cityData) {

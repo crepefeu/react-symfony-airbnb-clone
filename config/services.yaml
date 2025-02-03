@@ -46,3 +46,6 @@ services:
       $normalizer: '@serializer.normalizer.object'
     tags:
       - { name: 'serializer.normalizer', priority: 100 }
+
+  Intervention\Image\ImageManager:
+    factory: ['Intervention\Image\ImageManager', 'gd']

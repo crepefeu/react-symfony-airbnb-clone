@@ -1,0 +1,127 @@
+import React, { useState, useEffect } from 'react';
+import useAuth from '../hooks/useAuth';
+import Layout from '../components/Layout';
+
+const PropertyDrafts = () => {
+  const { token } = useAuth();
+  const [drafts, setDrafts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const breadcrumbs = [
+    { label: "Your Profile", href: "/profile" },
+    { label: "Property Drafts" }
+  ];
+
+  useEffect(() => {
+    const fetchDrafts = async () => {
+      try {
+        const response = await fetch('/property-drafts/api', { // Updated URL
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+        const data = await response.json();
+        setDrafts(data.drafts);
+      } catch (error) {
+        console.error('Error fetching drafts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDrafts();
+  }, [token]);
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (!token) {
+    return (
+      <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
+        <div className="text-center py-8">Please log in to view your drafts.</div>
+      </Layout>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Layout breadcrumbs={breadcrumbs}>
+        <div className="p-8 text-center">Loading drafts...</div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout breadcrumbs={breadcrumbs}>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-semibold mb-6">Your Property Drafts</h1>
+        
+        {drafts.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-xl">
+            <h2 className="text-xl font-medium mb-2">No drafts found</h2>
+            <p className="text-gray-600 mb-4">Start creating a new property listing</p>
+            <a 
+              href="/property-drafts/become-a-host"
+              className="inline-block bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700"
+            >
+              Become a Host
+            </a>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {drafts.map((draft) => (
+              <div 
+                key={draft.id}
+                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition"
+              >
+                <a 
+                  href={`/property-drafts/continue/${draft.id}`}
+                  className="block p-6"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium mb-1">
+                        {draft.data.title || 'Untitled Property'}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-2">
+                        Step {draft.currentStep} of 8
+                      </p>
+                      <div className="text-sm text-gray-500">
+                        Last saved: {formatDate(draft.lastSaved)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-rose-600">
+                      Continue
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <path d="m9 18 6-6-6-6"/>
+                      </svg>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+};
+
+export default PropertyDrafts;

@@ -72,7 +72,7 @@ class Property
      * @var Collection<int, Amenity>
      */
     #[ORM\ManyToMany(targetEntity: Amenity::class, inversedBy: 'properties', cascade: ['persist'])]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'property:details'])]
     private Collection $amenities;
 
     /**
@@ -279,7 +279,7 @@ class Property
     /**
      * @return Collection<int, Amenity>
      */
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'property:details'])]
     public function getAmenities(): Collection
     {
         return $this->amenities;

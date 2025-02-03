@@ -39,13 +39,13 @@ const Amenities = ({ formData, setFormData }) => {
   };
 
   const handleAmenityToggle = (amenityId) => {
+    const selectedAmenity = amenities.find(a => a.id === amenityId);
     setFormData(prev => ({
       ...prev,
       amenities: prev.amenities.includes(amenityId)
         ? prev.amenities.filter(id => id !== amenityId)
         : [...prev.amenities, amenityId],
-      // Store the full amenities data for the review step
-      amenitiesData: amenities
+      amenitiesData: amenities // Store full amenities data
     }));
   };
 

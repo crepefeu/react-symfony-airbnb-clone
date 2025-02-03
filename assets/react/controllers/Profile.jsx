@@ -3,12 +3,14 @@ import Layout from "../components/Layout";
 import ProfileSidebar from "../components/Profile/ProfileSidebar";
 import ProfileContent from "../components/Profile/ProfileContent";
 import useAuth from "../hooks/useAuth";
+import LogInModal from "../components/LogInModal";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState("");
   const breadcrumbs = [{ label: "Profile" }];
   const { user, token, fetchUser } = useAuth();
+  const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -62,7 +64,19 @@ const Profile = () => {
   if (!token) {
     return (
       <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
-        <div className="text-center py-8">Please log in to view your profile.</div>
+        <div className="text-center py-8">
+          <p className="mb-4">Please log in to view your profile.</p>
+          <button
+            onClick={() => setIsLogInModalOpen(true)}
+            className="bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700"
+          >
+            Log in
+          </button>
+          <LogInModal
+            isOpen={isLogInModalOpen}
+            onClose={() => setIsLogInModalOpen(false)}
+          />
+        </div>
       </Layout>
     );
   }

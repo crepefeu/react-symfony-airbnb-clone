@@ -31,3 +31,6 @@ yarn-error.log
 ###> qodo ###
 .qodo
 ###< qodo ###
+
+/public/uploads/properties/*
+!/public/uploads/properties/.gitkeep

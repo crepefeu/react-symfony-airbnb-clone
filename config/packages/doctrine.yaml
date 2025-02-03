@@ -9,8 +9,8 @@ doctrine:
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
         types:
-            geometry: CrEOF\Spatial\DBAL\Types\GeometryType
             geography: 'Jsor\Doctrine\PostGIS\Types\GeographyType'
+            geometry: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
             point: 'Jsor\Doctrine\PostGIS\Types\GeometryType'
     orm:
         auto_generate_proxy_classes: true
@@ -28,12 +28,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
-        controller_resolver:
-            auto_mapping: false
         dql:
             numeric_functions:
-                st_distance: CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSQL\STDistance
-                st_point: CrEOF\Spatial\ORM\Query\AST\Functions\PostgreSQL\STPoint
+                ST_Distance: Jsor\Doctrine\PostGIS\Functions\ST_Distance
+                ST_DWithin: Jsor\Doctrine\PostGIS\Functions\ST_DWithin
+                ST_SetSRID: Jsor\Doctrine\PostGIS\Functions\ST_SetSRID
+                ST_MakePoint: Jsor\Doctrine\PostGIS\Functions\ST_MakePoint
 
 when@test:
     doctrine:

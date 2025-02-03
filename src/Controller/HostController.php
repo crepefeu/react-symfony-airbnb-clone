@@ -8,15 +8,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HostController extends AbstractController
 {
-    #[Route('/host', name: 'app_host')]
-    public function index(): Response
+    #[Route('/become-a-host', name: 'become_host')]
+    public function hostLanding(): Response
     {
         return $this->render('host/index.html.twig');
-    }
-
-    #[Route('/become-a-host/start', name: 'app_become_host')]
-    public function becomeHost(): Response
-    {
-        return $this->render('host/become.html.twig');
     }
 }

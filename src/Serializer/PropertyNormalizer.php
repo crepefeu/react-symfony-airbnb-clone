@@ -24,6 +24,18 @@ class PropertyNormalizer implements NormalizerInterface
             return $media->getUrl();
         })->toArray();
 
+        $amenities = $object->getAmenities()->map(function ($amenity) {
+            return [
+                'id' => $amenity->getId(),
+                'name' => $amenity->getName(),
+                'category' => [
+                    'name' => $amenity->getCategory()->value,
+                    'icon' => $amenity->getCategory()->getIcon()
+                ],
+                'icon' => $amenity->getCategory()->getIcon(),
+            ];
+        })->toArray();
+
         return [
             'id' => $object->getId(),
             'title' => $object->getTitle(),
@@ -37,15 +49,7 @@ class PropertyNormalizer implements NormalizerInterface
             'propertyType' => $object->getPropertyType(),
             'images' => $images, // Replace old images field with new mapping
             'address' => $this->normalizer->normalize($object->getAddress(), $format, $context),
-            'amenities' => array_map(fn($amenity) => [
-                'id' => $amenity->getId(),
-                'name' => $amenity->getName(),
-                'category' => [
-                    'name' => $amenity->getCategory()->value,
-                    'icon' => $amenity->getCategory()->getIcon()
-                ],
-                'icon' => $amenity->getCategory()->getIcon(), // Add this line
-            ], $object->getAmenities()->toArray()),
+            'amenities' => $amenities,
             'averageRating' => $object->getAverageRating(),
             'owner' => [
                 'id' => $object->getOwner()->getId(),

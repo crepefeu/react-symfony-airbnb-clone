@@ -1,0 +1,5 @@
+services:
+    Intervention\Image\ImageManager:
+        factory: [Intervention\Image\ImageManager, 'createDriver']
+        arguments:
+            - 'gd'  # or 'imagick' if you prefer

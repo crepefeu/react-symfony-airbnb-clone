@@ -17,8 +17,8 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
   const renderPropertyCard = (property) => (
     <a
       key={property.id}
-      to={`/properties/${property.id}`}
-      className="block rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition"
+      href={`/property/${property.id}`}
+      className="block rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition cursor-pointer"
     >
       <div className="relative aspect-[4/3]">
         <img
@@ -128,15 +128,63 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
               <p className="text-gray-500 mb-6">
                 {isOwner ? "Ready to start your hosting journey?" : "Start your hosting journey"}
               </p>
-              <a
-                href="/host"
-                className="bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700 inline-block"
+              <a 
+                href="/property-drafts/become-a-host" // Updated URL
+                className="bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700"
               >
                 Become a Host
               </a>
             </div>
           )}
         </section>
+
+        {isOwner && (
+          <section className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl">Property Drafts</h2>
+              <a 
+                href="/property-drafts"
+                className="text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1"
+              >
+                View all drafts
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+              </a>
+            </div>
+            {user.propertyDrafts?.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {user.propertyDrafts.slice(0, 2).map((draft) => (
+                  // Show only the first 2 drafts in profile
+                  <a 
+                    key={draft.id}
+                    href={`/property-drafts/become-a-host/${draft.id}`} // Updated URL
+                    className="block p-4 border border-gray-200 rounded-xl hover:shadow-md transition"
+                  >
+                    <h3 className="font-medium mb-1">
+                      {draft.data.title || 'Untitled Property'}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Step {draft.currentStep} of 8
+                    </p>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No drafts yet</p>
+            )}
+          </section>
+        )}
 
         <section>
           <h2 className="text-2xl mb-4">

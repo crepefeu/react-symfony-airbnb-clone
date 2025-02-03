@@ -8,6 +8,7 @@ const Trips = () => {
   const breadcrumbs = [{ label: "Trips" }];
   const [upcomingTrips, setUpcomingTrips] = useState([]);
   const [pastTrips, setPastTrips] = useState([]);
+  const [canceledTrips, setCanceledTrips] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,9 +24,10 @@ const Trips = () => {
           throw new Error("Failed to fetch bookings");
         }
         const data = await response.json();
-        const { upcomingTrips, pastTrips } = splitTrips(data.trips);
+        const { upcomingTrips, pastTrips, canceledTrips } = splitTrips(data.trips);
         setUpcomingTrips(upcomingTrips);
         setPastTrips(pastTrips);
+        setCanceledTrips(canceledTrips);
       } catch (error) {
         console.error("Error fetching properties:", error);
         setError(error.message);
@@ -39,34 +41,46 @@ const Trips = () => {
 
   const splitTrips = (trips) => {
     const currentDate = new Date();
-    const upcomingTrips = trips.filter(
-      (trip) => new Date(trip.checkOutDate.date) >= currentDate
+    const upcoming = trips.filter(
+      (trip) => 
+        new Date(trip.checkOutDate.date) >= currentDate && 
+        trip.status !== "canceled"
     );
-    const pastTrips = trips.filter(
-      (trip) => new Date(trip.checkOutDate.date) < currentDate
+    const past = trips.filter(
+      (trip) => 
+        new Date(trip.checkOutDate.date) < currentDate && 
+        trip.status !== "canceled"
     );
-    return { upcomingTrips, pastTrips };
+    const canceled = trips.filter(
+      (trip) => trip.status === "canceled"
+    );
+    return { upcomingTrips: upcoming, pastTrips: past, canceledTrips: canceled };
   };
 
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  const hasNoTrips = upcomingTrips.length === 0 && pastTrips.length === 0;
+  const hasNoTrips = upcomingTrips.length === 0 && pastTrips.length === 0 && canceledTrips.length === 0;
 
   return (
     <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
-      <div className="px-4 py-6 m-auto flex flex-col gap-3 max-w-7xl">
+      <div className="px-4 py-6 m-auto flex flex-col gap-8 max-w-7xl">
+        <h1 className="text-3xl font-semibold">Your trips</h1>
         {hasNoTrips ? (
           <NoTrips />
         ) : (
-          <>
-            <TripsSection title="Upcoming Trips" trips={upcomingTrips} />
-            {upcomingTrips.length > 0 && pastTrips.length > 0 && (
-              <hr className="mb-3" />
+          <div className="space-y-12">
+            {upcomingTrips.length > 0 && (
+              <TripsSection title="Upcoming" trips={upcomingTrips} />
             )}
-            <TripsSection title="Past Trips" trips={pastTrips} />
-          </>
+            {pastTrips.length > 0 && (
+              <TripsSection title="Where you've been" trips={pastTrips} />
+            )}
+            {canceledTrips.length > 0 && (
+              <TripsSection title="Canceled" trips={canceledTrips} />
+            )}
+          </div>
         )}
       </div>
     </Layout>

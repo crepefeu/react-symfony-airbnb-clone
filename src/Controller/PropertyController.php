@@ -14,7 +14,7 @@ use App\Entity\Address;
 use App\Entity\PropertyMedia;
 use App\Entity\Amenity;
 
-#[Route('/api/properties', name: 'api_properties_')]
+#[Route('/api/properties', name: 'app_properties_')]
 class PropertyController extends AbstractController
 {
     public function __construct(
@@ -42,12 +42,14 @@ class PropertyController extends AbstractController
     #[Route('/bounds', name: 'api_properties_bounds', methods: ['GET'])]
     public function getPropertiesInBounds(Request $request, PropertyRepository $propertyRepository): JsonResponse
     {
+        $bedrooms = $request->query->has('bedrooms') ? (int) $request->query->get('bedrooms') : null;
+        
         $properties = $propertyRepository->findInBounds(
             (float) $request->query->get('north'),
             (float) $request->query->get('south'),
             (float) $request->query->get('east'),
             (float) $request->query->get('west'),
-            (int) $request->query->get('bedrooms', 0)
+            $bedrooms
         );
 
         return $this->json(['properties' => $properties], 200, [], ['groups' => ['property:read']]);
@@ -81,16 +83,18 @@ class PropertyController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(Property $property, Request $request): Response
+    public function show(?Property $property, Request $request): Response
     {
-        // Return JSON for API requests
+        if (!$property) {
+            throw $this->createNotFoundException('Property not found');
+        }
+
         if ($request->headers->get('Accept') === 'application/json') {
             return $this->json([
                 'property' => $property,
             ], 200, [], ['groups' => ['property:read', 'property:details']]);
         }
 
-        // Return HTML for browser requests
         return $this->render('property/show.html.twig', [
             'property' => $property,
         ]);
@@ -162,13 +166,28 @@ class PropertyController extends AbstractController
             // Handle photo uploads
             $files = $request->files->get('photos');
             if ($files) {
-                foreach ($files as $file) {
+                foreach ($files as $index => $file) {
                     $media = new PropertyMedia();
                     $media->setProperty($property);
-                    $media->setUrl($file);
+                    
+                    // Generate unique filename
+                    $fileName = md5(uniqid()) . '.' . $file->guessExtension();
+                    
+                    // Move file to public directory
+                    $file->move(
+                        $this->getParameter('property_images_directory'),
+                        $fileName
+                    );
+                    
+                    // Set the URL (relative path to the file)
+                    $media->setUrl('/uploads/properties/' . $fileName);
+                    
                     $entityManager->persist($media);
                 }
             }
+
+            // Debug the amenities data
+            error_log('Received amenities data: ' . print_r($propertyData['amenities'], true));
 
             // Handle amenities
             if (isset($propertyData['amenities']) && is_array($propertyData['amenities'])) {

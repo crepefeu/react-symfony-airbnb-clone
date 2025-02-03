@@ -101,10 +101,11 @@ const Price = ({ formData, setFormData }) => {
   }, [formData.latitude, formData.longitude, formData.bedrooms]);
 
   const handlePriceChange = (value) => {
-    const numericValue = parseInt(value.replace(/[^0-9]/g, ""), 10) || 0;
+    // Remove non-numeric characters and convert to number
+    const numericValue = parseInt(value.replace(/[^0-9]/g, '')) || 0;
     setFormData({
       ...formData,
-      price: numericValue,
+      price: numericValue
     });
   };
 

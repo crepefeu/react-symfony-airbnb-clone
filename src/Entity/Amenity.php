@@ -15,15 +15,15 @@ class Amenity
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'property:details'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'property:details'])]
     private ?string $name = null;
 
     #[ORM\Column(type: 'string', enumType: AmenityCategory::class)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'property:details'])]
     private ?AmenityCategory $category = null;
 
     #[Groups(['property:read'])]

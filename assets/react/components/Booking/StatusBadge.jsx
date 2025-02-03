@@ -1,66 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-const StatusBadge = ({ status, absolute }) => {
-  const [label, setLabel] = useState("Undefined");
-  const [bgColor, setBgColor] = useState("bg-gray-200");
-  const [textColor, setTextColor] = useState("text-gray-800");
-  const [shadowColor, setShadowColor] = useState("shadow-gray-800");
-  const [position, setPosition] = useState("relative");
-
-  const statusStyle = {
-    pending: {
-      label: "Pending",
-      bgColor: "bg-yellow-200",
-      textColor: "text-yellow-800",
-      shadowColor: "shadow-yellow-800",
-    },
-    validated: {
-      label: "Validated",
-      bgColor: "bg-green-200",
-      textColor: "text-green-800",
-      shadowColor: "shadow-green-800",
-    },
-    ongoing: {
-      label: "Ongoing",
-      bgColor: "bg-blue-200",
-      textColor: "text-blue-800",
-      shadowColor: "shadow-blue-800",
-    },
-    finished: {
-      label: "Finished",
-      bgColor: "bg-gray-200",
-      textColor: "text-gray-800",
-      shadowColor: "shadow-gray-800",
-    },
-    missed: {
-      label: "Missed",
-      bgColor: "bg-red-200",
-      textColor: "text-red-800",
-      shadowColor: "shadow-red-800",
-    },
-    canceled: {
-      label: "Canceled",
-      bgColor: "bg-red-200",
-      textColor: "text-red-800",
-      shadowColor: "shadow-red-800",
-    },
-  };
-
-  useEffect(() => {
-    setLabel(statusStyle[status].label);
-    setBgColor(statusStyle[status].bgColor);
-    setTextColor(statusStyle[status].textColor);
-    setShadowColor(statusStyle[status].shadowColor);
-    if (absolute) {
-      setPosition("absolute top-2 right-2");
+const StatusBadge = ({ status, absolute = false }) => {
+  const getStatusStyles = () => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border border-yellow-700";
+      case "validated":
+        return "bg-green-100 text-green-800 border border-green-700";
+      case "canceled":
+        return "bg-red-100 text-red-800 border border-red-700";
+      case "completed":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }, [status]);
+  };
 
   return (
     <span
-      className={`px-3 py-1 rounded ${bgColor} ${textColor} text-sm h-fit font-semibold shadow-sm ${shadowColor} ${position}`}
+      className={`
+        ${absolute ? "absolute top-3 left-3" : ""}
+        ${getStatusStyles()}
+        px-3 py-1 rounded-full text-sm font-medium capitalize
+      `}
     >
-      {label}
+      {status}
     </span>
   );
 };

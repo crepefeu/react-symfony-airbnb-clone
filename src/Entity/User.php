@@ -83,12 +83,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'Guest')]
     private Collection $bookings;
 
+    /**
+     * @var Collection<int, PropertyDraft>
+     */
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: PropertyDraft::class, orphanRemoval: true)]
+    private Collection $propertyDrafts;
+
     public function __construct()
     {
         $this->reviews = new ArrayCollection();
         $this->properties = new ArrayCollection();
         $this->wishlists = new ArrayCollection();
         $this->bookings = new ArrayCollection();
+        $this->propertyDrafts = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -383,6 +390,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PropertyDraft>
+     */
+    public function getPropertyDrafts(): Collection
+    {
+        return $this->propertyDrafts;
+    }
+
+    public function addPropertyDraft(PropertyDraft $draft): self
+    {
+        if (!$this->propertyDrafts->contains($draft)) {
+            $this->propertyDrafts->add($draft);
+            $draft->setOwner($this);
+        }
+        return $this;
+    }
+
+    public function removePropertyDraft(PropertyDraft $draft): self
+    {
+        if ($this->propertyDrafts->removeElement($draft)) {
+            if ($draft->getOwner() === $this) {
+                $draft->setOwner(null);
+            }
+        }
         return $this;
     }
 }

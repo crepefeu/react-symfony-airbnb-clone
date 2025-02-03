@@ -6,9 +6,10 @@ import StarRating from "./StarRating";
 import Modal from "./Modal";
 import useAuth from "../hooks/useAuth";
 import Toast from "./UI/Toast";
+import LogInModal from "./LogInModal";
 
 const ReservationCard = ({ property }) => {
-  const { token } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [numberOfNights, setNumberOfNights] = useState(0);
@@ -23,6 +24,7 @@ const ReservationCard = ({ property }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastType, setToastType] = useState("info");
   const [toastMessage, setToastMessage] = useState("");
+  const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
 
   const handleClearDates = () => {
     setDateRange([null, null]);
@@ -332,13 +334,22 @@ const ReservationCard = ({ property }) => {
         </div>
       </div>
 
-      <button
-        className="w-full bg-rose-500 text-white py-3 rounded-lg font-semibold hover:bg-rose-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-        disabled={!startDate || !endDate}
-        onClick={() => onFormSubmit()}
-      >
-        Reserve
-      </button>
+      {isAuthenticated ? (
+        <button
+          className="w-full bg-rose-500 text-white py-3 rounded-lg font-semibold hover:bg-rose-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          disabled={!startDate || !endDate}
+          onClick={() => onFormSubmit()}
+        >
+          Reserve
+        </button>
+      ) : (
+        <button
+          className="w-full bg-rose-500 text-white py-3 rounded-lg font-semibold hover:bg-rose-600 transition-colors"
+          onClick={() => setIsLogInModalOpen(true)}
+        >
+          Log in to book
+        </button>
+      )}
 
       {numberOfNights > 0 && (
         <div className="space-y-4 mt-4 border-t pt-4">
@@ -378,6 +389,10 @@ const ReservationCard = ({ property }) => {
           onClick={() => setShowToast(false)}
         />
       )}
+      <LogInModal
+        isOpen={isLogInModalOpen}
+        onClose={() => setIsLogInModalOpen(false)}
+      />
     </div>
   );
 };
