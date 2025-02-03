@@ -42,12 +42,14 @@ class PropertyController extends AbstractController
     #[Route('/bounds', name: 'api_properties_bounds', methods: ['GET'])]
     public function getPropertiesInBounds(Request $request, PropertyRepository $propertyRepository): JsonResponse
     {
+        $bedrooms = $request->query->has('bedrooms') ? (int) $request->query->get('bedrooms') : null;
+        
         $properties = $propertyRepository->findInBounds(
             (float) $request->query->get('north'),
             (float) $request->query->get('south'),
             (float) $request->query->get('east'),
             (float) $request->query->get('west'),
-            (int) $request->query->get('bedrooms', 0)
+            $bedrooms
         );
 
         return $this->json(['properties' => $properties], 200, [], ['groups' => ['property:read']]);
@@ -169,6 +171,9 @@ class PropertyController extends AbstractController
                     $entityManager->persist($media);
                 }
             }
+
+            // Debug the amenities data
+            error_log('Received amenities data: ' . print_r($propertyData['amenities'], true));
 
             // Handle amenities
             if (isset($propertyData['amenities']) && is_array($propertyData['amenities'])) {

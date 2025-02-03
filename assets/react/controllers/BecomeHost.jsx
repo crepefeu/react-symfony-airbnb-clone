@@ -91,7 +91,6 @@ const BecomeHost = () => {
   const prepareFormDataForSubmission = () => {
     const formDataToSubmit = new FormData();
 
-    // Make sure address is an object, not a string
     const propertyData = {
       title: formData.title,
       description: formData.description,
@@ -102,7 +101,7 @@ const BecomeHost = () => {
       bathrooms: parseInt(formData.bathrooms),
       latitude: parseFloat(formData.latitude),
       longitude: parseFloat(formData.longitude),
-      // Ensure address is properly structured
+      amenities: formData.amenities, // Add this line to include amenities
       address: typeof formData.address === 'string' 
         ? {
             streetName: formData.address,
@@ -114,8 +113,8 @@ const BecomeHost = () => {
         : formData.address
     };
 
-    // Log the data being sent
-    console.log('Sending property data:', propertyData);
+    // Debug log to verify amenities are included
+    console.log('Property data being sent:', propertyData);
 
     formDataToSubmit.append('property', JSON.stringify(propertyData));
 
