@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Modal from "./Modal";
 import useAuth from "../hooks/useAuth";
 
@@ -7,6 +7,14 @@ const LogInModal = ({ isOpen, onClose }) => {
   const { login } = useAuth();
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
+  const [previousUrl, setPreviousUrl] = useState('');
+
+  useEffect(() => {
+    // Store the current URL when the modal opens
+    if (isOpen) {
+      setPreviousUrl(window.location.pathname + window.location.search);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -40,7 +48,8 @@ const LogInModal = ({ isOpen, onClose }) => {
           roles: meData.roles,
         };
         login({ user, token: data.token });
-        location.href = "/profile";
+        // Redirect to the previous URL instead of the profile page
+        location.href = previousUrl || '/';
       }
     } else {
       setErrors(["Invalid logins"]);

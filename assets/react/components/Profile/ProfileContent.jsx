@@ -17,8 +17,8 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
   const renderPropertyCard = (property) => (
     <a
       key={property.id}
-      to={`/properties/${property.id}`}
-      className="block rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition"
+      href={`/property/${property.id}`}
+      className="block rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition cursor-pointer"
     >
       <div className="relative aspect-[4/3]">
         <img
