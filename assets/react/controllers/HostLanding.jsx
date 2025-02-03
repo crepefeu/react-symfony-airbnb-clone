@@ -3,9 +3,8 @@ import {
   GoogleMap,
   LoadScript,
   OverlayView,
-  InfoWindow,
 } from "@react-google-maps/api";
-import PriceMarker from "../components/Map/PriceMarker";
+import MorphingMarker from "../components/Map/MorphingMarker"; // Replace PriceMarker import
 import { useCountAnimation } from "../hooks/useCountAnimation";
 import HostStats from "../components/Host/HostStats";
 import HostSetupSteps from "../components/Host/HostSetupSteps";
@@ -154,6 +153,10 @@ const HostLanding = () => {
     if (mapRef.current) {
       mapRef.current.setZoom(mapRef.current.getZoom() - 1);
     }
+  };
+
+  const handleMapClick = () => {
+    setSelectedProperty(null);
   };
 
   // Custom pin component for selected location
@@ -360,6 +363,7 @@ const HostLanding = () => {
                     }
                   }}
                   onDrag={handleMapDrag}
+                  onClick={handleMapClick}
                 >
                   {/* Add location pin at selected address */}
                   <OverlayView
@@ -377,59 +381,23 @@ const HostLanding = () => {
                         lng: property.longitude,
                       }}
                       mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                      getPixelPositionOffset={(width, height) => ({
+                          x: 0,
+                          y: 0
+                      })}
                     >
-                      <PriceMarker
-                        price={property.price}
-                        imageUrl={property.images[0]?.url}
-                        isSelected={selectedProperty?.id === property.id}
-                        onClick={() => setSelectedProperty(property)}
-                      />
+                      <div className="absolute top-0 left-0">
+                          <MorphingMarker
+                              property={property}
+                              isSelected={selectedProperty?.id === property.id}
+                              onClick={() => setSelectedProperty(property)}
+                          />
+                      </div>
                     </OverlayView>
                   ))}
 
-                  {selectedProperty && (
-                    <InfoWindow
-                      position={{
-                        lat: selectedProperty.latitude + 0.006,
-                        lng: selectedProperty.longitude,
-                      }}
-                      onCloseClick={() => setSelectedProperty(null)}
-                    >
-                      <div className="p-4 max-w-sm min-w-80 rounded-xl shadow-lg bg-white">
-                        {selectedProperty.propertyMedias?.length > 0 && (
-                          <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
-                            <img
-                              src={selectedProperty.propertyMedias[0].url}
-                              alt={selectedProperty.title}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          </div>
-                        )}
-                        <h3 className="text-lg font-bold mb-2">
-                          {selectedProperty.title}
-                        </h3>
-                        <p className="text-gray-600 mb-2">
-                          {selectedProperty.price}€ / night
-                        </p>
-                        <p className="text-sm mb-2">
-                          {selectedProperty.bedrooms} beds •{" "}
-                          {selectedProperty.bathrooms} baths
-                        </p>
-                        <div className="text-sm text-gray-500">
-                          {selectedProperty.address.city},{" "}
-                          {selectedProperty.address.country}
-                        </div>
-                        <button
-                          className="mt-3 bg-rose-500 text-white px-4 py-2 rounded-lg w-full hover:bg-rose-600"
-                          onClick={() =>
-                            (window.location.href = `/property/${selectedProperty.id}`)
-                          }
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </InfoWindow>
-                  )}
+                  {/* Remove the InfoWindow component since MorphingMarker handles the display */}
+                
                 </GoogleMap>
 
                 {/* Add ZoomControl */}
