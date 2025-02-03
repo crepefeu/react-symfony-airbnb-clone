@@ -132,6 +132,30 @@ const TripCard = ({ trip }) => {
                     Cancel reservation
                   </button>
                 )}
+                {trip.status === "finished" && !trip.review.id && (
+                  <a
+                    href={`/review/${trip.property.id}/${user.id}/new`}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Leave a review
+                  </a>
+                )}
+                {trip.status === "finished" && trip.review.id && (
+                  <>
+                    <a
+                      href={`/review/${trip.property.id}/${trip.review.id}/edit`}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      Change review
+                    </a>
+                    <a
+                      href={`/review/${trip.review.id}/delete`}
+                      className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                    >
+                      Delete review
+                    </a>
+                  </>
+                )}
                 <a
                   href={`/property/${trip.property.id}`}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -144,6 +168,15 @@ const TripCard = ({ trip }) => {
           )}
         </div>
       </div>
+      {trip.status == "finished" && trip.review.id && (
+        <div className="border border-gray-200 rounded py-3 w-full px-4 relative shadow">
+          <p className="text-gray-500 text-xs mb-2 ml-1">
+            {formatDate(trip.review.createdAt.date)}
+          </p>
+          <StarRating rating={trip.review.rating} />
+          <p className="text-gray-600 mt-2 ml-1">{trip.review.comment}</p>
+        </div>
+      )}
 
       {showToast && (
         <Toast
