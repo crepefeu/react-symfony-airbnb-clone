@@ -73,12 +73,19 @@ const Review = ({ formData }) => {
         <h3 className="text-xl font-semibold mb-4">Photos</h3>
         <div className="grid grid-cols-3 gap-4">
           {formData.photos.map((photo, index) => (
-            <div key={index} className="aspect-square rounded-lg overflow-hidden">
+            <div key={index} className="aspect-square rounded-lg overflow-hidden relative">
               <img
                 src={photo.preview}
                 alt={`Property ${index + 1}`}
                 className="w-full h-full object-cover"
               />
+              {index === 0 && (
+                <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-60 rounded-md">
+                  <span className="text-white text-sm font-medium flex items-center gap-1">
+                    Cover photo
+                  </span>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -92,7 +99,7 @@ const Review = ({ formData }) => {
               // Find the amenity object from the API response in formData
               const amenity = formData.amenitiesData?.find(a => a.id === amenityId);
               return (
-                <div key={amenityId} className="flex items-center gap-2">
+                <div key={amenityId} className="flex gap-6">
                   <div 
                     className="w-5 h-5 text-gray-600"
                     dangerouslySetInnerHTML={{ 

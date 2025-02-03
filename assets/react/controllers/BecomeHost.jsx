@@ -190,14 +190,46 @@ const BecomeHost = () => {
   }, []);
 
   const steps = [
-    { title: 'What type of place will you host?', component: 'PropertyType' },
-    { title: "Where's your place located?", component: "Location" },
-    { title: 'How many guests can your place accommodate?', component: 'Capacity' },
-    { title: 'What amenities do you offer?', component: 'Amenities' }, // Add new step
-    { title: "Let's add some photos of your place", component: "Photos" },
-    { title: "Create your description", component: "Description" },
-    { title: 'Now, set your price', component: 'Price' },
-    { title: 'Review your listing', component: 'Review' },
+    { 
+      title: 'What type of place will you host?', 
+      subtitle: 'Choose the option that best describes your place',
+      component: 'PropertyType' 
+    },
+    { 
+      title: "Where's your place located?", 
+      subtitle: 'Enter your exact address so guests can find your place',
+      component: "Location" 
+    },
+    { 
+      title: 'How many guests can your place accommodate?', 
+      subtitle: 'Make sure you have enough space for your guests to be comfortable',
+      component: 'Capacity' 
+    },
+    { 
+      title: 'What amenities do you offer?', 
+      subtitle: 'Select all the amenities available at your place',
+      component: 'Amenities' 
+    },
+    { 
+      title: "Let's add some photos of your place", 
+      subtitle: 'Start with your best shot - drag photos to reorder them',
+      component: "Photos" 
+    },
+    { 
+      title: "Create your description", 
+      subtitle: 'Write a clear summary to help guests know what to expect',
+      component: "Description" 
+    },
+    { 
+      title: 'Now, set your price', 
+      subtitle: 'You can always change it later and offer special deals',
+      component: 'Price' 
+    },
+    { 
+      title: 'Review your listing', 
+      subtitle: 'Make sure everything looks good before publishing',
+      component: 'Review' 
+    },
   ];
 
   const isStepComplete = (stepNumber) => {
@@ -306,10 +338,11 @@ const BecomeHost = () => {
         completedSteps={completedSteps}
       />
 
-      {/* Main content */}
-      <div className="max-w-screen-xl mx-auto px-6 py-16">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-semibold mb-8">{steps[step - 1].title}</h1>
+      {/* Main content - Updated max-width and padding */}
+      <div className="max-w-3xl mx-auto px-6 py-16">
+        <div className="mx-auto">
+          <h1 className="text-3xl font-semibold mb-2">{steps[step - 1].title}</h1>
+          <p className="text-gray-500 mb-8">{steps[step - 1].subtitle}</p>
 
           {/* Step content */}
           <div className="mb-8">

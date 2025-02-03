@@ -1,67 +1,205 @@
-import React, { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import PhotoUploadModal from './PhotoUploadModal';
 
 const Photos = ({ formData, setFormData }) => {
-  const onDrop = useCallback((acceptedFiles) => {
-    const newPhotos = acceptedFiles.map(file => ({
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-    
-    setFormData({
-      ...formData,
-      photos: [...formData.photos, ...newPhotos]
-    });
-  }, [formData, setFormData]);
+  const [selectedTileIndex, setSelectedTileIndex] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {'image/*': []},
-    multiple: true
-  });
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const photos = Array.from(formData.photos);
+    const [reorderedItem] = photos.splice(result.source.index, 1);
+    photos.splice(result.destination.index, 0, reorderedItem);
+
+    setFormData({ ...formData, photos: photos });
+  };
+
+  const handlePhotoUpload = (photo) => {
+    const newPhotos = [...formData.photos];
+    if (selectedTileIndex !== null) {
+      newPhotos[selectedTileIndex] = photo;
+    } else {
+      newPhotos.push(photo);
+    }
+    setFormData({ ...formData, photos: newPhotos });
+    setIsModalOpen(false);
+  };
+
+  const handleModalOpen = (index) => {
+    setSelectedTileIndex(index);
+    setIsModalOpen(true);
+  };
+
+  const handleRemovePhoto = (e, index) => {
+    e.stopPropagation(); // Prevent opening the upload modal
+    const newPhotos = [...formData.photos];
+    newPhotos.splice(index, 1);
+    setFormData({ ...formData, photos: newPhotos });
+  };
+
+  const renderPhotoTile = (index) => {
+    const photo = formData.photos[index];
+    const isEmpty = !photo;
+    const isCoverPhoto = index === 0;
+    const isAddMoreTile = index === 4;
+
+    if (isAddMoreTile && !photo) {
+      return (
+        <div 
+          className="aspect-[4/3] rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 cursor-pointer transition-all duration-200"
+          onClick={() => handleModalOpen(null)}
+        >
+          <div className="h-full flex flex-col items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+              </svg>
+            </div>
+            <span className="text-sm font-medium text-gray-600">Add more</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className={`relative cursor-pointer overflow-hidden group
+          ${isEmpty ? 'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400' : 'border-transparent'}
+          ${isCoverPhoto ? 'aspect-[2/1]' : 'aspect-[4/3]'}
+          rounded-xl transition-all duration-200 hover:opacity-90`}
+        onClick={() => handleModalOpen(index)}
+      >
+        {photo ? (
+          <>
+            <img 
+              src={photo.preview} 
+              alt={`Photo ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+            {isCoverPhoto && (
+              <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-60 rounded-md">
+                <span className="text-white text-sm font-medium flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path d="M9.739 1.676a.75.75 0 01.522 0l9 3.25a.75.75 0 010 1.398l-9 3.25a.75.75 0 01-.522 0l-9-3.25a.75.75 0 010-1.398l9-3.25z" />
+                    <path d="M3.575 7.665a.75.75 0 01.993.403l.556 1.388a.75.75 0 01-.4.988l-.154.062v6.244a.75.75 0 01-.75.75H2.25a.75.75 0 01-.75-.75V8.744a.75.75 0 01.476-.699l1.599-.64zm12.149 0l1.599.64a.75.75 0 01.476.699v7.994a.75.75 0 01-.75.75h-1.57a.75.75 0 01-.75-.75V10.506l-.154-.062a.75.75 0 01-.4-.988l.556-1.388a.75.75 0 01.993-.403z" />
+                  </svg>
+                  Cover photo
+                </span>
+              </div>
+            )}
+            <button
+              onClick={(e) => handleRemovePhoto(e, index)}
+              className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            >
+              <svg className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </>
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <svg 
+              className="w-8 h-8 text-gray-400" 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={1.5} 
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" 
+              />
+            </svg>
+            {isCoverPhoto && (
+              <div className="text-center mt-2">
+                <span className="text-sm font-medium block">Add cover photo</span>
+                <span className="text-xs text-gray-600">This will be the first photo guests see</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors
-          ${isDragActive ? 'border-rose-500 bg-rose-50' : 'border-gray-300 hover:border-gray-400'}`}
-      >
-        <input {...getInputProps()} />
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
-        </svg>
-        <p className="mt-4 text-gray-600">
-          {isDragActive ? 'Drop the files here' : 'Drag & drop photos here, or click to select'}
-        </p>
-      </div>
-
-      {formData.photos.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
-          {formData.photos.map((photo, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-              <img
-                src={photo.preview}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => {
-                  const newPhotos = [...formData.photos];
-                  newPhotos.splice(index, 1);
-                  setFormData({ ...formData, photos: newPhotos });
-                }}
-                className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100"
+    <>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="photos" direction="vertical">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="space-y-2"
+            >
+              {/* Cover photo */}
+              <Draggable
+                key="photo-0"
+                draggableId="photo-0"
+                index={0}
+                isDragDisabled={!formData.photos[0]}
               >
-                <svg className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                  >
+                    {renderPhotoTile(0)}
+                  </div>
+                )}
+              </Draggable>
+
+              {/* Grid of photos */}
+              <div className="grid grid-cols-2 gap-2">
+                {[...Array(Math.max(4, formData.photos.length))].map((_, i) => {
+                  const index = i + 1;
+                  const isLastTile = index === Math.max(4, formData.photos.length);
+
+                  if (isLastTile && formData.photos.length >= 4) {
+                    return renderPhotoTile(index);
+                  }
+
+                  return (
+                    <Draggable
+                      key={`photo-${index}`}
+                      draggableId={`photo-${index}`}
+                      index={index}
+                      isDragDisabled={!formData.photos[index]}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          {renderPhotoTile(index)}
+                        </div>
+                      )}
+                    </Draggable>
+                  );
+                })}
+              </div>
+              {provided.placeholder}
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+
+      <PhotoUploadModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTileIndex(null);
+        }}
+        onUpload={handlePhotoUpload}
+        existingPhoto={selectedTileIndex !== null ? formData.photos[selectedTileIndex] : null}
+      />
+    </>
   );
 };
 

@@ -164,10 +164,22 @@ class PropertyController extends AbstractController
             // Handle photo uploads
             $files = $request->files->get('photos');
             if ($files) {
-                foreach ($files as $file) {
+                foreach ($files as $index => $file) {
                     $media = new PropertyMedia();
                     $media->setProperty($property);
-                    $media->setUrl($file);
+                    
+                    // Generate unique filename
+                    $fileName = md5(uniqid()) . '.' . $file->guessExtension();
+                    
+                    // Move file to public directory
+                    $file->move(
+                        $this->getParameter('property_images_directory'),
+                        $fileName
+                    );
+                    
+                    // Set the URL (relative path to the file)
+                    $media->setUrl('/uploads/properties/' . $fileName);
+                    
                     $entityManager->persist($media);
                 }
             }
