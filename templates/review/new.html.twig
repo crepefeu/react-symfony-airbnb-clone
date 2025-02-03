@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Leave a review{% endblock %}
+
+{% block body %}
+    <div {{ react_component('Header') }}></div>
+    <div {{ react_component('Breadcrumbs', {
+        items: [{label: "Trips", href:"/trips"}]
+    }) }}></div>   
+    <div class="flex flex-col gap-10 min-h-[75vh] max-w-screen-xl mx-auto px-6 py-16 pt-8">
+        <div {{ react_component('ReviewPropertyCard', { 
+            propertyId: propertyId,
+        }) }}></div>
+        <div class="flex flex-col">
+            <h3 class="text-xl font-semibold mb-4">Leave a review</h3>
+            {{ include('review/_form.html.twig') }}
+        </div>
+    </div>
+    <div {{ react_component('Footer') }}></div>
+{% endblock %}

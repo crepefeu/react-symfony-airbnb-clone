@@ -16,6 +16,18 @@ class ReviewRepository extends ServiceEntityRepository
         parent::__construct($registry, Review::class);
     }
 
+    public function findOneByPropertyAndAuthor(int $propertyId, int $authorId): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.property = :propertyId')
+            ->andWhere('r.author = :authorId')
+            ->setParameter('propertyId', $propertyId)
+            ->setParameter('authorId', $authorId)
+            ->getQuery()
+            ->getResult();
+    }
+
+
     //    /**
     //     * @return Review[] Returns an array of Review objects
     //     */

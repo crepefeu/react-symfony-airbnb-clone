@@ -1,0 +1,6 @@
+{{ form_start(form) }}
+{{ form_widget(form, {'attr': {class: 'flex flex-col gap-4'}}) }}
+<button class="bg-rose-500 text-white w-1/2 py-1 rounded hover:bg-rose-600 mt-4 mx-auto block">
+    {{ button_label|default('Save') }}
+</button>
+{{ form_end(form) }}
