@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import useAuth from '../hooks/useAuth';
+import LogInModal from '../components/LogInModal';
 
 const HostMenu = () => {
   const { token } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
 
   const breadcrumbs = [
     { label: "Your Profile", href: "/profile" },
@@ -65,6 +67,26 @@ const HostMenu = () => {
       fetchDrafts();
     }
   }, [token]);
+
+  if (!token) {
+    return (
+      <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
+        <div className="text-center py-8">
+          <p className="mb-4">Please log in to manage your listings.</p>
+          <button
+            onClick={() => setIsLogInModalOpen(true)}
+            className="bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700"
+          >
+            Log in
+          </button>
+          <LogInModal
+            isOpen={isLogInModalOpen}
+            onClose={() => setIsLogInModalOpen(false)}
+          />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
