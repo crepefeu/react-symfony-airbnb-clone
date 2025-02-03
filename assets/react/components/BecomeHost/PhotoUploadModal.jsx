@@ -22,15 +22,52 @@ const PhotoUploadModal = ({ isOpen, onClose, onUpload, existingPhoto }) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {'image/*': []},
-    multiple: false
+    multiple: false,
+    maxSize: 10 * 1024 * 1024, // 10MB
+    onDropRejected: (rejectedFiles) => {
+      const file = rejectedFiles[0];
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File is too large. Maximum size is 10MB');
+      } else {
+        alert('File upload failed. Please try again with a valid image file.');
+      }
+    }
   });
 
-  const handleUpload = () => {
-    if (selectedFile) {
-      onUpload({
-        file: selectedFile,
-        preview: preview
+  const handleUpload = async (file) => {
+    if (!file) return;
+    
+    try {
+      // Check file size before uploading
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('File is too large. Maximum size is 10MB');
+      }
+
+      const formData = new FormData();
+      formData.append('image', file, file.name); // Add filename as third parameter
+
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
       });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      const uploadedPhoto = {
+        preview: data.url,
+        file: file.name
+      };
+
+      onUpload(uploadedPhoto, true); // Add a second parameter to indicate successful upload
+      onClose();
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error.message || 'Failed to upload image. Please try again.');
     }
   };
 
@@ -82,7 +119,7 @@ const PhotoUploadModal = ({ isOpen, onClose, onUpload, existingPhoto }) => {
             Cancel
           </button>
           <button
-            onClick={handleUpload}
+            onClick={() => handleUpload(selectedFile)}
             disabled={!selectedFile}
             className={`px-4 py-2 rounded-lg ${
               selectedFile

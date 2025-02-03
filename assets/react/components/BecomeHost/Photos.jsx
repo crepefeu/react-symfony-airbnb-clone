@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PhotoUploadModal from './PhotoUploadModal';
+import useAuth from '../../hooks/useAuth';
 
-const Photos = ({ formData, setFormData }) => {
+const Photos = ({ formData, setFormData, draftId }) => {
+  const { token } = useAuth();
   const [selectedTileIndex, setSelectedTileIndex] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -16,15 +18,52 @@ const Photos = ({ formData, setFormData }) => {
     setFormData({ ...formData, photos: photos });
   };
 
-  const handlePhotoUpload = (photo) => {
+  const handlePhotoUpload = (photo, shouldSave = false) => {
     const newPhotos = [...formData.photos];
     if (selectedTileIndex !== null) {
       newPhotos[selectedTileIndex] = photo;
     } else {
       newPhotos.push(photo);
     }
-    setFormData({ ...formData, photos: newPhotos });
-    setIsModalOpen(false);
+
+    // Use a callback to ensure we trigger handleManualSave after state update
+    setFormData(prevFormData => {
+      const newFormData = {
+        ...prevFormData,
+        photos: newPhotos
+      };
+
+      if (shouldSave) {
+        // Trigger auto-save through parent component
+        handleManualSave(newFormData);
+      }
+
+      return newFormData;
+    });
+  };
+
+  // Add handleManualSave function
+  const handleManualSave = async (newFormData) => {
+    try {
+      const response = await fetch('/property-drafts/api/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          draftId,
+          formData: newFormData,
+          currentStep: 5 // Photos step
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save draft');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+    }
   };
 
   const handleModalOpen = (index) => {
@@ -81,10 +120,6 @@ const Photos = ({ formData, setFormData }) => {
             {isCoverPhoto && (
               <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-60 rounded-md">
                 <span className="text-white text-sm font-medium flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path d="M9.739 1.676a.75.75 0 01.522 0l9 3.25a.75.75 0 010 1.398l-9 3.25a.75.75 0 01-.522 0l-9-3.25a.75.75 0 010-1.398l9-3.25z" />
-                    <path d="M3.575 7.665a.75.75 0 01.993.403l.556 1.388a.75.75 0 01-.4.988l-.154.062v6.244a.75.75 0 01-.75.75H2.25a.75.75 0 01-.75-.75V8.744a.75.75 0 01.476-.699l1.599-.64zm12.149 0l1.599.64a.75.75 0 01.476.699v7.994a.75.75 0 01-.75.75h-1.57a.75.75 0 01-.75-.75V10.506l-.154-.062a.75.75 0 01-.4-.988l.556-1.388a.75.75 0 01.993-.403z" />
-                  </svg>
                   Cover photo
                 </span>
               </div>

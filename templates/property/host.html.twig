@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Become a Host{% endblock %}
+
+{% block body %}
+    <div {{ react_component('BecomeHost', {
+        draftId: draft_id|default(null)
+    }) }}></div>
+{% endblock %}

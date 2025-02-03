@@ -49,43 +49,149 @@ const StepNavigation = ({ steps, currentStep, onStepClick, completedSteps }) => 
   );
 };
 
-const BecomeHost = () => {
-  const { user, token } = useAuth();
+const mapApiDataToFormData = (apiData) => {
+  if (!apiData) return null;
   
-  // Initialize state from localStorage or default values
-  const [step, setStep] = useState(() => {
-    const saved = localStorage.getItem('hostingStep');
-    return saved ? parseInt(saved) : 1;
-  });
+  return {
+    propertyType: apiData.propertyType || '',
+    latitude: apiData.latitude || null,
+    longitude: apiData.longitude || null,
+    address: apiData.address || {
+      streetName: '',
+      streetNumber: '',
+      city: '',
+      state: '',
+      zipcode: '',
+      country: 'France'
+    },
+    guests: apiData.guests || 1,
+    bedrooms: apiData.bedrooms || 1,
+    bathrooms: apiData.bathrooms || 1,
+    amenities: apiData.amenities || [],
+    photos: apiData.photos || [],
+    title: apiData.title || '',
+    description: apiData.description || '',
+    price: apiData.price || '',
+  };
+};
 
-  const [formData, setFormData] = useState(() => {
-    const saved = localStorage.getItem('hostingFormData');
-    return saved ? JSON.parse(saved) : {
-      propertyType: '',
-      location: '',
-      guests: 1,
-      bedrooms: 1,
-      bathrooms: 1,
-      amenities: [],
-      amenitiesData: [], // Add this line
-      photos: [],
-      title: '',
-      description: '',
-      price: '',
-    };
+const BecomeHost = ({ draftId: initialDraftId = null }) => {
+  const { user, token } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [draftId, setDraftId] = useState(initialDraftId);
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    propertyType: '',
+    latitude: null,
+    longitude: null,
+    address: {
+      streetName: '',
+      streetNumber: '',
+      city: '',
+      state: '',
+      zipcode: '',
+      country: 'France'
+    },
+    guests: 1,
+    bedrooms: 1,
+    bathrooms: 1,
+    amenities: [],
+    photos: [],
+    title: '',
+    description: '',
+    price: '',
   });
+  const [completedSteps, setCompletedSteps] = useState([]);
 
-  const [completedSteps, setCompletedSteps] = useState(() => {
-    const saved = localStorage.getItem('completedSteps');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // Save to localStorage whenever state changes
+  // Initialize state from API
   useEffect(() => {
-    localStorage.setItem('hostingStep', step);
-    localStorage.setItem('hostingFormData', JSON.stringify(formData));
-    localStorage.setItem('completedSteps', JSON.stringify(completedSteps));
-  }, [step, formData, completedSteps]);
+    const loadDraft = async () => {
+      const draftId = window.location.pathname.split('/').pop();
+      
+      if (!draftId) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const [draftResponse, amenitiesResponse] = await Promise.all([
+          fetch(`/property-drafts/api/${draftId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json'
+            }
+          }),
+          fetch('/api/amenities')
+        ]);
+
+        if (!draftResponse.ok) {
+          throw new Error('Failed to load draft');
+        }
+
+        const [draftData, amenitiesData] = await Promise.all([
+          draftResponse.json(),
+          amenitiesResponse.json()
+        ]);
+
+        // Merge amenities data with draft data
+        const mappedFormData = {
+          ...mapApiDataToFormData(draftData.data),
+          amenitiesData: amenitiesData.amenities
+        };
+
+        setStep(draftData.currentStep || 1);
+        setFormData(mappedFormData);
+        setDraftId(draftData.id);
+      } catch (error) {
+        console.error('Error loading draft:', error);
+        setError('Failed to load your draft. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (token) {
+      loadDraft();
+    } else {
+      setIsLoading(false);
+    }
+  }, [token]);
+
+  // Add manual save function
+  const handleManualSave = async () => {
+    setIsSaving(true);
+    setSaveStatus('Saving...');
+    
+    try {
+      const response = await fetch('/property-drafts/api/save', { // Updated URL
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          draftId,
+          formData,
+          currentStep: step
+        }),
+      });
+
+      const data = await response.json();
+      setDraftId(data.id);
+      setSaveStatus('Draft saved');
+      
+      // Clear the success message after 2 seconds
+      setTimeout(() => setSaveStatus(''), 2000);
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      setSaveStatus('Error saving');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Cleanup localStorage when form is submitted
   const prepareFormDataForSubmission = () => {
@@ -101,7 +207,7 @@ const BecomeHost = () => {
       bathrooms: parseInt(formData.bathrooms),
       latitude: parseFloat(formData.latitude),
       longitude: parseFloat(formData.longitude),
-      amenities: formData.amenities, // Add this line to include amenities
+      amenities: formData.amenities, // This will now be an array of IDs
       address: typeof formData.address === 'string' 
         ? {
             streetName: formData.address,
@@ -126,43 +232,77 @@ const BecomeHost = () => {
     return formDataToSubmit;
   };
 
+  // Auto-save draft when form data changes
+  useEffect(() => {
+    const saveDraft = async () => {
+      if (!token || !formData) return;
+
+      try {
+        const response = await fetch('/api/property-drafts/', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            draftId,
+            formData,
+            currentStep: step
+          }),
+        });
+
+        const data = await response.json();
+        setDraftId(data.draftId);
+      } catch (error) {
+        console.error('Error saving draft:', error);
+      }
+    };
+
+    // Debounce save to avoid too many requests
+    const timeoutId = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [formData, step, token, draftId]);
+
   const handleSubmit = async () => {
     try {
-      // Validate all required fields
-      if (!isAllStepsComplete()) {
-        alert('Please complete all required fields before publishing');
-        return;
-      }
+        // Validate numeric values
+        const numericFields = ['price', 'guests', 'bedrooms', 'bathrooms'];
+        numericFields.forEach(field => {
+            const value = Number(formData[field]);
+            if (isNaN(value)) {
+                throw new Error(`Invalid ${field} value`);
+            }
+            formData[field] = value;
+        });
 
-      const formDataToSubmit = prepareFormDataForSubmission();
+        // Ensure coordinates are numbers
+        formData.latitude = Number(formData.latitude);
+        formData.longitude = Number(formData.longitude);
 
-      const response = await fetch('/api/properties/create', { 
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formDataToSubmit,
-      });
+        if (isNaN(formData.latitude) || isNaN(formData.longitude)) {
+            throw new Error('Invalid coordinates');
+        }
 
-      const data = await response.json();
+        const response = await fetch(`/property-drafts/api/${draftId}/publish`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+        });
 
-      if (response.ok) {
-        // Clear localStorage
-        localStorage.removeItem('hostingStep');
-        localStorage.removeItem('hostingFormData');
-        localStorage.removeItem('completedSteps');
+        const data = await response.json();
 
-        // Redirect to the new property page
-        window.location.href = `/property/${data.id}`;
-      } else {
-        // Handle specific error messages from the server
-        alert(data.message || 'Error creating property. Please try again.');
-      }
+        if (response.ok) {
+            window.location.href = `/property/${data.propertyId}`;
+        } else {
+            alert(data.error || 'Error creating property. Please try again.');
+        }
     } catch (error) {
-      console.error('Error creating property:', error);
-      alert('An unexpected error occurred. Please try again.');
+        console.error('Error creating property:', error);
+        alert(error.message || 'An unexpected error occurred. Please try again.');
     }
-  };
+};
 
   const isAllStepsComplete = () => {
     return (
@@ -183,9 +323,7 @@ const BecomeHost = () => {
   // Add cleanup on component unmount (optional)
   useEffect(() => {
     return () => {
-      // Uncomment the following lines if you want to clear data when leaving the page
-      localStorage.removeItem('hostingStep');
-      localStorage.removeItem('hostingFormData');
+      // Cleanup is now handled by the API
     };
   }, []);
 
@@ -300,7 +438,7 @@ const BecomeHost = () => {
       case 4:
         return <Amenities formData={formData} setFormData={setFormData} />;
       case 5:
-        return <Photos formData={formData} setFormData={setFormData} />;
+        return <Photos formData={formData} setFormData={setFormData} draftId={draftId} />;
       case 6:
         return <Description formData={formData} setFormData={setFormData} />;
       case 7:
@@ -311,6 +449,35 @@ const BecomeHost = () => {
         return null;
     }
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your draft...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-rose-600 text-white px-6 py-3 rounded-lg"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!token) {
     return (
@@ -330,67 +497,103 @@ const BecomeHost = () => {
 
   return (
     <div className="min-h-screen pb-20">
-      {/* Step Navigation */}
-      <StepNavigation 
-        steps={steps} 
-        currentStep={step} 
-        onStepClick={handleStepClick}
-        completedSteps={completedSteps}
-      />
-
-      {/* Main content - Updated max-width and padding */}
-      <div className="max-w-3xl mx-auto px-6 py-16">
-        <div className="mx-auto">
-          <h1 className="text-3xl font-semibold mb-2">{steps[step - 1].title}</h1>
-          <p className="text-gray-500 mb-8">{steps[step - 1].subtitle}</p>
-
-          {/* Step content */}
-          <div className="mb-8">
-            {renderStepContent()}
+      {/* Header with save button */}
+      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              {/* Logo or back button could go here */}
+              <a href="/property-drafts/become-a-host" className="text-gray-400 hover:text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+              </a>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">{saveStatus}</span>
+              <button
+                onClick={handleManualSave}
+                disabled={isSaving}
+                className={`px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${
+                  isSaving 
+                    ? 'bg-gray-100 text-gray-400' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save draft
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Fixed footer with progress bar and navigation buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
-        <div className="mx-auto">
-          {/* Progress bar */}
-          <div className="h-1 bg-gray-200">
-            <div 
-              className="h-full bg-rose-600 transition-all duration-500"
-              style={{ width: `${(step / steps.length) * 100}%` }}
-            />
+      {/* Add top padding to account for fixed header */}
+      <div className="pt-16">
+        {/* Step Navigation */}
+        <StepNavigation 
+          steps={steps} 
+          currentStep={step} 
+          onStepClick={handleStepClick}
+          completedSteps={completedSteps}
+        />
+
+        {/* Main content - Updated max-width and padding */}
+        <div className="max-w-3xl mx-auto px-6 py-16">
+          <div className="mx-auto">
+            <h1 className="text-3xl font-semibold mb-2">{steps[step - 1].title}</h1>
+            <p className="text-gray-500 mb-8">{steps[step - 1].subtitle}</p>
+
+            {/* Step content */}
+            <div className="mb-8">
+              {renderStepContent()}
+            </div>
           </div>
-          
-          {/* Navigation buttons */}
-          <div className="max-w-2xl mx-auto px-6">
-            <div className="py-4 flex justify-between items-center">
-              {step > 1 ? (
-                <button
-                  onClick={handleBack}
-                  className="px-6 py-3 hover:bg-gray-50 rounded-lg flex items-center gap-2 text-gray-900"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m15 18-6-6 6-6"/>
-                  </svg>
-                  Back
-                </button>
-              ) : (
-                <div></div>
-              )}
-              <button
-                onClick={handleNext}
-                className="ml-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center gap-2"
-              >
-                {step === steps.length ? 'Publish listing' : (
-                  <>
-                    Next
+        </div>
+
+        {/* Fixed footer with progress bar and navigation buttons */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
+          <div className="mx-auto">
+            {/* Progress bar */}
+            <div className="h-1 bg-gray-200">              <div                 className="h-full bg-rose-600 transition-all duration-500"
+                style={{ width: `${(step / steps.length) * 100}%` }}
+              />
+            </div>
+            
+            {/* Navigation buttons */}
+            <div className="max-w-2xl mx-auto px-6">
+              <div className="py-4 flex justify-between items-center">
+                {step > 1 ? (
+                  <button
+                    onClick={handleBack}
+                    className="px-6 py-3 hover:bg-gray-50 rounded-lg flex items-center gap-2 text-gray-900"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m9 18 6-6-6-6"/>
+                      <path d="m15 18-6-6 6-6"/>
                     </svg>
-                  </>
+                    Back
+                  </button>
+                ) : (
+                  <div></div>
                 )}
-              </button>
+                <button
+                  onClick={handleNext}
+                  className="ml-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg flex items-center gap-2"
+                >
+                  {step === steps.length ? 'Publish listing' : (
+                    <>
+                      Next
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m9 18 6-6-6-6"/>
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

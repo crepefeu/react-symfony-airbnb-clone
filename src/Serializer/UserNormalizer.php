@@ -42,6 +42,14 @@ class UserNormalizer implements NormalizerInterface
                     'averageRating' => $property->getAverageRating(),
                 ];
             }, $object->getProperties()->toArray()),
+            'propertyDrafts' => array_map(function($draft) {
+                return [
+                    'id' => $draft->getId(),
+                    'currentStep' => $draft->getCurrentStep(),
+                    'lastSaved' => $draft->getLastSaved()->format('c'),
+                    'data' => $draft->getData(),
+                ];
+            }, $object->getPropertyDrafts()->toArray()),
         ];
     }
 

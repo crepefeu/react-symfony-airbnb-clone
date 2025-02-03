@@ -31,6 +31,12 @@ security:
       provider: app_user_provider
       jwt: ~
 
+    property_drafts_api:
+      pattern: ^/property-drafts/api
+      stateless: true
+      provider: app_user_provider
+      jwt: ~
+
     main:
       lazy: true
       provider: app_user_provider
@@ -53,6 +59,9 @@ security:
     - { path: ^/api/bookings/confirm, roles: ROLE_HOST }
     - { path: ^/api/bookings/cancel, roles: ROLE_USER }
     - { path: ^/api/bookings/create, roles: ROLE_USER }
+    - { path: ^/api/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api/register, roles: PUBLIC_ACCESS }
+    - { path: ^/property-drafts/api, roles: ROLE_USER }
 
 when@test:
   security:
