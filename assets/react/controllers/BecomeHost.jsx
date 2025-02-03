@@ -304,22 +304,6 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
     }
 };
 
-  const isAllStepsComplete = () => {
-    return (
-      !!formData.propertyType &&
-      !!formData.latitude &&
-      !!formData.longitude &&
-      !!formData.address &&
-      !!formData.guests &&
-      !!formData.bedrooms &&
-      !!formData.bathrooms &&
-      formData.photos.length > 0 &&
-      !!formData.title &&
-      !!formData.description &&
-      !!formData.price
-    );
-  };
-
   // Add cleanup on component unmount (optional)
   useEffect(() => {
     return () => {
