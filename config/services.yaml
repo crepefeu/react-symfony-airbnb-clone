@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     profile_pictures_directory: '%kernel.project_dir%/public/uploads/profile-pictures'
+    chat_media_directory: '%kernel.project_dir%/public/uploads/chat'
 
 services:
   # default configuration for services in *this* file
@@ -49,3 +50,7 @@ services:
 
   Intervention\Image\ImageManager:
     factory: ['Intervention\Image\ImageManager', 'gd']
+
+  App\Controller\Api\ChatApiController:
+    arguments:
+      $uploadDirectory: '%chat_media_directory%'
