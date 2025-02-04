@@ -190,15 +190,11 @@ const HeaderContent = () => {
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl mx-auto">
               <motion.div
-                className={`relative w-full rounded-full border ${
-                  searchState.isExpanded
-                    ? "border-gray-300 shadow-lg"
-                    : "border-gray-200 shadow-sm"
-                }`}
+                className={`relative w-full rounded-full`}
               >
-                <div className="flex items-center h-12 divide-x divide-gray-200">
+                <div className="flex items-center h-12">
                   <button
-                    className={`search-input-button flex-1 px-6 text-left rounded-l-full hover:bg-gray-100 ${
+                    className={`h-full flex-1 px-6 text-left rounded-l-full border border-gray-200 hover:border hover:border-black ${
                       searchState.activeSection === "location"
                         ? "bg-gray-100"
                         : ""
@@ -210,11 +206,11 @@ const HeaderContent = () => {
                       })
                     }
                   >
-                    <div className="text-xs font-bold">Where</div>
+                    <div className="text-xs font-medium">Where</div>
                     <input
                       type="text"
                       placeholder="Search destinations"
-                      className="w-full bg-transparent border-none outline-none text-sm"
+                      className="w-full bg-transparent border-none outline-none text-sm text-gray-500 placeholder:text-gray-500"
                       value={searchState.location}
                       onChange={(e) =>
                         updateSearch({ location: e.target.value })
@@ -222,9 +218,7 @@ const HeaderContent = () => {
                     />
                   </button>
                   <button
-                    className={`search-input-button px-6 py-2 hover:bg-gray-100 ${
-                      searchState.activeSection === "dates" ? "bg-gray-100" : ""
-                    }`}
+                    className={`h-full px-6 border border-gray-200 hover:border hover:border-black`}
                     onClick={() =>
                       updateSearch({
                         isExpanded: true,
@@ -233,14 +227,12 @@ const HeaderContent = () => {
                     }
                   >
                     <div className="text-xs font-bold">Check in</div>
-                    <div className="text-sm">
+                    <div className="text-sm text-gray-500">
                       {formatDate(searchState.dates.startDate)}
                     </div>
                   </button>
                   <button
-                    className={`search-input-button px-6 py-2 hover:bg-gray-100 ${
-                      searchState.activeSection === "dates" ? "bg-gray-100" : ""
-                    }`}
+                    className={`h-full px-6 hover:bg-gray-100 border border-gray-200 hover:border hover:border-black`}
                     onClick={() =>
                       updateSearch({
                         isExpanded: true,
@@ -249,16 +241,12 @@ const HeaderContent = () => {
                     }
                   >
                     <div className="text-xs font-bold">Check out</div>
-                    <div className="text-sm">
+                    <div className="text-sm text-gray-500">
                       {formatDate(searchState.dates.endDate)}
                     </div>
                   </button>
                   <button
-                    className={`search-input-button px-6 py-2 rounded-r-full hover:bg-gray-100 ${
-                      searchState.activeSection === "guests"
-                        ? "bg-gray-100"
-                        : ""
-                    }`}
+                    className={`h-full px-6 rounded-r-full border border-gray-200 hover:border hover:border-black`}
                     onClick={() =>
                       updateSearch({
                         isExpanded: true,
@@ -267,7 +255,7 @@ const HeaderContent = () => {
                     }
                   >
                     <div className="text-xs font-bold">Who</div>
-                    <div className="text-sm">{formatGuests()}</div>
+                    <div className="text-sm text-gray-500">{formatGuests()}</div>
                   </button>
                   <button
                     className="p-2 bg-rose-500 rounded-full text-white hover:bg-rose-600 mx-2"

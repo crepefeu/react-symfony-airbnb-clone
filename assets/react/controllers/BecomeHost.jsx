@@ -52,6 +52,14 @@ const StepNavigation = ({ steps, currentStep, onStepClick, completedSteps }) => 
 const mapApiDataToFormData = (apiData) => {
   if (!apiData) return null;
   
+  // Ensure numeric values are properly initialized
+  const numericDefaults = {
+    price: '',
+    guests: 1,
+    bedrooms: 1,
+    bathrooms: 1
+  };
+
   return {
     propertyType: apiData.propertyType || '',
     latitude: apiData.latitude || null,
@@ -64,14 +72,15 @@ const mapApiDataToFormData = (apiData) => {
       zipcode: '',
       country: 'France'
     },
-    guests: apiData.guests || 1,
-    bedrooms: apiData.bedrooms || 1,
-    bathrooms: apiData.bathrooms || 1,
+    // Use default values for numeric fields if undefined or null
+    guests: apiData.guests !== undefined ? Number(apiData.guests) : numericDefaults.guests,
+    bedrooms: apiData.bedrooms !== undefined ? Number(apiData.bedrooms) : numericDefaults.bedrooms,
+    bathrooms: apiData.bathrooms !== undefined ? Number(apiData.bathrooms) : numericDefaults.bathrooms,
+    price: apiData.price !== undefined ? Number(apiData.price) : numericDefaults.price,
     amenities: apiData.amenities || [],
     photos: apiData.photos || [],
     title: apiData.title || '',
     description: apiData.description || '',
-    price: apiData.price || '',
   };
 };
 
@@ -109,16 +118,35 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
   // Initialize state from API
   useEffect(() => {
     const loadDraft = async () => {
-      const draftId = window.location.pathname.split('/').pop();
+      const pathDraftId = window.location.pathname.split('/').pop();
       
-      if (!draftId) {
+      if (pathDraftId && pathDraftId !== 'become-a-host') {
+        setDraftId(pathDraftId); // Set draftId first
+      }
+
+      if (!pathDraftId || pathDraftId === 'become-a-host') {
+        // Create new draft if we don't have one
+        try {
+          const response = await fetch('/property-drafts/api/create', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          const data = await response.json();
+          setDraftId(data.draftId);
+          window.history.replaceState({}, '', `/property-drafts/become-a-host/${data.draftId}`);
+        } catch (error) {
+          console.error('Error creating draft:', error);
+        }
         setIsLoading(false);
         return;
       }
-      
+
       try {
         const [draftResponse, amenitiesResponse] = await Promise.all([
-          fetch(`/property-drafts/api/${draftId}`, {
+          fetch(`/property-drafts/api/${pathDraftId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/json'
@@ -162,11 +190,13 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
 
   // Add manual save function
   const handleManualSave = async () => {
+    if (!draftId) return;
+    
     setIsSaving(true);
     setSaveStatus('Saving...');
     
     try {
-      const response = await fetch('/property-drafts/api/save', { // Updated URL
+      const response = await fetch('/property-drafts/api/save', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -179,11 +209,11 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
         }),
       });
 
-      const data = await response.json();
-      setDraftId(data.id);
+      if (!response.ok) {
+        throw new Error('Failed to save draft');
+      }
+
       setSaveStatus('Draft saved');
-      
-      // Clear the success message after 2 seconds
       setTimeout(() => setSaveStatus(''), 2000);
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -235,10 +265,10 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
   // Auto-save draft when form data changes
   useEffect(() => {
     const saveDraft = async () => {
-      if (!token || !formData) return;
+      if (!token || !formData || !draftId) return;
 
       try {
-        const response = await fetch('/api/property-drafts/', {
+        const response = await fetch('/property-drafts/api/save', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -251,37 +281,27 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
           }),
         });
 
-        const data = await response.json();
-        setDraftId(data.draftId);
+        if (!response.ok) {
+          console.error('Error saving draft:', await response.json());
+        }
       } catch (error) {
         console.error('Error saving draft:', error);
       }
     };
 
-    // Debounce save to avoid too many requests
     const timeoutId = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timeoutId);
   }, [formData, step, token, draftId]);
 
   const handleSubmit = async () => {
     try {
-        // Validate numeric values
-        const numericFields = ['price', 'guests', 'bedrooms', 'bathrooms'];
-        numericFields.forEach(field => {
-            const value = Number(formData[field]);
-            if (isNaN(value)) {
-                throw new Error(`Invalid ${field} value`);
-            }
-            formData[field] = value;
-        });
+        // Ensure price is a number before submitting
+        const formDataToSubmit = {
+            ...formData,
+            price: parseInt(formData.price) || 0
+        };
 
-        // Ensure coordinates are numbers
-        formData.latitude = Number(formData.latitude);
-        formData.longitude = Number(formData.longitude);
-
-        if (isNaN(formData.latitude) || isNaN(formData.longitude)) {
-            throw new Error('Invalid coordinates');
-        }
+        console.log('Submitting data:', formDataToSubmit); // Debug log
 
         const response = await fetch(`/property-drafts/api/${draftId}/publish`, {
             method: 'POST',
@@ -289,6 +309,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
+            body: JSON.stringify(formDataToSubmit)
         });
 
         const data = await response.json();
@@ -393,11 +414,14 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
   }, [formData]);
 
   const handleNext = () => {
-    if (step < steps.length) {
-      setStep(step + 1);
-    } else {
-      handleSubmit();
-    }
+    // Save before moving to next step
+    handleManualSave().then(() => {
+      if (step < steps.length) {
+        setStep(step + 1);
+      } else {
+        handleSubmit();
+      }
+    });
   };
 
   const handleBack = () => {
