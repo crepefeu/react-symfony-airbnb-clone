@@ -6,6 +6,7 @@ use App\Repository\WishlistRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: WishlistRepository::class)]
 class Wishlist
@@ -13,6 +14,7 @@ class Wishlist
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['wishlist:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'wishlists')]
@@ -23,17 +25,20 @@ class Wishlist
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['wishlist:read'])]
     private ?string $name = null;
 
     /**
      * @var Collection<int, WishlistItem>
      */
     #[ORM\OneToMany(targetEntity: WishlistItem::class, mappedBy: 'wishlist')]
+    #[Groups(['wishlist:read'])]
     private Collection $wishlistItems;
 
     public function __construct()
     {
         $this->wishlistItems = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -79,6 +84,7 @@ class Wishlist
     /**
      * @return Collection<int, WishlistItem>
      */
+    #[Groups(['wishlist:read', 'property:read'])]
     public function getWishlistItems(): Collection
     {
         return $this->wishlistItems;

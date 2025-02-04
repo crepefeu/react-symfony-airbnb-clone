@@ -249,9 +249,6 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
         : formData.address
     };
 
-    // Debug log to verify amenities are included
-    console.log('Property data being sent:', propertyData);
-
     formDataToSubmit.append('property', JSON.stringify(propertyData));
 
     // Handle photos
@@ -300,8 +297,6 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
             ...formData,
             price: parseInt(formData.price) || 0
         };
-
-        console.log('Submitting data:', formDataToSubmit); // Debug log
 
         const response = await fetch(`/property-drafts/api/${draftId}/publish`, {
             method: 'POST',

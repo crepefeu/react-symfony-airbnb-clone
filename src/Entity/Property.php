@@ -19,7 +19,7 @@ class Property
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['booking:read'])]
+    #[Groups(['booking:read', 'wishlist:read', 'property:read'])]  // Add wishlist:read group
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -53,7 +53,7 @@ class Property
 
     #[ORM\ManyToOne(targetEntity: Address::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]  // Add wishlist:read group
     private ?Address $address = null;
 
     #[ORM\Column(length: 255, nullable: true)]  // Change this line to allow null temporarily
@@ -84,14 +84,14 @@ class Property
 
     #[ORM\ManyToOne(inversedBy: 'properties')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]  // Add wishlist:read group
     private ?User $owner = null;
 
     /**
      * @var Collection<int, PropertyMedia>
      */
     #[ORM\OneToMany(targetEntity: PropertyMedia::class, mappedBy: 'property', orphanRemoval: true)]
-    #[Groups(['property:read'])] // Add this line to include propertyMedia in API responses
+    #[Groups(['property:read'])]
     private Collection $propertyMedias;
 
     /**
@@ -229,7 +229,7 @@ class Property
         return $this;
     }
 
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]
     public function getAddress(): ?Address
     {
         return $this->address;
@@ -349,7 +349,7 @@ class Property
         return $total / $this->reviews->count();
     }
 
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]
     public function getOwner(): ?User
     {
         return $this->owner;
@@ -364,7 +364,7 @@ class Property
     /**
      * @return Collection<int, PropertyMedia>
      */
-    #[Groups(['property:read'])] // Add this line to include the getter in API responses
+    #[Groups(['property:read', 'wishlist:read'])]
     public function getPropertyMedias(): Collection
     {
         return $this->propertyMedias;
@@ -420,5 +420,23 @@ class Property
         }
 
         return $this;
+    }
+
+    #[Groups(['property:read'])]
+    public function isInWishlist(?User $user = null): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        foreach ($user->getWishlists() as $wishlist) {
+            foreach ($wishlist->getWishlistItems() as $item) {
+                if ($item->getProperty()->getId() === $this->getId()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

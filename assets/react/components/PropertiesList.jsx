@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import PropertyCard from "./PropertyCard";
 import Filters from "./Filters";
+import LoginModal from "./LoginModal";
+import WishlistModal from "./WishlistModal";
+import useAuth from "../hooks/useAuth";
 
 const DEFAULT_IMAGE =
   "https://a0.muscache.com/im/pictures/miso/Hosting-852899544218333667/original/c627f47e-8ca9-4471-90d4-1fd987dd2362.jpeg"; // Add a default image URL
@@ -12,6 +15,19 @@ const PropertiesList = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({ maxPrice: "", propertyType: "" });
   const [sortBy, setSortBy] = useState("newest");
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [selectedPropertyId, setSelectedPropertyId] = useState(null);
+  const { isAuthenticated } = useAuth();
+
+  const handleAddToWishlist = (propertyId) => {
+    if (isAuthenticated) {
+      setSelectedPropertyId(propertyId);
+      setIsWishlistModalOpen(true);
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -159,12 +175,27 @@ const PropertiesList = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard 
+                  key={property.id} 
+                  property={property}
+                  onAddToWishlist={handleAddToWishlist}
+                  showWishlistButton={true}
+                  isSaved={property.isInWishlist} // Add this prop
+                />
               ))}
             </div>
           )}
         </div>
       </div>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
+      <WishlistModal
+        isOpen={isWishlistModalOpen}
+        onClose={() => setIsWishlistModalOpen(false)}
+        propertyId={selectedPropertyId}
+      />
     </div>
   );
 };

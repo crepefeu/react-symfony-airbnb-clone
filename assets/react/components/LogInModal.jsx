@@ -55,7 +55,6 @@ const LogInModal = ({ isOpen, onClose }) => {
       }
     } else {
       setErrors(["Invalid logins"]);
-      console.log("Erreur", response);
     }
   };
   return (

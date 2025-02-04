@@ -33,7 +33,6 @@ const HostMenu = () => {
   useEffect(() => {
     const fetchDrafts = async () => {
       try {
-        console.log('Token being sent:', token); // Debug log
         const response = await fetch('/property-drafts/api', {
           headers: { 
             'Authorization': `Bearer ${token}`,
@@ -47,7 +46,6 @@ const HostMenu = () => {
         }
         
         const data = await response.json();
-        console.log('Full API response:', data); // Debug logging
         
         if (Array.isArray(data.drafts)) {
           setDrafts(data.drafts);

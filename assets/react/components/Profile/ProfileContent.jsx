@@ -5,10 +5,6 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
     bio: user?.bio || "",
   });
 
-  useEffect(() => {
-    console.log("User data:", user);
-  }, [user]);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     onUpdateProfile(editForm);
