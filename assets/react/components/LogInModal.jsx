@@ -1,13 +1,15 @@
 import React, { useRef, useState, useEffect } from "react";
 import Modal from "./Modal";
 import useAuth from "../hooks/useAuth";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const LogInModal = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState([]);
+  const [isForgotModalShow, setIsForgotModalShow] = useState(false);
   const { login } = useAuth();
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
-  const [previousUrl, setPreviousUrl] = useState('');
+  const [previousUrl, setPreviousUrl] = useState("");
 
   useEffect(() => {
     // Store the current URL when the modal opens
@@ -49,7 +51,7 @@ const LogInModal = ({ isOpen, onClose }) => {
         };
         login({ user, token: data.token });
         // Redirect to the previous URL instead of the profile page
-        location.href = previousUrl || '/';
+        location.href = previousUrl || "/";
       }
     } else {
       setErrors(["Invalid logins"]);
@@ -57,43 +59,57 @@ const LogInModal = ({ isOpen, onClose }) => {
     }
   };
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="w-full" title="Log In">
-        <form
-          action=""
-          className="flex flex-col gap-4 justify-center items-center"
-          onSubmit={handleSubmit}
-        >
-          <input
-            type="email"
-            name="email"
-            id="email"
-            placeholder="Email"
-            required
-            className="w-1/2 border border-gray-400 focus:border-rose-500 rounded outline-none px-4 py-2"
-            ref={emailRef}
-          />
-          <input
-            type="password"
-            name="password"
-            id="password"
-            placeholder="Password"
-            required
-            className="w-1/2 border border-gray-400 focus:border-rose-500 rounded outline-none px-4 py-2"
-            ref={passwordRef}
-          />
-          {errors.map((error, index) => (
-            <span key={index}>{error}</span>
-          ))}
-          <button
-            type="submit"
-            className="bg-rose-500 text-white rounded-md px-4 py-2 w-1/3 mt-2 hover:bg-rose-700"
+    <>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <div className="w-full" title="Log In">
+          <form
+            action=""
+            className="flex flex-col gap-4 justify-center items-center"
+            onSubmit={handleSubmit}
           >
-            Submit
-          </button>
-        </form>
-      </div>
-    </Modal>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Email"
+              required
+              className="w-1/2 border border-gray-400 focus:border-rose-500 rounded outline-none px-4 py-2"
+              ref={emailRef}
+            />
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Password"
+              required
+              className="w-1/2 border border-gray-400 focus:border-rose-500 rounded outline-none px-4 py-2"
+              ref={passwordRef}
+            />
+            <span
+              onClick={() => setIsForgotModalShow(true)}
+              className="text-rose-500 underline w-1/2 hover:cursor-pointer"
+            >
+              Forgot password ?
+            </span>
+            {errors.map((error, index) => (
+              <span key={index}>{error}</span>
+            ))}
+            <button
+              type="submit"
+              className="bg-rose-500 text-white rounded-md px-4 py-2 w-1/3 mt-2 hover:bg-rose-700"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+      </Modal>
+      {isForgotModalShow && (
+        <ForgotPasswordModal
+          isOpen={isForgotModalShow}
+          onClose={() => setIsForgotModalShow(false)}
+        />
+      )}
+    </>
   );
 };
 

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,6 +15,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Uid\Uuid;
+
 
 class AuthenticationController extends AbstractController
 {
@@ -85,10 +92,74 @@ class AuthenticationController extends AbstractController
 
     #[Route('/profile', name: 'profile')]
     public function profile(Security $security): Response {
-        // $user = $security->getUser();
-        // if (!$user) {
-        //     return $this->render('user/unauthorized.html.twig');
-        // }
         return $this->render('user/profile.html.twig');
     }
+
+    #[Route('/api/forgot-password', name: 'forgot-password', methods: ['POST'])]
+    public function forgotPassword(
+        Request $request,
+        UserRepository $userRepository,
+        MailerInterface $mailer,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        $email = $data['email'];
+        $user = $userRepository->findOneBy(['email' => $email]);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Email not found'], 400);
+        }
+
+        $resetToken = Uuid::v4();
+        $user->setResetToken($resetToken);
+
+        $link = $this->generateUrl(
+            'view-reset-password',
+            ['token' => $resetToken],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+    
+        $emailMessage = (new TemplatedEmail())
+            ->from('no-reply@hostme.com')
+            ->to($email)
+            ->subject("Reset your password")
+            ->htmlTemplate("user/forgot-password-mail-template.html.twig")
+            ->context([
+                'link' => $link,
+                'firstName' => $user->getFirstName(),
+            ]);
+    
+        $mailer->send($emailMessage);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'message' => 'Email sent',
+        ], Response::HTTP_OK);
+    }
+
+    #[Route('/api/reset-password', name: 'reset-password', methods: ['POST'])]
+    public function resetPassword(Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): JSONResponse {
+        $data = json_decode($request->getContent(), true);
+        $token = $data["token"];
+        $password = $data['password'];
+        $user = $userRepository->findOneBy(['resetToken' => $token]);
+
+        if (!$user) {
+            return new JsonResponse(['error' => 'Token invalid or expired to reset password'], 500);
+        }
+
+        $password = $passwordHasher->hashPassword($user, $password);
+        $user->setPassword($password);
+        $user->setResetToken(null);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'Password reset successfully. Please log in'], 200);
+    }
+
+    #[Route('/reset-password/{token}', name: 'view-reset-password')]
+    public function viewResetPassword(string $token): Response
+    {
+        return $this->render('user/reset-password.html.twig', ['token' => $token]);
+    }
+
 }

@@ -89,6 +89,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: PropertyDraft::class, orphanRemoval: true)]
     private Collection $propertyDrafts;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $resetToken = null;
+
     public function __construct()
     {
         $this->reviews = new ArrayCollection();
@@ -417,6 +420,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $draft->setOwner(null);
             }
         }
+        return $this;
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+
         return $this;
     }
 }

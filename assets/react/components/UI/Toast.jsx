@@ -26,7 +26,7 @@ const Toast = ({ message, type = "info", duration = 3000, onClose }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className={`fixed bottom-5 right-5 flex items-center gap-4 px-4 py-2 pt-3 rounded shadow-md w-72 shadow-gray-600/10 z-10 ${typeStyles[type]} bg-white`}
+      className={`fixed bottom-5 right-5 flex items-center gap-4 px-4 py-2 pt-3 rounded shadow-md w-72 shadow-gray-600/10 z-20 ${typeStyles[type]} bg-white`}
     >
       <motion.div
         initial={{ width: "0%" }}
