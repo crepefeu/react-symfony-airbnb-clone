@@ -10,7 +10,9 @@ const PropertyCard = ({
   onRemoveFromWishlist = null,
   onAddToWishlist = null,
   showWishlistButton = true, // New prop to control wishlist button visibility
-  isSaved = false  // New prop to indicate if property is in a wishlist
+  isSaved = false,  // New prop to indicate if property is in a wishlist
+  showHeartButton = false, // New prop to control heart button visibility
+  inWishlistView = false // New prop to determine if card is used in wishlist view
 }) => {
   const { isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -87,6 +89,24 @@ const PropertyCard = ({
   };
 
   const renderActionButton = () => {
+    if (inWishlistView) {
+      return (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRemoveFromWishlist(property.id);
+          }}
+          className="absolute top-3 right-3 p-2 bg-white/90 rounded-full opacity-100 hover:bg-white transition-colors z-20"
+          title="Remove from wishlist"
+        >
+          <svg className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      );
+    }
+
     if (!showWishlistButton) return null;
 
     return (
@@ -219,18 +239,36 @@ const PropertyCard = ({
             </div>
           </div>
         </a>
+        {showHeartButton && onRemoveFromWishlist && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemoveFromWishlist(property.id);
+            }}
+            className="absolute top-3 right-3 p-2 bg-white/90 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <svg className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
       </div>
 
-      <WishlistModal
-        isOpen={isWishlistModalOpen}
-        onClose={() => setIsWishlistModalOpen(false)}
-        propertyId={property.id}
-      />
+      {!inWishlistView && (
+        <>
+          <WishlistModal
+            isOpen={isWishlistModalOpen}
+            onClose={() => setIsWishlistModalOpen(false)}
+            propertyId={property.id}
+          />
 
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
+          <LoginModal
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+          />
+        </>
+      )}
     </>
   );
 };  

@@ -8,6 +8,7 @@ const WishlistDetails = ({ wishlistId }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { token } = useAuth();
+    const [deleteModal, setDeleteModal] = useState({ show: false, propertyId: null });
 
     useEffect(() => {
         const fetchWishlist = async () => {
@@ -41,8 +42,12 @@ const WishlistDetails = ({ wishlistId }) => {
     }, [token, wishlistId]);
 
     const handleRemoveFromWishlist = async (propertyId) => {
+        setDeleteModal({ show: true, propertyId });
+    };
+
+    const confirmDelete = async () => {
         try {
-            const response = await fetch(`/api/wishlists/${wishlistId}/items/${propertyId}`, {
+            const response = await fetch(`/api/wishlists/${wishlistId}/items/${deleteModal.propertyId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -58,11 +63,13 @@ const WishlistDetails = ({ wishlistId }) => {
             setWishlist(prev => ({
                 ...prev,
                 wishlistItems: prev.wishlistItems.filter(
-                    item => item.property.id !== propertyId
+                    item => item.property.id !== deleteModal.propertyId
                 )
             }));
+            setDeleteModal({ show: false, propertyId: null });
         } catch (error) {
             console.error('Error removing property from wishlist:', error);
+            setError(error.message);
         }
     };
 
@@ -142,10 +149,35 @@ const WishlistDetails = ({ wishlistId }) => {
                             <PropertyCard 
                                 key={item.id} 
                                 property={item.property}
-                                showHeartButton
+                                showWishlistButton={false}
+                                inWishlistView={true}
                                 onRemoveFromWishlist={handleRemoveFromWishlist}
                             />
                         ))}
+                    </div>
+                )}
+
+                {/* Delete Confirmation Modal */}
+                {deleteModal.show && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+                            <h3 className="text-lg font-semibold mb-4">Remove Property</h3>
+                            <p className="text-gray-600 mb-6">Are you sure you want to remove this property from your wishlist?</p>
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    onClick={() => setDeleteModal({ show: false, propertyId: null })}
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
