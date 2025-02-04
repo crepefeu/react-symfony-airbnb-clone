@@ -51,7 +51,7 @@ const ReservationCard = ({ property }) => {
       setShowToast(true);
       setToastMessage(data.message);
       setToastType("success");
-      location.href = "/trips";
+      // location.href = "/trips";
     } else {
       setShowToast(true);
       setToastMessage(data.error);

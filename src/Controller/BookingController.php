@@ -16,6 +16,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+
 
 #[Route('/api/bookings')]
 final class BookingController extends AbstractController
@@ -51,9 +56,10 @@ final class BookingController extends AbstractController
         Request $request,
         Security $security,
         BookingRepository $bookingRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        MailerInterface $mailer
     ): JsonResponse {
-        return $this->changeBookingStatus($request, $security, $bookingRepository, $entityManager, BookingStatus::VALIDATED);
+        return $this->changeBookingStatus($request, $security, $bookingRepository, $entityManager, BookingStatus::VALIDATED, $mailer);
     }
 
     #[Route('/cancel', name: 'cancel-booking', methods: ['POST'])]
@@ -61,13 +67,14 @@ final class BookingController extends AbstractController
         Request $request,
         Security $security,
         BookingRepository $bookingRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        MailerInterface $mailer
     ): JsonResponse {
-        return $this->changeBookingStatus($request, $security, $bookingRepository, $entityManager, BookingStatus::CANCELED);
+        return $this->changeBookingStatus($request, $security, $bookingRepository, $entityManager, BookingStatus::CANCELED, $mailer);
     }
 
     #[Route('/create', name: 'create-booking', methods: ['POST'])]
-    public function createBooking(Request $request, Security $security, PropertyRepository $propertyRepository, EntityManagerInterface $entityManager): JsonResponse
+    public function createBooking(Request $request, Security $security, PropertyRepository $propertyRepository, EntityManagerInterface $entityManager, MailerInterface $mailer): JsonResponse
     {
         $user = $security->getUser();
         if (!$user) {
@@ -99,12 +106,31 @@ final class BookingController extends AbstractController
         $entityManager->persist($booking);
         $entityManager->flush();
 
+        $link = $this->generateUrl(
+            'bookings',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+    
+        $emailMessage = (new TemplatedEmail())
+            ->from('no-reply@hostme.com')
+            ->to($booking->getProperty()->getOwner()->getEmail())
+            ->subject("New booking to confirm")
+            ->htmlTemplate("booking/new-booking-mail-template.html.twig")
+            ->context([
+                'link' => $link,
+                'firstName' => $booking->getProperty()->getOwner()->getFirstName(),
+                'propertyName' => $booking->getProperty()->getTitle(),
+            ]);
+    
+        $mailer->send($emailMessage);
+
         return new JsonResponse([
             'message' => 'Booking created successfully',
         ], JsonResponse::HTTP_CREATED);
     }
 
-    private function changeBookingStatus(Request $request, Security $security, BookingRepository $bookingRepository, EntityManagerInterface $entityManager, BookingStatus $status) {
+    private function changeBookingStatus(Request $request, Security $security, BookingRepository $bookingRepository, EntityManagerInterface $entityManager, BookingStatus $status, MailerInterface $mailer) {
         $user = $security->getUser();
         if (!$user) {
             return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
@@ -139,13 +165,38 @@ final class BookingController extends AbstractController
         $entityManager->flush();
 
         $statusMessage = "";
+        $subject = "";
+        $mailTemplate = "";
 
         if ($status == BookingStatus::CANCELED) {
             $statusMessage = "canceled";
+            $subject = "Your booking has been canceled";
+            $mailTemplate = "booking/canceled-booking-mail-template.html.twig";
         }
         if ($status == BookingStatus::VALIDATED) {
             $statusMessage = "validated";
+            $subject = "Your booking has been validated";
+            $mailTemplate = "booking/confirmed-booking-mail-template.html.twig";
         }
+
+        $link = $this->generateUrl(
+            'trips',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+    
+        $emailMessage = (new TemplatedEmail())
+            ->from('no-reply@hostme.com')
+            ->to($booking->getGuest()->getEmail())
+            ->subject($subject)
+            ->htmlTemplate($mailTemplate)
+            ->context([
+                'link' => $link,
+                'firstName' => $booking->getGuest()->getFirstName(),
+                'propertyName' => $booking->getProperty()->getTitle(),
+            ]);
+    
+        $mailer->send($emailMessage);
 
         return new JsonResponse([
             'message' => 'Booking '. $statusMessage .' successfully',

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Cancelled</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-xl font-bold text-gray-800">Booking Cancelled</h1>
+        <p class="text-gray-700 mt-2">Hello {{ firstName }},</p>
+        <p class="text-gray-700">Unfortunately, the booking for the property <strong>{{ propertyName }}</strong> has been cancelled.</p>
+
+        <p class="text-gray-700 mt-4">We apologize for the inconvenience. How about taking a look at other properties.</p>
+        
+        <a href="{{ link }}" class="block bg-rose-600 text-white px-4 py-2 rounded-md mt-4 text-center mx-auto w-1/2">
+            See more properties
+        </a>
+
+        <div class="text-center text-gray-500 text-sm mt-6">
+            <p>Thank you for using our platform.</p>
+            <p>&copy; {{ 'now'|date('Y') }} HostMe.com</p>
+        </div>
+    </div>
+</body>
+</html>
