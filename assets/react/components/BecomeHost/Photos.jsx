@@ -45,7 +45,7 @@ const Photos = ({ formData, setFormData, draftId }) => {
   // Add handleManualSave function
   const handleManualSave = async (newFormData) => {
     try {
-      const response = await fetch('/property-drafts/api/save', {
+      const response = await fetch('/api/drafts/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

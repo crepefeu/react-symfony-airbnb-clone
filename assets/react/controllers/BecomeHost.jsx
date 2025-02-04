@@ -127,7 +127,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
       if (!pathDraftId || pathDraftId === 'become-a-host') {
         // Create new draft if we don't have one
         try {
-          const response = await fetch('/property-drafts/api/create', {
+          const response = await fetch('api/drafts/create', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -136,7 +136,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
           });
           const data = await response.json();
           setDraftId(data.draftId);
-          window.history.replaceState({}, '', `/property-drafts/become-a-host/${data.draftId}`);
+          window.history.replaceState({}, '', `/drafts/${data.draftId}`);
         } catch (error) {
           console.error('Error creating draft:', error);
         }
@@ -146,7 +146,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
 
       try {
         const [draftResponse, amenitiesResponse] = await Promise.all([
-          fetch(`/property-drafts/api/${pathDraftId}`, {
+          fetch(`/api/drafts/${pathDraftId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/json'
@@ -196,7 +196,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
     setSaveStatus('Saving...');
     
     try {
-      const response = await fetch('/property-drafts/api/save', {
+      const response = await fetch('/api/drafts/save', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -265,7 +265,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
       if (!token || !formData || !draftId) return;
 
       try {
-        const response = await fetch('/property-drafts/api/save', {
+        const response = await fetch('/api/drafts/save', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -298,7 +298,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
             price: parseInt(formData.price) || 0
         };
 
-        const response = await fetch(`/property-drafts/api/${draftId}/publish`, {
+        const response = await fetch(`/api/drafts/${draftId}/publish`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -506,7 +506,7 @@ const BecomeHost = ({ draftId: initialDraftId = null }) => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               {/* Logo or back button could go here */}
-              <a href="/property-drafts/become-a-host" className="text-gray-400 hover:text-gray-500">
+              <a href="/become-a-host" className="text-gray-400 hover:text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m15 18-6-6 6-6"/>
                 </svg>

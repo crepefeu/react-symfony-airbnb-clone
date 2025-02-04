@@ -16,7 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Entity\User;
 
-#[Route('/property-drafts', name: 'property_drafts_')]
+
+#[Route('/', name: 'property_drafts_')]
 class PropertyDraftController extends AbstractController
 {
     public function __construct(
@@ -24,13 +25,23 @@ class PropertyDraftController extends AbstractController
         private EntityManagerInterface $em
     ) {}
 
-    #[Route('/', name: 'menu', methods: ['GET'])]
-    public function index(): Response
+    #[Route('drafts', name: 'list_page', methods: ['GET'])]
+    public function listDraftsPage(): Response
     {
-        return $this->redirectToRoute('property_drafts_host_menu');
+        return $this->render('property/drafts.html.twig', [
+            'component_name' => 'HostMenu'
+        ]);
     }
 
-    #[Route('/api/save', name: 'api_save', methods: ['POST'])]
+    #[Route('drafts/{id}', name: 'host_draft', methods: ['GET'])]
+    public function hostDraft(PropertyDraft $draft): Response
+    {
+        return $this->render('property/host.html.twig', [
+            'component_name' => 'BecomeHost',
+        ]);
+    }
+
+    #[Route('/api/drafts/save', name: 'api_save', methods: ['POST'])]
     public function save(Request $request, EntityManagerInterface $em): JsonResponse
     {
         /** @var User $user */
@@ -82,7 +93,7 @@ class PropertyDraftController extends AbstractController
         }
     }
 
-    #[Route('/api/{id}', name: 'api_get', methods: ['GET'])]
+    #[Route('api/drafts/{id}', name: 'api_get', methods: ['GET'])]
     public function getDraft(PropertyDraft $draft): JsonResponse
     {
         /** @var User|null $user */
@@ -113,7 +124,7 @@ class PropertyDraftController extends AbstractController
         ]);
     }
 
-    #[Route('/api/{id}/publish', name: 'api_publish', methods: ['POST'])]
+    #[Route('api/drafts/{id}/publish', name: 'api_publish', methods: ['POST'])]
     public function publish(PropertyDraft $draft, EntityManagerInterface $em): JsonResponse
     {
         if ($draft->getOwner() !== $this->getUser()) {
@@ -237,15 +248,7 @@ class PropertyDraftController extends AbstractController
         }
     }
 
-    #[Route('/', name: 'list_page', methods: ['GET'])]
-    public function listDraftsPage(): Response
-    {
-        return $this->render('property/drafts.html.twig', [
-            'component_name' => 'PropertyDrafts'
-        ]);
-    }
-
-    #[Route('/api', name: 'api_list', methods: ['GET'])]
+    #[Route('api/drafts', name: 'api_list', methods: ['GET'])]
     public function listDraftsApi(): JsonResponse
     {
         try {
@@ -285,7 +288,7 @@ class PropertyDraftController extends AbstractController
         }
     }
 
-    #[Route('/api/create', name: 'api_create', methods: ['POST'])]
+    #[Route('api/drafts/create', name: 'api_create', methods: ['POST'])]
     public function createDraft(EntityManagerInterface $em): JsonResponse
     {
         $draft = new PropertyDraft();
@@ -306,22 +309,6 @@ class PropertyDraftController extends AbstractController
         return $this->json([
             'message' => 'Draft created successfully',
             'draftId' => $draft->getId()
-        ]);
-    }
-
-    #[Route('/become-a-host', name: 'host_menu', methods: ['GET'])]
-    public function hostMenu(): Response
-    {
-        return $this->render('property/host-menu.html.twig', [
-            'component_name' => 'HostMenu'
-        ]);
-    }
-
-    #[Route('/become-a-host/{id}', name: 'host_draft', methods: ['GET'])]
-    public function hostDraft(PropertyDraft $draft): Response
-    {
-        return $this->render('property/host.html.twig', [
-            'component_name' => 'BecomeHost',
         ]);
     }
 }

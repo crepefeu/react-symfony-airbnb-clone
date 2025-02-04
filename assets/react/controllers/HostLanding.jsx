@@ -213,7 +213,7 @@ const HostLanding = () => {
 
   const createNewDraft = async () => {
     try {
-      const response = await fetch('/property-drafts/api/create', {
+      const response = await fetch('/api/drafts/create', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -221,7 +221,7 @@ const HostLanding = () => {
         }
       });
       const data = await response.json();
-      window.location.href = `/property-drafts/become-a-host/${data.draftId}`;
+      window.location.href = `/drafts/${data.draftId}`;
     } catch (error) {
       console.error('Error creating draft:', error);
     }

@@ -15,10 +15,11 @@ const PropertyDrafts = () => {
   useEffect(() => {
     const fetchDrafts = async () => {
       try {
-        const response = await fetch('/property-drafts/api', { // Updated URL
+        const response = await fetch('/api/drafts', {
           headers: {
             'Authorization': `Bearer ${token}`,
-          }
+          },
+          credentials: 'include'
         });
         const data = await response.json();
         setDrafts(data.drafts);
@@ -29,7 +30,9 @@ const PropertyDrafts = () => {
       }
     };
 
-    fetchDrafts();
+    if (token) {
+      fetchDrafts();
+    }
   }, [token]);
 
   const formatDate = (dateString) => {
@@ -68,7 +71,7 @@ const PropertyDrafts = () => {
             <h2 className="text-xl font-medium mb-2">No drafts found</h2>
             <p className="text-gray-600 mb-4">Start creating a new property listing</p>
             <a 
-              href="/property-drafts/become-a-host"
+              href="/become-a-host"
               className="inline-block bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700"
             >
               Become a Host
@@ -82,7 +85,7 @@ const PropertyDrafts = () => {
                 className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition"
               >
                 <a 
-                  href={`/property-drafts/continue/${draft.id}`}
+                  href={`/drafts/${draft.id}`}
                   className="block p-6"
                 >
                   <div className="flex justify-between items-start">

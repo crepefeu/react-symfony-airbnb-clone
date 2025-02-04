@@ -125,7 +125,7 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
                 {isOwner ? "Ready to start your hosting journey?" : "Start your hosting journey"}
               </p>
               <a 
-                href="/property-drafts/become-a-host" // Updated URL
+                href="/become-a-host" // Updated URL
                 className="bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700"
               >
                 Become a Host
@@ -139,7 +139,7 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl">Property Drafts</h2>
               <a 
-                href="/property-drafts"
+                href="/drafts"
                 className="text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1"
               >
                 View all drafts
@@ -164,7 +164,7 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
                   // Show only the first 2 drafts in profile
                   <a 
                     key={draft.id}
-                    href={`/property-drafts/become-a-host/${draft.id}`} // Updated URL
+                    href={`/drafts/${draft.id}`} // Updated URL
                     className="block p-4 border border-gray-200 rounded-xl hover:shadow-md transition"
                   >
                     <h3 className="font-medium mb-1">
