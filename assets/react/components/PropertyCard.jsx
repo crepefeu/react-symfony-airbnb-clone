@@ -3,7 +3,7 @@ import { useSwipeable } from "react-swipeable";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "../hooks/useAuth";
 import WishlistModal from './WishlistModal';
-import LoginModal from './LoginModal';
+import AuthModal from "./AuthModal";
 
 const PropertyCard = ({ 
   property, 
@@ -263,7 +263,7 @@ const PropertyCard = ({
             propertyId={property.id}
           />
 
-          <LoginModal
+          <AuthModal
             isOpen={isLoginModalOpen}
             onClose={() => setIsLoginModalOpen(false)}
           />

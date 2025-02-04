@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import useAuth from '../hooks/useAuth';
-import LogInModal from '../components/LogInModal';
+import AuthModal from '../components/AuthModal';
 
 const HostMenu = () => {
   const { token } = useAuth();
@@ -77,7 +77,7 @@ const HostMenu = () => {
           >
             Log in
           </button>
-          <LogInModal
+          <AuthModal
             isOpen={isLogInModalOpen}
             onClose={() => setIsLogInModalOpen(false)}
           />

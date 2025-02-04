@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import LogInModal from "./LogInModal";
-import SignUpModal from "./SignUpModal";
 import { SearchProvider, useSearch } from "../contexts/SearchContext";
 import useAuth from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,11 +8,11 @@ import "react-date-range/dist/theme/default.css";
 import GuestPicker from "./GuestPicker";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import AuthModal from "./AuthModal";
 
 const HeaderContent = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogInModalOpen, setIsLogInModalOpen] = useState(false);
-  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const menuRef = useRef(null);
   const searchRef = useRef(null);
@@ -100,9 +98,7 @@ const HeaderContent = () => {
     const shouldDisableScroll =
       isMenuOpen ||
       searchState.isExpanded ||
-      isLogInModalOpen ||
-      isSignUpModalOpen;
-
+      isLogInModalOpen
     if (shouldDisableScroll) {
       setScrollPosition(window.scrollY);
       document.body.classList.add("no-scroll");
@@ -121,7 +117,6 @@ const HeaderContent = () => {
     isMenuOpen,
     searchState.isExpanded,
     isLogInModalOpen,
-    isSignUpModalOpen,
     scrollPosition,
   ]);
 
@@ -386,13 +381,7 @@ const HeaderContent = () => {
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
                         onClick={() => setIsLogInModalOpen(true)}
                       >
-                        Log In
-                      </span>
-                      <span
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
-                        onClick={() => setIsSignUpModalOpen(true)}
-                      >
-                        Sign Up
+                        Log In / Sign Up
                       </span>
                     </div>
                   )}
@@ -538,13 +527,9 @@ const HeaderContent = () => {
           </AnimatePresence>
         </div>
       </motion.header>
-      <LogInModal
+      <AuthModal
         isOpen={isLogInModalOpen}
         onClose={() => setIsLogInModalOpen(false)}
-      />
-      <SignUpModal
-        isOpen={isSignUpModalOpen}
-        onClose={() => setIsSignUpModalOpen(false)}
       />
     </div>
   );

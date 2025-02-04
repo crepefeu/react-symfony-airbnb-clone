@@ -10,8 +10,8 @@ import ReviewsModal from "../components/ReviewsModal";
 import PropertyHeader from "../components/Property/PropertyHeader";
 import PropertyDescription from "../components/Property/PropertyDescription";
 import WishlistModal from '../components/WishlistModal';
-import LoginModal from '../components/LoginModal';
 import useAuth from "../hooks/useAuth";
+import AuthModal from "../components/AuthModal";
 
 const PropertyDetails = ({ propertyId }) => {
   const { isAuthenticated } = useAuth();
@@ -163,7 +163,7 @@ const PropertyDetails = ({ propertyId }) => {
           propertyId={propertyId}
         />
 
-        <LoginModal
+        <AuthModal
           isOpen={isLoginModalOpen}
           onClose={() => setIsLoginModalOpen(false)}
         />

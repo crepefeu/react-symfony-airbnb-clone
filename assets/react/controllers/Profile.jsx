@@ -3,7 +3,7 @@ import Layout from "../components/Layout";
 import ProfileSidebar from "../components/Profile/ProfileSidebar";
 import ProfileContent from "../components/Profile/ProfileContent";
 import useAuth from "../hooks/useAuth";
-import LogInModal from "../components/LogInModal";
+import AuthModal from "../components/AuthModal";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -72,7 +72,7 @@ const Profile = () => {
           >
             Log in
           </button>
-          <LogInModal
+          <AuthModal
             isOpen={isLogInModalOpen}
             onClose={() => setIsLogInModalOpen(false)}
           />

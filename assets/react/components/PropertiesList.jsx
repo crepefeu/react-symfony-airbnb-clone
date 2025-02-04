@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import PropertyCard from "./PropertyCard";
 import Filters from "./Filters";
-import LoginModal from "./LoginModal";
 import WishlistModal from "./WishlistModal";
 import useAuth from "../hooks/useAuth";
+import AuthModal from "./AuthModal";
 
 const DEFAULT_IMAGE =
   "https://a0.muscache.com/im/pictures/miso/Hosting-852899544218333667/original/c627f47e-8ca9-4471-90d4-1fd987dd2362.jpeg"; // Add a default image URL
@@ -187,7 +187,7 @@ const PropertiesList = () => {
           )}
         </div>
       </div>
-      <LoginModal
+      <AuthModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
       />
