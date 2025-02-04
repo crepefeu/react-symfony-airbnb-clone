@@ -1,35 +1,48 @@
 import React from 'react';
 
 const Description = ({ formData, setFormData }) => {
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setFormData({
+      ...formData,
+      title: newTitle
+    });
+  };
+
+  const handleDescriptionChange = (e) => {
+    const newDescription = e.target.value;
+    setFormData({
+      ...formData,
+      description: newDescription
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-gray-700 mb-2">Create your title</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Title
+        </label>
         <input
           type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Cozy apartment in the heart of Paris"
-          className="w-full p-4 border border-gray-300 rounded-lg focus:border-gray-500 focus:ring-0"
-          maxLength={50}
+          value={formData.title || ''}
+          onChange={handleTitleChange}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+          placeholder="Enter a catchy title for your place"
         />
-        <p className="text-sm text-gray-500 mt-2">
-          {50 - (formData.title?.length || 0)} characters remaining
-        </p>
       </div>
 
       <div>
-        <label className="block text-gray-700 mb-2">Write your description</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Description
+        </label>
         <textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Tell guests what makes your place special..."
-          className="w-full p-4 border border-gray-300 rounded-lg h-40 focus:border-gray-500 focus:ring-0"
-          maxLength={500}
+          value={formData.description || ''}
+          onChange={handleDescriptionChange}
+          rows={6}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+          placeholder="Describe what makes your place special"
         />
-        <p className="text-sm text-gray-500 mt-2">
-          {500 - (formData.description?.length || 0)} characters remaining
-        </p>
       </div>
     </div>
   );

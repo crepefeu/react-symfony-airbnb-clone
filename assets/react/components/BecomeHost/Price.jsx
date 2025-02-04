@@ -101,11 +101,32 @@ const Price = ({ formData, setFormData }) => {
   }, [formData.latitude, formData.longitude, formData.bedrooms]);
 
   const handlePriceChange = (value) => {
-    // Remove non-numeric characters and convert to number
-    const numericValue = parseInt(value.replace(/[^0-9]/g, '')) || 0;
+    // Handle empty or invalid input
+    if (!value) {
+      setFormData({
+        ...formData,
+        price: ''
+      });
+      return;
+    }
+
+    // Convert to number and ensure it's not NaN
+    const numericValue = parseInt(value.replace(/[^0-9]/g, ''), 10);
+    
+    // Only update if we have a valid number
+    if (!isNaN(numericValue)) {
+      setFormData({
+        ...formData,
+        price: numericValue
+      });
+    }
+  };
+
+  // Modify the preset click handler
+  const handlePresetClick = (value) => {
     setFormData({
       ...formData,
-      price: numericValue
+      price: value
     });
   };
 
@@ -163,7 +184,7 @@ const Price = ({ formData, setFormData }) => {
               {pricePresets.map((preset) => (
                 <button
                   key={preset.label}
-                  onClick={() => handlePriceChange(preset.value.toString())}
+                  onClick={() => handlePresetClick(preset.value)}
                   className={`p-4 border rounded-xl transition-all ${
                     formData.price === preset.value
                       ? "border-black shadow-md"

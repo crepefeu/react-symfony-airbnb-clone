@@ -3,10 +3,10 @@ import React from 'react';
 const Review = ({ formData }) => {
   const validateFormData = () => {
     const required = {
-      price: Number(formData.price),
-      guests: Number(formData.guests),
-      bedrooms: Number(formData.bedrooms),
-      bathrooms: Number(formData.bathrooms),
+      price: formData.price === '' || formData.price === undefined ? null : Number(formData.price),
+      guests: formData.guests === '' || formData.guests === undefined ? null : Number(formData.guests),
+      bedrooms: formData.bedrooms === '' || formData.bedrooms === undefined ? null : Number(formData.bedrooms),
+      bathrooms: formData.bathrooms === '' || formData.bathrooms === undefined ? null : Number(formData.bathrooms),
       title: formData.title,
       description: formData.description,
       propertyType: formData.propertyType,
@@ -17,10 +17,19 @@ const Review = ({ formData }) => {
 
     const errors = [];
     Object.entries(required).forEach(([key, value]) => {
-      if (key.match(/price|guests|bedrooms|bathrooms/) && isNaN(value)) {
-        errors.push(`Invalid ${key} value`);
-      }
-      if (!value && value !== 0) {
+      if (key === 'price') {
+        if (value === null || value === undefined) {
+          errors.push('Missing price');
+        } else if (isNaN(value) || value < 0) {
+          errors.push('Invalid price value');
+        }
+      } else if (key.match(/guests|bedrooms|bathrooms/)) {
+        if (value === null || value === undefined) {
+          errors.push(`Missing ${key}`);
+        } else if (isNaN(value) || value < 1) {
+          errors.push(`Invalid ${key} value`);
+        }
+      } else if (!value && value !== 0) {
         errors.push(`Missing ${key}`);
       }
     });
