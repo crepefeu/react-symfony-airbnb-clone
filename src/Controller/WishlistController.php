@@ -209,4 +209,36 @@ class WishlistController extends AbstractController
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
+
+    #[Route('/api/wishlists/{id}', name: 'delete_wishlist', methods: ['DELETE'])]
+    public function delete(
+        int $id,
+        EntityManagerInterface $entityManager,
+        Security $security
+    ): JsonResponse
+    {
+        $user = $security->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Find the wishlist and verify ownership
+        $wishlist = null;
+        foreach ($user->getWishlists() as $w) {
+            if ($w->getId() === $id) {
+                $wishlist = $w;
+                break;
+            }
+        }
+
+        if (!$wishlist) {
+            return new JsonResponse(['error' => 'Wishlist not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Delete the wishlist and all its items
+        $entityManager->remove($wishlist);
+        $entityManager->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
 }

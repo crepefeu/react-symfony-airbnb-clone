@@ -31,7 +31,7 @@ class Wishlist
     /**
      * @var Collection<int, WishlistItem>
      */
-    #[ORM\OneToMany(targetEntity: WishlistItem::class, mappedBy: 'wishlist')]
+    #[ORM\OneToMany(mappedBy: 'wishlist', targetEntity: WishlistItem::class, orphanRemoval: true, cascade: ['persist', 'remove'])]
     #[Groups(['wishlist:read'])]
     private Collection $wishlistItems;
 
