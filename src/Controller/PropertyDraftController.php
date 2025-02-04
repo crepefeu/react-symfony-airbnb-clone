@@ -311,4 +311,24 @@ class PropertyDraftController extends AbstractController
             'draftId' => $draft->getId()
         ]);
     }
+
+    #[Route('api/drafts/{id}', name: 'api_delete', methods: ['DELETE'])]
+    public function deleteDraft(PropertyDraft $draft): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = $this->security->getUser();
+
+        if (!$user || $draft->getOwner() !== $user) {
+            return $this->json(['error' => 'Not authorized'], 403);
+        }
+
+        try {
+            $this->em->remove($draft);
+            $this->em->flush();
+
+            return $this->json(['message' => 'Draft deleted successfully']);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Error deleting draft'], 500);
+        }
+    }
 }
