@@ -6,6 +6,7 @@ const ChatWindow = ({ chat, onMessageSent }) => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState(chat.messages || []);
+  const [imagePreview, setImagePreview] = useState(null);  // Add this line
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -22,15 +23,28 @@ const ChatWindow = ({ chat, onMessageSent }) => {
     scrollToBottom();
   }, [messages]);
 
+  const handleFileChange = (e) => {  // Add this function
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !chat?.participants) return;
+    if ((!newMessage.trim() && !fileInputRef.current?.files[0]) || !chat?.participants) return;
 
     const recipient = chat.participants.find(p => p.id !== user?.id);
     if (!recipient) return;
 
     const formData = new FormData();
-    formData.append('content', newMessage);
+    if (newMessage.trim()) {
+      formData.append('content', newMessage);
+    }
     const messageContent = newMessage;
     setNewMessage('');
 
@@ -38,6 +52,7 @@ const ChatWindow = ({ chat, onMessageSent }) => {
     if (file) {
       formData.append('file', file);
       fileInputRef.current.value = '';
+      setImagePreview(null);
     }
 
     try {
@@ -46,8 +61,8 @@ const ChatWindow = ({ chat, onMessageSent }) => {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        body: formData,
         credentials: 'include',
-        body: formData
       });
 
       if (!response.ok) {
@@ -56,17 +71,15 @@ const ChatWindow = ({ chat, onMessageSent }) => {
 
       const data = await response.json();
       
+      // Update local state with the new message including media URL
       const newMessageObj = {
         ...data,
         chat: chat.id,
         sender: user,
-        formattedCreatedAt: new Date().toISOString()
+        formattedCreatedAt: new Date().toISOString(),
       };
 
-      // Update local state
       setMessages(prev => [...prev, newMessageObj]);
-      
-      // Notify parent component
       onMessageSent(newMessageObj);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -164,12 +177,30 @@ const ChatWindow = ({ chat, onMessageSent }) => {
       </div>
 
       <form onSubmit={handleSendMessage} className="p-4 border-t">
+        {imagePreview && (
+          <div className="mb-2 relative">
+            <img src={imagePreview} alt="Preview" className="h-20 rounded-lg" />
+            <button
+              type="button"
+              onClick={() => {
+                setImagePreview(null);
+                fileInputRef.current.value = '';
+              }}
+              className="absolute top-1 right-1 bg-gray-800 bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-75"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <input
             type="file"
             ref={fileInputRef}
             className="hidden"
             accept="image/*"
+            onChange={handleFileChange}
           />
           <button
             type="button"

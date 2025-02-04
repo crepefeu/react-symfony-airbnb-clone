@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: ChatMediaMessageRepository::class)]
 class ChatMediaMessage extends ChatMessage
 {
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['chat:read'])]
     private ?string $mediaUrl = null;
 
@@ -18,7 +18,7 @@ class ChatMediaMessage extends ChatMessage
         return $this->mediaUrl;
     }
 
-    public function setMediaUrl(string $mediaUrl): static
+    public function setMediaUrl(?string $mediaUrl): static
     {
         $this->mediaUrl = $mediaUrl;
         return $this;

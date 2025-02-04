@@ -100,15 +100,6 @@ class ChatApiController extends AbstractController
                 return $this->json(['error' => 'Recipient not found'], 404);
             }
 
-            if ($recipient === $user) {
-                return $this->json(['error' => 'Cannot send message to yourself'], 400);
-            }
-
-            $content = $request->request->get('content');
-            if (empty($content)) {
-                return $this->json(['error' => 'Message content cannot be empty'], 400);
-            }
-
             // Find or create chat
             $chat = $this->chatRepository->findBetweenUsers($user, $recipient);
             if (!$chat) {
@@ -120,6 +111,8 @@ class ChatApiController extends AbstractController
 
             // Handle file upload
             $file = $request->files->get('file');
+            $content = $request->request->get('content', '');
+
             if ($file) {
                 $message = new ChatMediaMessage();
                 $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
@@ -128,7 +121,7 @@ class ChatApiController extends AbstractController
 
                 try {
                     $file->move($this->uploadDirectory, $newFilename);
-                    $message->setMediaUrl($newFilename);
+                    $message->setMediaUrl('/uploads/' . $newFilename);
                 } catch (\Exception $e) {
                     return $this->json(['error' => 'Error uploading file'], 500);
                 }
@@ -144,9 +137,9 @@ class ChatApiController extends AbstractController
             $this->entityManager->flush();
 
             return $this->json(
-                $message, 
-                201, 
-                [], 
+                $message,
+                201,
+                [],
                 [
                     'groups' => ['chat:read'],
                     'circular_reference_handler' => function ($object) {
