@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import useAuth from '../hooks/useAuth';
-import LogInModal from '../components/LogInModal';
+import AuthModal from '../components/AuthModal';
 
 const HostMenu = () => {
   const { token } = useAuth();
@@ -16,7 +16,7 @@ const HostMenu = () => {
 
   const createNewDraft = async () => {
     try {
-      const response = await fetch('/property-drafts/api/create', {
+      const response = await fetch('/api/drafts/create', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -24,7 +24,7 @@ const HostMenu = () => {
         }
       });
       const data = await response.json();
-      window.location.href = `/property-drafts/become-a-host/${data.draftId}`;
+      window.location.href = `/drafts/${data.draftId}`;
     } catch (error) {
       console.error('Error creating draft:', error);
     }
@@ -33,8 +33,7 @@ const HostMenu = () => {
   useEffect(() => {
     const fetchDrafts = async () => {
       try {
-        console.log('Token being sent:', token); // Debug log
-        const response = await fetch('/property-drafts/api', {
+        const response = await fetch('/api/drafts', {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -47,7 +46,6 @@ const HostMenu = () => {
         }
         
         const data = await response.json();
-        console.log('Full API response:', data); // Debug logging
         
         if (Array.isArray(data.drafts)) {
           setDrafts(data.drafts);
@@ -79,7 +77,7 @@ const HostMenu = () => {
           >
             Log in
           </button>
-          <LogInModal
+          <AuthModal
             isOpen={isLogInModalOpen}
             onClose={() => setIsLogInModalOpen(false)}
           />
@@ -115,7 +113,7 @@ const HostMenu = () => {
                     <p className="text-gray-600 text-sm">Last edited {new Date(draft.lastSaved).toLocaleDateString()}</p>
                   </div>
                   <a
-                    href={`/property-drafts/become-a-host/${draft.id}`}
+                    href={`drafts/${draft.id}`}
                     className="text-rose-600 hover:text-rose-700 font-medium"
                   >
                     Continue

@@ -6,7 +6,7 @@ import StarRating from "./StarRating";
 import Modal from "./Modal";
 import useAuth from "../hooks/useAuth";
 import Toast from "./UI/Toast";
-import LogInModal from "./LogInModal";
+import AuthModal from "./AuthModal";
 
 const ReservationCard = ({ property }) => {
   const { token, isAuthenticated } = useAuth();
@@ -389,7 +389,7 @@ const ReservationCard = ({ property }) => {
           onClick={() => setShowToast(false)}
         />
       )}
-      <LogInModal
+      <AuthModal
         isOpen={isLogInModalOpen}
         onClose={() => setIsLogInModalOpen(false)}
       />

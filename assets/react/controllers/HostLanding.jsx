@@ -13,7 +13,7 @@ import RollingDigit from "../components/RollingDigit";
 import PropertyDetailsModal from "../components/PropertyDetailsModal";
 import ZoomControl from "../components/ZoomControl";
 import useAuth from '../hooks/useAuth';  // Add this import at the top
-import LogInModal from "../components/LogInModal";
+import AuthModal from "../components/AuthModal";
 
 const HostLanding = () => {
   const [nights, setNights] = useState(30);
@@ -213,7 +213,7 @@ const HostLanding = () => {
 
   const createNewDraft = async () => {
     try {
-      const response = await fetch('/property-drafts/api/create', {
+      const response = await fetch('/api/drafts/create', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -221,7 +221,7 @@ const HostLanding = () => {
         }
       });
       const data = await response.json();
-      window.location.href = `/property-drafts/become-a-host/${data.draftId}`;
+      window.location.href = `/drafts/${data.draftId}`;
     } catch (error) {
       console.error('Error creating draft:', error);
     }
@@ -469,7 +469,7 @@ const HostLanding = () => {
       <HostFAQ />
 
       {/* Add LogInModal at the end of the component */}
-      <LogInModal
+      <AuthModal
         isOpen={isLogInModalOpen}
         onClose={() => setIsLogInModalOpen(false)}
       />

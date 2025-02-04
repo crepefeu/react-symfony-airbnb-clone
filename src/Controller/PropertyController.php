@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Address;
 use App\Entity\PropertyMedia;
 use App\Entity\Amenity;
+use Symfony\Bundle\SecurityBundle\Security; // Change this line
 
 #[Route('/api/properties', name: 'app_properties_')]
 class PropertyController extends AbstractController
@@ -56,13 +57,17 @@ class PropertyController extends AbstractController
     }
 
     #[Route('/', name: 'index', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(Security $security): JsonResponse
     {
         $properties = $this->propertyRepository->findAll();
+        $user = $security->getUser();
 
         return $this->json([
-            'properties' => $properties,
-        ], 200, [], ['groups' => ['property:read']]);
+            'properties' => $properties
+        ], 200, [], [
+            'groups' => ['property:read'],
+            'user' => $user
+        ]);
     }
 
     #[Route('/{id}/distance', name: 'distance', methods: ['GET'])]
@@ -83,20 +88,13 @@ class PropertyController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(?Property $property, Request $request): Response
+    public function show(Property $property, Security $security): JsonResponse
     {
-        if (!$property) {
-            throw $this->createNotFoundException('Property not found');
-        }
-
-        if ($request->headers->get('Accept') === 'application/json') {
-            return $this->json([
-                'property' => $property,
-            ], 200, [], ['groups' => ['property:read', 'property:details']]);
-        }
-
-        return $this->render('property/show.html.twig', [
-            'property' => $property,
+        return $this->json([
+            'property' => $property
+        ], 200, [], [
+            'groups' => ['property:read', 'property:details'],
+            'user' => $security->getUser()
         ]);
     }
 

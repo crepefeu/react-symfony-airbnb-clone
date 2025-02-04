@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\WishlistItemRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: WishlistItemRepository::class)]
 class WishlistItem
@@ -11,6 +12,7 @@ class WishlistItem
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['wishlist:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'wishlistItems')]
@@ -19,6 +21,7 @@ class WishlistItem
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['wishlist:read'])]
     private ?Property $property = null;
 
     public function getId(): ?int

@@ -339,6 +339,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, Wishlist>
      */
+    #[Groups(['property:read'])]
     public function getWishlists(): Collection
     {
         return $this->wishlists;

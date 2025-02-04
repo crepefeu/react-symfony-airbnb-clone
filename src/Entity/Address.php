@@ -18,23 +18,23 @@ class Address
     private ?string $streetNumber = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]
     private ?string $streetName = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]
     private ?string $state = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]
     private ?string $zipcode = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['property:read'])]
+    #[Groups(['property:read', 'wishlist:read'])]
     private ?string $country = null;
 
     #[ORM\Column(type: 'geometry', nullable: false)]

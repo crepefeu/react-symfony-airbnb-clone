@@ -63,15 +63,9 @@ const Location = ({ formData, setFormData }) => {
       formattedAddress: place.formatted_address
     };
 
-    // Log the full place object for debugging
-    console.log('Google Place object:', place);
-
     // Extract each component
     place.address_components.forEach(component => {
       const types = component.types;
-
-      // Log each component for debugging
-      console.log('Address component:', component);
 
       switch (true) {
         case types.includes('street_number'):
@@ -111,9 +105,6 @@ const Location = ({ formData, setFormData }) => {
       addressData.city = addressData.neighborhood;
     }
 
-    // Log final processed address
-    console.log('Processed address:', addressData);
-
     return {
       streetName: addressData.streetName,
       streetNumber: addressData.streetNumber,
@@ -130,13 +121,6 @@ const Location = ({ formData, setFormData }) => {
       const place = searchBox.getPlace();
       if (place.geometry) {
         const addressComponents = extractAddressComponents(place);
-        
-        // Log the final data being set
-        console.log('Setting form data with:', {
-          latitude: place.geometry.location.lat(),
-          longitude: place.geometry.location.lng(),
-          address: addressComponents
-        });
 
         setFormData({
           ...formData,

@@ -9,12 +9,18 @@ import LocationSection from "../components/LocationSection";
 import ReviewsModal from "../components/ReviewsModal";
 import PropertyHeader from "../components/Property/PropertyHeader";
 import PropertyDescription from "../components/Property/PropertyDescription";
+import WishlistModal from '../components/WishlistModal';
+import useAuth from "../hooks/useAuth";
+import AuthModal from "../components/AuthModal";
 
 const PropertyDetails = ({ propertyId }) => {
+  const { isAuthenticated } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isReviewsModalOpen, setIsReviewsModalOpen] = useState(false);
+  const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -39,6 +45,14 @@ const PropertyDetails = ({ propertyId }) => {
 
     fetchProperty();
   }, [propertyId]);
+
+  const handleWishlistClick = () => {
+    if (isAuthenticated) {
+      setIsWishlistModalOpen(true);
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  };
 
   if (loading || !property) {
     return (
@@ -71,7 +85,28 @@ const PropertyDetails = ({ propertyId }) => {
   return (
     <Layout breadcrumbs={breadcrumbs}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-medium mb-4">{property.title}</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-medium">{property.title}</h1>
+          <button
+            onClick={handleWishlistClick}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+              />
+            </svg>
+          </button>
+        </div>
 
         <div className="mb-8">
           <ImageGrid images={property.images} />
@@ -120,6 +155,17 @@ const PropertyDetails = ({ propertyId }) => {
           onClose={() => setIsReviewsModalOpen(false)}
           reviews={property.reviews}
           averageRating={property.averageRating}
+        />
+
+        <WishlistModal
+          isOpen={isWishlistModalOpen}
+          onClose={() => setIsWishlistModalOpen(false)}
+          propertyId={propertyId}
+        />
+
+        <AuthModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
         />
       </div>
     </Layout>

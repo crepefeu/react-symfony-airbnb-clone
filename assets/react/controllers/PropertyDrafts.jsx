@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from '../hooks/useAuth';
 import Layout from '../components/Layout';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const PropertyDrafts = () => {
   const { token } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ show: false, draftId: null });
 
   const breadcrumbs = [
     { label: "Your Profile", href: "/profile" },
@@ -15,10 +18,11 @@ const PropertyDrafts = () => {
   useEffect(() => {
     const fetchDrafts = async () => {
       try {
-        const response = await fetch('/property-drafts/api', { // Updated URL
+        const response = await fetch('/api/drafts', {
           headers: {
             'Authorization': `Bearer ${token}`,
-          }
+          },
+          credentials: 'include'
         });
         const data = await response.json();
         setDrafts(data.drafts);
@@ -29,7 +33,9 @@ const PropertyDrafts = () => {
       }
     };
 
-    fetchDrafts();
+    if (token) {
+      fetchDrafts();
+    }
   }, [token]);
 
   const formatDate = (dateString) => {
@@ -40,6 +46,31 @@ const PropertyDrafts = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleDelete = async (draftId) => {
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/drafts/${draftId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setDrafts(drafts.filter(draft => draft.id !== draftId));
+        setDeleteModal({ show: false, draftId: null });
+      } else {
+        throw new Error('Failed to delete draft');
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      alert('Failed to delete draft. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (!token) {
@@ -68,7 +99,7 @@ const PropertyDrafts = () => {
             <h2 className="text-xl font-medium mb-2">No drafts found</h2>
             <p className="text-gray-600 mb-4">Start creating a new property listing</p>
             <a 
-              href="/property-drafts/become-a-host"
+              href="/become-a-host"
               className="inline-block bg-rose-600 text-white px-6 py-3 rounded-lg hover:bg-rose-700"
             >
               Become a Host
@@ -81,10 +112,7 @@ const PropertyDrafts = () => {
                 key={draft.id}
                 className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition"
               >
-                <a 
-                  href={`/property-drafts/continue/${draft.id}`}
-                  className="block p-6"
-                >
+                <div className="p-6">
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-medium mb-1">
@@ -97,28 +125,65 @@ const PropertyDrafts = () => {
                         Last saved: {formatDate(draft.lastSaved)}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-rose-600">
-                      Continue
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="20" 
-                        height="20" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => setDeleteModal({ show: true, draftId: draft.id })}
+                        disabled={deleting}
+                        className="text-gray-500 hover:text-red-600 transition-colors"
+                        title="Delete draft"
                       >
-                        <path d="m9 18 6-6-6-6"/>
-                      </svg>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="20" 
+                          height="20" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 6h18"/>
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                      </button>
+                      <a 
+                        href={`/drafts/${draft.id}`}
+                        className="flex items-center gap-2 text-rose-600"
+                      >
+                        Continue
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="20" 
+                          height="20" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        >
+                          <path d="m9 18 6-6-6-6"/>
+                        </svg>
+                      </a>
                     </div>
                   </div>
-                </a>
+                </div>
               </div>
             ))}
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          show={deleteModal.show}
+          onClose={() => setDeleteModal({ show: false, draftId: null })}
+          onConfirm={() => handleDelete(deleteModal.draftId)}
+          title="Delete Draft"
+          message="Are you sure you want to delete this draft? This action cannot be undone."
+          isLoading={deleting}
+        />
       </div>
     </Layout>
   );

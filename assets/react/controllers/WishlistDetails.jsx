@@ -3,12 +3,13 @@ import Layout from '../components/Layout';
 import WishlistDetailsComponent from '../components/WishlistDetails';
 
 const WishlistDetails = (props) => {
+
     const breadcrumbs = [
         { label: "Wishlists", href: "/wishlists" },
         { label: props.wishlist?.name || "Not Found" }
     ];
 
-    if (!props.wishlist) {
+    if (!props.wishlistId) {
         return (
             <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -29,7 +30,7 @@ const WishlistDetails = (props) => {
 
     return (
         <Layout breadcrumbs={breadcrumbs}>
-            <WishlistDetailsComponent wishlist={props.wishlist} />
+            <WishlistDetailsComponent wishlistId={props.wishlistId} />
         </Layout>
     );
 };

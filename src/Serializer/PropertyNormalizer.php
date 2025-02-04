@@ -20,6 +20,8 @@ class PropertyNormalizer implements NormalizerInterface
     {
         $context[self::ALREADY_CALLED] = true;
 
+        $user = $context['user'] ?? null;
+
         $images = $object->getPropertyMedias()->map(function ($media) {
             return $media->getUrl();
         })->toArray();
@@ -36,7 +38,7 @@ class PropertyNormalizer implements NormalizerInterface
             ];
         })->toArray();
 
-        return [
+        $data = [
             'id' => $object->getId(),
             'title' => $object->getTitle(),
             'description' => $object->getDescription(),
@@ -99,7 +101,10 @@ class PropertyNormalizer implements NormalizerInterface
             ], $object->getReviews()->toArray()),
             'createdAt' => $object->getCreatedAt()->format('c'),
             'updatedAt' => $object->getUpdatedAt()->format('c'),
+            'isInWishlist' => $object->isInWishlist($user),
         ];
+
+        return $data;
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
