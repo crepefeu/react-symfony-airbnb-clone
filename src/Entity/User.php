@@ -92,6 +92,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $resetToken = null;
 
+    /**
+     * @var Collection<int, Chat>
+     */
+    #[ORM\ManyToMany(targetEntity: Chat::class, mappedBy: 'participants')]
+    #[Groups(['user:read'])]
+    #[MaxDepth(1)]
+    private Collection $chats;
+
     public function __construct()
     {
         $this->reviews = new ArrayCollection();
@@ -99,6 +107,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->wishlists = new ArrayCollection();
         $this->bookings = new ArrayCollection();
         $this->propertyDrafts = new ArrayCollection();
+        $this->chats = new ArrayCollection();
     }
 
     #[Groups(['property:read'])]
@@ -432,6 +441,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setResetToken(?string $resetToken): static
     {
         $this->resetToken = $resetToken;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Chat>
+     */
+    public function getChats(): Collection
+    {
+        return $this->chats;
+    }
+
+    public function addChat(Chat $chat): static
+    {
+        if (!$this->chats->contains($chat)) {
+            $this->chats->add($chat);
+            $chat->addParticipant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChat(Chat $chat): static
+    {
+        if ($this->chats->removeElement($chat)) {
+            $chat->removeParticipant($this);
+        }
 
         return $this;
     }

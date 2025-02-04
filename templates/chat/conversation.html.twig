@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conversation | HostMe{% endblock %}
+
+{% block body %}
+    <div {{ react_component('Messages', { 
+        selectedChatId: chatId 
+    }) }}></div>
+{% endblock %}
