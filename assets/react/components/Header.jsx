@@ -454,7 +454,7 @@ const HeaderContent = () => {
                             <input
                               type="text"
                               placeholder="Search destinations"
-                              className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-base bg-gray-50 hover:bg-white transition-colors"
+                              className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-black focus:border-transparent text-base bg-gray-50 hover:bg-white transition-colors"
                               value={searchState.location}
                               onChange={(e) =>
                                 updateSearch({ location: e.target.value })
