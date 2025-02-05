@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CircleCheckBig } from "lucide-react";
 import Layout from "../components/Layout";
 import Toast from "../components/UI/Toast";
 
-const PropertiesAdmin = () => {
-  const [properties, setProperties] = useState(null);
+const UsersAdmin = () => {
+  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastType, setToastType] = useState("info");
   const [toastMessage, setToastMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
@@ -21,53 +21,61 @@ const PropertiesAdmin = () => {
   };
 
   useEffect(() => {
-    const fetchProperties = async () => {
+    const fetchUsers = async () => {
       try {
-        const response = await fetch("/api/properties");
+        const response = await fetch("/api/admin/users", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         if (!response.ok) {
-          throw new Error("Failed to fetch properties");
+          throw new Error("Failed to fetch amenities");
         }
         const data = await response.json();
-        setProperties(data.properties);
+        console.log(data.users[0]);
+        setUsers(data.users);
       } catch (error) {
-        console.error("Error fetching properties:", error);
-        setError(error.message);
+        console.error("Error fetching users:", error);
+        setError("Failed to load users");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProperties();
+    fetchUsers();
   }, []);
+
+  const filteredUsers = users?.filter(
+    (user) =>
+      (user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      !user.roles.includes("ROLE_ADMIN")
+  );
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`/api/admin/property/delete/${id}`, {
+      const response = await fetch(`/api/admin/user/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
       const data = await response.json();
+
       if (response.ok) {
         setShowToast(true);
         setToastType("success");
         setToastMessage(data.message);
-        setProperties(properties.filter((property) => property.id !== id));
+        setAmenities(users.filter((user) => user.id !== id));
       } else {
         setShowToast(true);
         setToastType("error");
         setToastMessage(data.error);
       }
     } catch (error) {
-      setError("Failed to delete property");
+      setError("Failed to delete user");
     }
   };
-
-  const filteredProperties = properties?.filter(
-    (property) =>
-      property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   if (isLoading) {
     return (
@@ -86,26 +94,25 @@ const PropertiesAdmin = () => {
           </a>
 
           <div className="flex justify-between items-center mb-6 mt-8">
-            <h1 className="text-3xl font-medium">Properties Management</h1>
+            <h1 className="text-3xl font-medium">Users Management</h1>
             <button className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md flex items-center">
               <Plus className="w-4 h-4 mr-2" />
-              Add Property
+              Add User
             </button>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="mb-6">
-              {/* Search */}
-              {/* <div className="relative">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search properties..."
+                  placeholder="Search users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-full md:w-96 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
-              </div> */}
+              </div>
             </div>
 
             {error && (
@@ -119,16 +126,13 @@ const PropertiesAdmin = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Title
+                      Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Address
+                      Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
+                      Host
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Created At
@@ -139,42 +143,44 @@ const PropertiesAdmin = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProperties?.map((property) => (
-                    <>
-                      <tr key={property.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-900">
-                            {property.title}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                          {property.address.streetName}, {property.address.city}{" "}
-                          {property.address.country}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                          {property.price}$
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {property.propertyType}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                          {formatDate(new Date(property.createdAt))}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex space-x-2">
-                            <button className="p-1 hover:bg-gray-100 rounded-md">
-                              <Pencil className="w-4 h-4 text-gray-500" />
-                            </button>
-                            <button
-                              className="p-1 hover:bg-gray-100 rounded-md text-red-600"
-                              onClick={() => handleDelete(property.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </>
+                  {filteredUsers?.map((user) => (
+                    <tr key={user.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {user.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {user.firstName} {user.lastName}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {user.roles.includes("ROLE_HOST") && (
+                            <CircleCheckBig className="w-6 h-6 text-rose-500" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {formatDate(new Date(user.createdAt))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex space-x-2">
+                          <button className="p-1 hover:bg-gray-100 rounded-md">
+                            <Pencil className="w-4 h-4 text-gray-500" />
+                          </button>
+                          <button
+                            className="p-1 hover:bg-gray-100 rounded-md text-red-600"
+                            onClick={() => handleDelete(user.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -194,4 +200,4 @@ const PropertiesAdmin = () => {
   );
 };
 
-export default PropertiesAdmin;
+export default UsersAdmin;

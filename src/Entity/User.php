@@ -54,7 +54,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Review>
      */
-    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'author', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'author', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['property:read'])]
     #[MaxDepth(1)]
     private Collection $reviews;
@@ -62,7 +62,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Property>
      */
-    #[ORM\OneToMany(targetEntity: Property::class, mappedBy: 'owner', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Property::class, mappedBy: 'owner', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['property:read'])]
     #[MaxDepth(1)]
     private Collection $properties;
@@ -74,19 +74,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Wishlist>
      */
-    #[ORM\OneToMany(targetEntity: Wishlist::class, mappedBy: 'owner', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Wishlist::class, mappedBy: 'owner', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $wishlists;
 
     /**
      * @var Collection<int, Booking>
      */
-    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'Guest')]
+    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'Guest', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $bookings;
 
     /**
      * @var Collection<int, PropertyDraft>
      */
-    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: PropertyDraft::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: PropertyDraft::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $propertyDrafts;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -95,7 +95,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Chat>
      */
-    #[ORM\ManyToMany(targetEntity: Chat::class, mappedBy: 'participants')]
+    #[ORM\ManyToMany(targetEntity: Chat::class, mappedBy: 'participants', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['user:read'])]
     #[MaxDepth(1)]
     private Collection $chats;

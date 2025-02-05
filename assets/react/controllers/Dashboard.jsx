@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Building, WashingMachine } from "lucide-react";
+import {
+  BookMarked,
+  House,
+  MessageCircleHeart,
+  UsersRound,
+  WashingMachine,
+} from "lucide-react";
 import Layout from "../components/Layout";
 
 const Dashboard = () => {
-  const [propertiesStats, setPropertiesStats] = useState(null);
-  const [amenitiesStats, setAmenitiesStats] = useState(null);
+  const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoading(true);
-    const fetchPropertiesStats = async () => {
+    const fetchStats = async () => {
       try {
-        const response = await fetch("/api/admin/property/trend", {
+        const response = await fetch("/api/admin/stats", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -21,11 +26,8 @@ const Dashboard = () => {
           throw new Error("Failed to fetch properties trend");
         }
         const data = await response.json();
-        setPropertiesStats({
-          total: data.total,
-          current: data.trend.current,
-          trend: data.trend.trend,
-        });
+        console.log(data);
+        setStats(data);
       } catch (error) {
         console.log(error);
       } finally {
@@ -33,33 +35,7 @@ const Dashboard = () => {
       }
     };
 
-    fetchPropertiesStats();
-  }, []);
-
-  useEffect(() => {
-    setIsLoading(true);
-    const fetchAmenities = async () => {
-      try {
-        const response = await fetch("/api/amenities", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch amenities");
-        }
-        const data = await response.json();
-        setAmenitiesStats({ total: data.amenities.length });
-        console.log("amenities", data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAmenities();
+    fetchStats();
   }, []);
 
   if (isLoading) {
@@ -70,7 +46,15 @@ const Dashboard = () => {
     );
   }
 
-  const StatCard = ({ title, total, value, icon: Icon, trend, link }) => (
+  const StatCard = ({
+    children,
+    title,
+    total,
+    value,
+    icon: Icon,
+    trend,
+    link,
+  }) => (
     <div className="bg-white rounded-lg shadow-md">
       <div className="p-6">
         <div className="flex items-center justify-between">
@@ -78,14 +62,14 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold mt-1 mb-3">
               {total} {title}
             </h3>
-            {value && (
+            {value !== null && (
               <span className="text-gray-600 text-sm mt-1">
                 {value} added this last 30 days
               </span>
             )}
-            {trend && (
+            {trend !== null && (
               <p
-                className={`text-sm mt-1 ${
+                className={`mt-1 ${
                   trend > 0 ? "text-green-700" : "text-red-700"
                 }`}
               >
@@ -93,12 +77,15 @@ const Dashboard = () => {
                 {trend}% from last 30 days
               </p>
             )}
-            <a
-              href={link.href}
-              className="text-rose-500 underline text-sm mt-3 mx-auto block"
-            >
-              {link.label}
-            </a>
+            {children}
+            {link && (
+              <a
+                href={link.href}
+                className="text-rose-500 underline text-sm mt-3 mx-auto block"
+              >
+                {link.label}
+              </a>
+            )}
           </div>
           <div className="p-4 bg-rose-100 rounded-full">
             <Icon className="w-6 h-6 text-rose-500" />
@@ -115,30 +102,61 @@ const Dashboard = () => {
           <h1 className="text-3xl font-medium mb-8">Dashboard Overview</h1>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {propertiesStats && (
-              <StatCard
-                title="Properties"
-                total={propertiesStats.total}
-                value={propertiesStats.current}
-                icon={Building}
-                trend={propertiesStats.trend}
-                link={{
-                  label: "See all properties",
-                  href: "/admin/properties",
-                }}
-              />
-            )}
-            {amenitiesStats && (
-              <StatCard
-                title="Amenities"
-                total={amenitiesStats.total}
-                icon={WashingMachine}
-                link={{
-                  label: "See all amenities",
-                  href: "/admin/amenities",
-                }}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {stats && (
+              <>
+                <StatCard
+                  title="Users"
+                  total={stats.users.total}
+                  value={stats.users.current}
+                  icon={UsersRound}
+                  trend={stats.users.trend}
+                  link={{
+                    label: "Manage users",
+                    href: "/admin/users",
+                  }}
+                />
+                <StatCard
+                  title="Reviews"
+                  total={stats.reviews.total}
+                  value={stats.reviews.current}
+                  icon={MessageCircleHeart}
+                  trend={stats.reviews.trend}
+                >
+                  <p className={`mt-1 text-gray-700`}>
+                    Average rating : {stats.reviews.avgRating}
+                  </p>
+                </StatCard>
+                <StatCard
+                  title="Properties"
+                  total={stats.properties.total}
+                  value={stats.properties.current}
+                  icon={House}
+                  trend={stats.properties.trend}
+                  link={{
+                    label: "Manage properties",
+                    href: "/admin/properties",
+                  }}
+                />
+                <StatCard
+                  title="Bookings"
+                  total={stats.bookings.total}
+                  value={stats.bookings.current}
+                  icon={BookMarked}
+                  trend={stats.bookings.trend}
+                />
+                <StatCard
+                  title="Amenities"
+                  total={stats.amenities.total}
+                  value={null}
+                  icon={WashingMachine}
+                  trend={null}
+                  link={{
+                    label: "Manage amenities",
+                    href: "/admin/amenities",
+                  }}
+                />
+              </>
             )}
           </div>
         </div>

@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Repository\PropertyRepository;
 use App\Repository\BookingRepository;
 use App\Repository\AmenityRepository;
+use App\Repository\ReviewRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AdminController extends AbstractController
 {
-    #[Route('/admin/dashboard', name: 'dashboard')]
+    #[Route('/admin', name: 'dashboard')]
     public function dashboard(): Response
     {
         return $this->render('admin/dashboard.html.twig');
@@ -31,23 +33,77 @@ class AdminController extends AbstractController
         return $this->render('admin/amenities.html.twig');
     }
 
-
-    #[Route('/api/admin/property/trend', name: 'admin_property_trend', methods: ['GET'])]
-    public function getTrend(PropertyRepository $propertyRepository): JsonResponse
+    #[Route('/admin/users', name: 'admin_user')]
+    public function users(): Response
     {
-        
-            $trend = $propertyRepository->getNewPropertiesTrend();
-            $properties = $propertyRepository->findAll();
+        return $this->render('admin/users.html.twig');
+    }
+
+    #[Route('api/admin/stats', name: 'stats', methods: ['GET'])]
+    public function getStats(
+        PropertyRepository $propertyRepository,
+        UserRepository $userRepository,
+        BookingRepository $bookingRepository,
+        ReviewRepository $reviewRepository,
+        AmenityRepository $amenityRepository
+    ): JsonResponse
+    {
+        $propertiesTrend = $propertyRepository->getNewPropertiesTrend();
+        $properties = $propertyRepository->findAll();
+
+        $usersTrend = $userRepository->getNewUsersTrend();
+        $users = $userRepository->findAll();
+
+        $bookingsTrend = $bookingRepository->getNewBookingsTrend();
+        $bookings = $bookingRepository->findAll();
+
+        $reviewsTrend = $reviewRepository->getNewReviewsTrend();
+        $reviews = $reviewRepository->findAll();
+        $reviewsAvgRating = $reviewRepository->getAverageRating();
+
+        $amenities = $amenityRepository->findAll();
+
+        return $this->json([
+            'properties' => [
+                'trend' => $propertiesTrend['trend'],
+                'current' => $propertiesTrend['current'],
+                'total' => count($properties)
+            ],
+            'users' => [
+                'trend' => $usersTrend['trend'],
+                'current' => $usersTrend['current'],
+                'total' => count($users)
+            ],
+            'bookings' => [
+                'trend' => $bookingsTrend['trend'],
+                'current' => $bookingsTrend['current'],
+                'previous' => $bookingsTrend['previous'],
+                'total' => count($bookings)
+            ],
+            'reviews' => [
+                'trend' => $reviewsTrend['trend'],
+                'current' => $reviewsTrend['current'],
+                'total' => count($reviews),
+                'avgRating' => $reviewsAvgRating
+            ],
+            'amenities' => [
+                'total' => count($amenities)
+            ]
+        ]);
+    }
+
+    #[Route('/api/admin/users', name: 'admin_users', methods: ['GET'])]
+    public function getUsers(UserRepository $userRepository): JsonResponse
+    {
+            $users = $userRepository->findAll();
             
-            return $this->json(['trend' => $trend, 'total' => count($properties)]);
-        
+            return $this->json(['users' => $users]);     
     }
 
     #[Route('/api/admin/property/delete/{id}', name: 'admin_property_delete', methods: ['GET'])]
     public function deleteProperty(
         string $id, 
         PropertyRepository $propertyRepository,
-        BookingRepository $bookingRepository,
         EntityManagerInterface $entityManager
     ): JsonResponse
     {
@@ -59,10 +115,7 @@ class AdminController extends AbstractController
                 Response::HTTP_NOT_FOUND
             );
         }
-        $bookings = $bookingRepository->findBy(['Property' => $property]);
-        foreach ($bookings as $booking) {
-            $entityManager->remove($booking);
-        }
+
         $entityManager->remove($property);
         $entityManager->flush();
 
@@ -96,5 +149,29 @@ class AdminController extends AbstractController
         );
     }
 
+    #[Route('/api/admin/user/delete/{id}', name: 'admin_user_delete', methods: ['GET'])]
+    public function deleteUser(
+        string $id, 
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse
+    {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return $this->json(
+                ['error' => 'Property not found'], 
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $entityManager->remove($user);
+        $entityManager->flush();
+
+        return $this->json(
+            ['message' => 'User deleted successfully.'],
+            Response::HTTP_OK
+        );
+    }
 }
 

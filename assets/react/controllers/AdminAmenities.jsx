@@ -78,7 +78,7 @@ const AmenitiesAdmin = () => {
     <Layout>
       <div className="bg-gray-50 min-h-screen pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <a href="/admin/dashboard" className="text-rose-500 underline">
+          <a href="/admin" className="text-rose-500 underline">
             Go back to dashboard
           </a>
 

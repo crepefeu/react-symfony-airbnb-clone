@@ -27,6 +27,50 @@ class ReviewRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getNewReviewsTrend(): array
+    {
+        $now = new \DateTime();
+        $thirtyDaysAgo = (new \DateTime())->modify('-30 days');
+        $sixtyDaysAgo = (new \DateTime())->modify('-60 days');
+
+        $currentPeriodCount = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.createdAt BETWEEN :start AND :end')
+            ->setParameter('start', $thirtyDaysAgo)
+            ->setParameter('end', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $previousPeriodCount = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.createdAt BETWEEN :start AND :end')
+            ->setParameter('start', $sixtyDaysAgo)
+            ->setParameter('end', $thirtyDaysAgo)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $trend = 0;
+        if ($previousPeriodCount > 0) {
+            $trend = (($currentPeriodCount - $previousPeriodCount) / $previousPeriodCount) * 100;
+        } elseif ($currentPeriodCount > 0) {
+            $trend = 100; 
+        }
+
+        return [
+            'current' => $currentPeriodCount,
+            'previous' => $previousPeriodCount,
+            'trend' => round($trend, 2)
+        ];
+    }
+
+    public function getAverageRating(): ?float
+    {
+        return $this->createQueryBuilder('r')
+            ->select('AVG(r.rating) as avgRating')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 
     //    /**
     //     * @return Review[] Returns an array of Review objects

@@ -19,7 +19,7 @@ class Property
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['booking:read', 'wishlist:read', 'property:read'])]  // Add wishlist:read group
+    #[Groups(['booking:read', 'wishlist:read', 'property:read'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -51,7 +51,7 @@ class Property
     #[ORM\Column(type: 'geometry', nullable: true)]
     private $location = null;
 
-    #[ORM\ManyToOne(targetEntity: Address::class, cascade: ['persist'])]
+    #[ORM\ManyToOne(targetEntity: Address::class, cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['property:read', 'wishlist:read'])]  // Add wishlist:read group
     private ?Address $address = null;
@@ -78,7 +78,7 @@ class Property
     /**
      * @var Collection<int, Review>
      */
-    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Review::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Review::class, cascade: ['persist', 'remove'])]
     #[Groups(['property:read'])]
     private Collection $reviews;
 
@@ -90,14 +90,14 @@ class Property
     /**
      * @var Collection<int, PropertyMedia>
      */
-    #[ORM\OneToMany(targetEntity: PropertyMedia::class, mappedBy: 'property', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: PropertyMedia::class, mappedBy: 'property', cascade: ['persist', 'remove'])]
     #[Groups(['property:read'])]
     private Collection $propertyMedias;
 
     /**
      * @var Collection<int, Booking>
      */
-    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'Property')]
+    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'Property', cascade: ['persist', 'remove'])]
     private Collection $bookings;
 
     public function __construct()
