@@ -7,6 +7,7 @@ parameters:
   uploads_directory: "%kernel.project_dir%/public/uploads"
   profile_pictures_directory: "%kernel.project_dir%/public/uploads/profile-pictures"
   chat_media_directory: "%kernel.project_dir%/public/uploads/chat"
+  chat_uploads_directory: "%kernel.project_dir%/public/uploads/chat"
 
 services:
   # default configuration for services in *this* file
@@ -54,4 +55,4 @@ services:
 
   App\Controller\Api\ChatApiController:
     arguments:
-      $uploadDirectory: "%uploads_directory%"
+      $uploadDirectory: "%chat_uploads_directory%"

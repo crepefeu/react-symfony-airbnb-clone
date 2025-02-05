@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/api')]
 class ChatApiController extends AbstractController
@@ -26,7 +27,12 @@ class ChatApiController extends AbstractController
         private UserRepository $userRepository,
         private string $uploadDirectory,
         private SluggerInterface $slugger
-    ) {}
+    ) {
+        // Create chat uploads directory if it doesn't exist
+        if (!is_dir($this->uploadDirectory)) {
+            mkdir($this->uploadDirectory, 0777, true);
+        }
+    }
 
     #[Route('/chats', name: 'api_get_chats', methods: ['GET'])]
     public function getChats(): JsonResponse
@@ -115,13 +121,12 @@ class ChatApiController extends AbstractController
 
             if ($file) {
                 $message = new ChatMediaMessage();
-                $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $this->slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$file->guessExtension();
+                $extension = $file->guessExtension() ?? 'bin';
+                $newFilename = Uuid::v4()->toRfc4122() . '.' . $extension;
 
                 try {
                     $file->move($this->uploadDirectory, $newFilename);
-                    $message->setMediaUrl('/uploads/' . $newFilename);
+                    $message->setMediaUrl('/uploads/chat/' . $newFilename);
                 } catch (\Exception $e) {
                     return $this->json(['error' => 'Error uploading file'], 500);
                 }
@@ -196,8 +201,9 @@ class ChatApiController extends AbstractController
         }
 
         try {
-            if ($message instanceof ChatMediaMessage) {
-                $filePath = $this->uploadDirectory.'/'.$message->getMediaUrl();
+            if ($message instanceof ChatMediaMessage && $message->getMediaUrl()) {
+                $filePath = $this->getParameter('chat_uploads_directory') . 
+                    str_replace('/uploads/chat', '', $message->getMediaUrl());
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
