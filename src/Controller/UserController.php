@@ -87,4 +87,13 @@ class UserController extends AbstractController
             ]
         ]);
     }
+
+    public function upgradeToHost(User $user, EntityManagerInterface $em): void
+    {
+        if (!in_array('ROLE_HOST', $user->getRoles())) {
+            $user->setRoles(array_merge($user->getRoles(), ['ROLE_HOST']));
+            $em->persist($user);
+            $em->flush();
+        }
+    }
 }
