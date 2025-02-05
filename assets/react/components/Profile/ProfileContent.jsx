@@ -11,35 +11,62 @@ const ProfileContent = ({ user, isOwner, isEditing, setIsEditing, onUpdateProfil
   };
 
   const renderPropertyCard = (property) => (
-    <a
+    <div
       key={property.id}
-      href={`/property/${property.id}`}
-      className="block rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition cursor-pointer"
+      className="block rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition"
     >
-      <div className="relative aspect-[4/3]">
-        <img
-          src={property.images?.[0] || "/placeholder-property.jpg"}
-          alt={property.title}
-          className="object-cover w-full h-full"
-        />
-        <div className="absolute bottom-2 left-2 bg-white px-2 py-1 rounded-lg text-sm">
-          ${property.price}/night
+      <a href={`/property/${property.id}`}>
+        <div className="relative aspect-[4/3]">
+          <img
+            src={property.images?.[0] || "/placeholder-property.jpg"}
+            alt={property.title}
+            className="object-cover w-full h-full"
+          />
+          <div className="absolute bottom-2 left-2 bg-white px-2 py-1 rounded-lg text-sm">
+            ${property.price}/night
+          </div>
+        </div>
+      </a>
+      <div className="p-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-medium mb-1">{property.title}</h3>
+            <p className="text-gray-600 text-sm">
+              {property.bedrooms} beds · {property.bathrooms} baths
+            </p>
+            {property.averageRating && (
+              <div className="flex items-center mt-2">
+                <span className="text-sm">
+                  ★ {property.averageRating.toFixed(1)}
+                </span>
+              </div>
+            )}
+          </div>
+          {isOwner && (
+            <a
+              href={`/property/${property.id}`}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              title="Edit property"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"
+                />
+              </svg>
+            </a>
+          )}
         </div>
       </div>
-      <div className="p-4">
-        <h3 className="font-medium mb-1">{property.title}</h3>
-        <p className="text-gray-600 text-sm">
-          {property.bedrooms} beds · {property.bathrooms} baths
-        </p>
-        {property.averageRating && (
-          <div className="flex items-center mt-2">
-            <span className="text-sm">
-              ★ {property.averageRating.toFixed(1)}
-            </span>
-          </div>
-        )}
-      </div>
-    </a>
+    </div>
   );
 
   const renderAboutSection = () => {

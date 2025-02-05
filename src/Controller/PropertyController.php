@@ -215,4 +215,57 @@ class PropertyController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
     }
+
+    #[Route('/{id}/edit', name: 'edit', methods: ['PUT'])]
+    public function edit(Request $request, Property $property, EntityManagerInterface $entityManager, Security $security): JsonResponse
+    {
+        // Check if user is the owner
+        if ($security->getUser() !== $property->getOwner()) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $data = json_decode($request->getContent(), true);
+            
+            $property->setTitle($data['title']);
+            $property->setDescription($data['description']);
+            $property->setPrice($data['price']);
+            $property->setMaxGuests($data['maxGuests']);
+            $property->setBedrooms($data['bedrooms']);
+            $property->setBathrooms($data['bathrooms']);
+
+            // Update address
+            $address = $property->getAddress();
+            $address->setStreetName($data['address']['streetName']);
+            $address->setStreetNumber($data['address']['streetNumber'] ?? '');
+            $address->setCity($data['address']['city']);
+            $address->setState($data['address']['state']);
+            $address->setZipcode($data['address']['zipcode']);
+            $address->setCountry($data['address']['country']);
+            
+            // Update amenities
+            $property->getAmenities()->clear();
+            if (isset($data['amenities']) && is_array($data['amenities'])) {
+                $amenityRepo = $entityManager->getRepository(Amenity::class);
+                foreach ($data['amenities'] as $amenityId) {
+                    $amenity = $amenityRepo->find($amenityId);
+                    if ($amenity) {
+                        $property->addAmenity($amenity);
+                    }
+                }
+            }
+
+            $entityManager->flush();
+
+            return $this->json([
+                'message' => 'Property updated successfully',
+                'property' => $property
+            ], Response::HTTP_OK, [], ['groups' => ['property:read']]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Error updating property: ' . $e->getMessage()
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
 }
