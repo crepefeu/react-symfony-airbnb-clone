@@ -35,16 +35,17 @@ const PropertyDetails = ({ propertyId }) => {
             credentials: 'include', // Add this line to include credentials
           },
         });
+
         if (!response.ok) throw new Error("Property not found");
+
         const data = await response.json();
         setProperty(data.property);
 
-        if (!user) {
+        if (!user && token) {
           await fetchUser(token);
           setIsOwner(data.property.owner.id === user.id);
         }
-
-        setIsOwner(data.property.owner.id === user.id);
+        
         setError(null);
       } catch (err) {
         setError(err.message);
