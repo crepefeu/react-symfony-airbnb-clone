@@ -3,7 +3,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PhotoUploadModal from './PhotoUploadModal';
 import useAuth from '../../hooks/useAuth';
 
-const Photos = ({ formData, setFormData, draftId }) => {
+const Photos = ({ formData, setFormData, draftId, isPropertyEdit = false }) => {
   const { token } = useAuth();
   const [selectedTileIndex, setSelectedTileIndex] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,7 +15,42 @@ const Photos = ({ formData, setFormData, draftId }) => {
     const [reorderedItem] = photos.splice(result.source.index, 1);
     photos.splice(result.destination.index, 0, reorderedItem);
 
-    setFormData({ ...formData, photos: photos });
+    setFormData({ ...formData, photos });
+
+    // If editing property, update the photo order immediately
+    if (isPropertyEdit) {
+      // Extract just the URLs for the backend
+      const photoUrls = photos.map(photo => 
+        typeof photo.preview === 'string' ? photo.preview : photo.preview.url
+      );
+      
+      handlePropertyPhotoUpdate(photoUrls);
+    }
+  };
+
+  const handlePropertyPhotoUpdate = async (photoUrls) => {
+    try {
+      console.log('Sending photo order:', photoUrls); // Debug log
+      const response = await fetch(`/api/properties/${draftId}/photos`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          photos: photoUrls
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update photos');
+      }
+
+      const result = await response.json();
+      console.log('Update response:', result); // Debug log
+    } catch (error) {
+      console.error('Error updating photos:', error);
+    }
   };
 
   const handlePhotoUpload = (photo, shouldSave = false) => {
@@ -76,6 +111,11 @@ const Photos = ({ formData, setFormData, draftId }) => {
     const newPhotos = [...formData.photos];
     newPhotos.splice(index, 1);
     setFormData({ ...formData, photos: newPhotos });
+
+    // If editing property, update the photos immediately
+    if (isPropertyEdit) {
+      handlePropertyPhotoUpdate(newPhotos);
+    }
   };
 
   const renderPhotoTile = (index) => {

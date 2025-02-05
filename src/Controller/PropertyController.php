@@ -14,6 +14,7 @@ use App\Entity\Address;
 use App\Entity\PropertyMedia;
 use App\Entity\Amenity;
 use Symfony\Bundle\SecurityBundle\Security; // Change this line
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[Route('/api/properties', name: 'app_properties_')]
 class PropertyController extends AbstractController
@@ -265,6 +266,69 @@ class PropertyController extends AbstractController
         } catch (\Exception $e) {
             return $this->json([
                 'error' => 'Error updating property: ' . $e->getMessage()
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/{id}/photos', name: 'update_photos', methods: ['PUT'])]
+    public function updatePhotos(Request $request, Property $property, EntityManagerInterface $entityManager, Security $security): JsonResponse
+    {
+        if ($security->getUser() !== $property->getOwner()) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $data = json_decode($request->getContent(), true);
+            $newPhotoOrder = $data['photos'] ?? [];
+
+            // Debug log
+            error_log('Received new photo order: ' . print_r($newPhotoOrder, true));
+
+            // Get current property media
+            $currentMedia = $property->getPropertyMedias();
+            
+            // Create a map of URL to PropertyMedia entity
+            $mediaMap = [];
+            foreach ($currentMedia as $media) {
+                $mediaMap[$media->getUrl()] = $media;
+            }
+
+            // Create a new ordered collection
+            $orderedMedia = new ArrayCollection();
+            
+            // Add media in the new order
+            foreach ($newPhotoOrder as $url) {
+                if (isset($mediaMap[$url])) {
+                    $orderedMedia->add($mediaMap[$url]);
+                    // Debug log
+                    error_log('Adding media with URL: ' . $url);
+                }
+            }
+
+            // Remove all media from the property
+            foreach ($currentMedia as $media) {
+                $property->removePropertyMedia($media);
+            }
+
+            // Add media back in the new order
+            foreach ($orderedMedia as $media) {
+                $property->addPropertyMedia($media);
+            }
+
+            $entityManager->flush();
+
+            // Debug log
+            error_log('Final media count: ' . count($property->getPropertyMedias()));
+
+            return $this->json([
+                'message' => 'Property photos updated successfully',
+                'photos' => $newPhotoOrder
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Error in updatePhotos: ' . $e->getMessage());
+            return $this->json([
+                'error' => 'Error updating property photos: ' . $e->getMessage()
             ], Response::HTTP_BAD_REQUEST);
         }
     }
