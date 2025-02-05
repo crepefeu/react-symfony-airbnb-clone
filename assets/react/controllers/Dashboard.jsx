@@ -26,7 +26,6 @@ const Dashboard = () => {
           throw new Error("Failed to fetch properties trend");
         }
         const data = await response.json();
-        console.log(data);
         setStats(data);
       } catch (error) {
         console.log(error);
@@ -74,7 +73,7 @@ const Dashboard = () => {
                 }`}
               >
                 {trend > 0 ? "+" : ""}
-                {trend}% from last 30 days
+                {trend.toFixed(2)}% from last 30 days
               </p>
             )}
             {children}

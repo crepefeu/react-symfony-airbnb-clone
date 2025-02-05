@@ -2,15 +2,22 @@ import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import Layout from "../components/Layout";
 import Toast from "../components/UI/Toast";
+import Modal from "../components/Modal";
 
 const AmenitiesAdmin = () => {
   const [amenities, setAmenities] = useState([]);
+  const [amenityCategories, setAmenityCategories] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastType, setToastType] = useState("info");
   const [toastMessage, setToastMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+  });
 
   useEffect(() => {
     const fetchAmenities = async () => {
@@ -35,6 +42,56 @@ const AmenitiesAdmin = () => {
 
     fetchAmenities();
   }, []);
+
+  useEffect(() => {
+    const fetchAmenityCategories = async () => {
+      try {
+        const response = await fetch("/api/amenities/categories", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch amenity categories");
+        }
+        const data = await response.json();
+        console.log(data);
+        setAmenityCategories(data.categories);
+      } catch (error) {
+        console.error("Error fetching amenities:", error);
+        setError("Failed to load amenities");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAmenityCategories();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const response = await fetch("/api/amenities/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setShowModal(false);
+      setToastType("success");
+      setToastMessage(data.message);
+      setShowToast(true);
+    } else {
+      setToastType("error");
+      setToastMessage(data.error);
+      setShowToast(true);
+    }
+  };
 
   const handleDelete = async (id) => {
     try {
@@ -84,7 +141,10 @@ const AmenitiesAdmin = () => {
 
           <div className="flex justify-between items-center mb-6 mt-8">
             <h1 className="text-3xl font-medium">Amenities Management</h1>
-            <button className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md flex items-center">
+            <button
+              className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md flex items-center"
+              onClick={() => setShowModal(true)}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Amenity
             </button>
@@ -175,6 +235,80 @@ const AmenitiesAdmin = () => {
           onClose={() => setShowToast(false)}
           onClick={() => setShowToast(false)}
         />
+      )}
+      {showModal && (
+        <Modal onClose={() => setShowModal(false)} isOpen={showModal}>
+          <div title="Add amenity">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Amenity Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  placeholder="Enter amenity name"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Category
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                >
+                  <option value="">Select a category</option>
+                  {amenityCategories.map((category) => (
+                    <option key={category.value} value={category.value}>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-5 h-5"
+                          dangerouslySetInnerHTML={{ __html: category.icon }}
+                        />
+                        {category.value}
+                      </div>
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                >
+                  Create Amenity
+                </button>
+              </div>
+            </form>{" "}
+          </div>
+        </Modal>
       )}
     </Layout>
   );

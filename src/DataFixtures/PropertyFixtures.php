@@ -12,6 +12,7 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use App\DataFixtures\AmenityFixtures;
 use App\Entity\PropertyMedia;
 use App\Enum\MediaType;
+use Faker\Factory;
 
 class PropertyFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -262,6 +263,8 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
+        $faker = Factory::create();
+        
         $hosts = [
             $this->getReference(UserFixtures::HOST1_REFERENCE, User::class),
             $this->getReference(UserFixtures::HOST2_REFERENCE, User::class),
@@ -346,8 +349,9 @@ class PropertyFixtures extends Fixture implements DependentFixtureInterface
                 // $property->setImages($selectedImages); -- Remove this line
 
                 // Make sure createdAt and updatedAt are set
-                $property->setCreatedAt(new \DateTimeImmutable());
-                $property->setUpdatedAt(new \DateTimeImmutable());
+                $createdAt = \DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-1 year', 'now'));
+                $property->setCreatedAt($createdAt);
+                $property->setUpdatedAt($createdAt);
 
                 // Add amenities using the new method
                 $this->addBasicAmenities($property, $manager);
