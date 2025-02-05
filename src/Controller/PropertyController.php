@@ -14,6 +14,7 @@ use App\Entity\Address;
 use App\Entity\PropertyMedia;
 use App\Entity\Amenity;
 use Symfony\Bundle\SecurityBundle\Security; // Change this line
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[Route('/api/properties', name: 'app_properties_')]
 class PropertyController extends AbstractController
@@ -212,6 +213,122 @@ class PropertyController extends AbstractController
                 'message' => 'Error creating property: ' . $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'data' => $propertyData ?? null
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/{id}/edit', name: 'edit', methods: ['PUT'])]
+    public function edit(Request $request, Property $property, EntityManagerInterface $entityManager, Security $security): JsonResponse
+    {
+        // Check if user is the owner
+        if ($security->getUser() !== $property->getOwner()) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $data = json_decode($request->getContent(), true);
+            
+            $property->setTitle($data['title']);
+            $property->setDescription($data['description']);
+            $property->setPrice($data['price']);
+            $property->setMaxGuests($data['maxGuests']);
+            $property->setBedrooms($data['bedrooms']);
+            $property->setBathrooms($data['bathrooms']);
+
+            // Update address
+            $address = $property->getAddress();
+            $address->setStreetName($data['address']['streetName']);
+            $address->setStreetNumber($data['address']['streetNumber'] ?? '');
+            $address->setCity($data['address']['city']);
+            $address->setState($data['address']['state']);
+            $address->setZipcode($data['address']['zipcode']);
+            $address->setCountry($data['address']['country']);
+            
+            // Update amenities
+            $property->getAmenities()->clear();
+            if (isset($data['amenities']) && is_array($data['amenities'])) {
+                $amenityRepo = $entityManager->getRepository(Amenity::class);
+                foreach ($data['amenities'] as $amenityId) {
+                    $amenity = $amenityRepo->find($amenityId);
+                    if ($amenity) {
+                        $property->addAmenity($amenity);
+                    }
+                }
+            }
+
+            $entityManager->flush();
+
+            return $this->json([
+                'message' => 'Property updated successfully',
+                'property' => $property
+            ], Response::HTTP_OK, [], ['groups' => ['property:read']]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Error updating property: ' . $e->getMessage()
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/{id}/photos', name: 'update_photos', methods: ['PUT'])]
+    public function updatePhotos(Request $request, Property $property, EntityManagerInterface $entityManager, Security $security): JsonResponse
+    {
+        if ($security->getUser() !== $property->getOwner()) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $data = json_decode($request->getContent(), true);
+            $newPhotoOrder = $data['photos'] ?? [];
+
+            // Debug log
+            error_log('Received new photo order: ' . print_r($newPhotoOrder, true));
+
+            // Get current property media
+            $currentMedia = $property->getPropertyMedias();
+            
+            // Create a map of URL to PropertyMedia entity
+            $mediaMap = [];
+            foreach ($currentMedia as $media) {
+                $mediaMap[$media->getUrl()] = $media;
+            }
+
+            // Create a new ordered collection
+            $orderedMedia = new ArrayCollection();
+            
+            // Add media in the new order
+            foreach ($newPhotoOrder as $url) {
+                if (isset($mediaMap[$url])) {
+                    $orderedMedia->add($mediaMap[$url]);
+                    // Debug log
+                    error_log('Adding media with URL: ' . $url);
+                }
+            }
+
+            // Remove all media from the property
+            foreach ($currentMedia as $media) {
+                $property->removePropertyMedia($media);
+            }
+
+            // Add media back in the new order
+            foreach ($orderedMedia as $media) {
+                $property->addPropertyMedia($media);
+            }
+
+            $entityManager->flush();
+
+            // Debug log
+            error_log('Final media count: ' . count($property->getPropertyMedias()));
+
+            return $this->json([
+                'message' => 'Property photos updated successfully',
+                'photos' => $newPhotoOrder
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Error in updatePhotos: ' . $e->getMessage());
+            return $this->json([
+                'error' => 'Error updating property photos: ' . $e->getMessage()
             ], Response::HTTP_BAD_REQUEST);
         }
     }

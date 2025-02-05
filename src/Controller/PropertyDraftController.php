@@ -289,10 +289,25 @@ class PropertyDraftController extends AbstractController
     }
 
     #[Route('api/drafts/create', name: 'api_create', methods: ['POST'])]
-    public function createDraft(EntityManagerInterface $em): JsonResponse
+    public function createDraft(EntityManagerInterface $em, UserController $userController): JsonResponse
     {
+        /** @var User $user */
+        $user = $this->security->getUser();
+        
+        if (!$user) {
+            return $this->json(['error' => 'User not authenticated'], 401);
+        }
+
+        // Check if this is the user's first draft
+        $existingDrafts = $em->getRepository(PropertyDraft::class)->findBy(['owner' => $user]);
+        
+        if (empty($existingDrafts)) {
+            // This is their first draft, upgrade them to host
+            $userController->upgradeToHost($user, $em);
+        }
+
         $draft = new PropertyDraft();
-        $draft->setOwner($this->getUser());
+        $draft->setOwner($user);
         $draft->setCurrentStep(1);
         $draft->setData([
             'propertyType' => '',

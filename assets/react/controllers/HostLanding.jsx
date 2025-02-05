@@ -221,9 +221,16 @@ const HostLanding = () => {
         }
       });
       const data = await response.json();
-      window.location.href = `/drafts/${data.draftId}`;
+      
+      if (response.ok) {
+        // Redirect to the draft page
+        window.location.href = `/drafts/${data.draftId}`;
+      } else {
+        throw new Error(data.error || 'Failed to create draft');
+      }
     } catch (error) {
       console.error('Error creating draft:', error);
+      alert('Failed to create draft. Please try again.');
     }
   };
 
