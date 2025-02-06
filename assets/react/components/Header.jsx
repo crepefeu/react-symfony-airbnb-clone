@@ -96,9 +96,7 @@ const HeaderContent = () => {
   // Update useEffect for scroll locking
   useEffect(() => {
     const shouldDisableScroll =
-      isMenuOpen ||
-      searchState.isExpanded ||
-      isLogInModalOpen
+      isMenuOpen || searchState.isExpanded || isLogInModalOpen;
     if (shouldDisableScroll) {
       setScrollPosition(window.scrollY);
       document.body.classList.add("no-scroll");
@@ -113,12 +111,7 @@ const HeaderContent = () => {
       document.body.classList.remove("no-scroll");
       document.body.style.top = "";
     };
-  }, [
-    isMenuOpen,
-    searchState.isExpanded,
-    isLogInModalOpen,
-    scrollPosition,
-  ]);
+  }, [isMenuOpen, searchState.isExpanded, isLogInModalOpen, scrollPosition]);
 
   const handleLocationFocus = (e) => {
     e.stopPropagation();
@@ -141,7 +134,7 @@ const HeaderContent = () => {
         location: place.formatted_address,
         latitude: place.geometry.location.lat(),
         longitude: place.geometry.location.lng(),
-        activeSection: null
+        activeSection: null,
       });
     }
   };
@@ -184,9 +177,7 @@ const HeaderContent = () => {
 
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl mx-auto">
-              <motion.div
-                className={`relative w-full rounded-full`}
-              >
+              <motion.div className={`relative w-full rounded-full`}>
                 <div className="flex items-center h-12">
                   <button
                     className={`h-full flex-1 px-6 text-left rounded-l-full border border-gray-200 hover:border hover:border-black ${
@@ -250,7 +241,9 @@ const HeaderContent = () => {
                     }
                   >
                     <div className="text-xs font-bold">Who</div>
-                    <div className="text-sm text-gray-500">{formatGuests()}</div>
+                    <div className="text-sm text-gray-500">
+                      {formatGuests()}
+                    </div>
                   </button>
                   <button
                     className="p-2 bg-rose-500 rounded-full text-white hover:bg-rose-600 mx-2"
@@ -357,6 +350,13 @@ const HeaderContent = () => {
                       >
                         Trips
                       </a>
+                      <a
+                        href="/wishlists"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Wishlists
+                      </a>
+                      <hr className="my-2" />
                       {user && user.roles.includes("ROLE_HOST") && (
                         <a
                           href="/bookings"
@@ -365,13 +365,14 @@ const HeaderContent = () => {
                           Manage bookings
                         </a>
                       )}
-                      <a
-                        href="/wishlists"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      >
-                        Wishlists
-                      </a>
-                      <hr className="my-2" />
+                      {user && user.roles.includes("ROLE_ADMIN") && (
+                        <a
+                          href="/admin"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          Dashboard
+                        </a>
+                      )}
                     </div>
                   )}
                   {/* Add other menu items here */}
