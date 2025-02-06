@@ -36,7 +36,6 @@ const UsersAdmin = () => {
         setUsers(data.users);
       } catch (error) {
         console.error("Error fetching users:", error);
-        setError("Failed to load users");
       } finally {
         setIsLoading(false);
       }
@@ -66,7 +65,7 @@ const UsersAdmin = () => {
         setShowToast(true);
         setToastType("success");
         setToastMessage(data.message);
-        setAmenities(users.filter((user) => user.id !== id));
+        setUsers(users.filter((user) => user.id !== id));
       } else {
         setShowToast(true);
         setToastType("error");
@@ -114,12 +113,6 @@ const UsersAdmin = () => {
                 />
               </div>
             </div>
-
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {error}
-              </div>
-            )}
 
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
