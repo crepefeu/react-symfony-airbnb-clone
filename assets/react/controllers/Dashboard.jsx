@@ -7,10 +7,19 @@ import {
   WashingMachine,
 } from "lucide-react";
 import Layout from "../components/Layout";
+import useAuth from "../hooks/useAuth";
+import Unauthorized from "../controllers/Unauthorized";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { fetchUser, user, token } = useAuth();
+
+  useEffect(() => {
+    if (token) {
+      fetchUser();
+    }
+  }, [token]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -43,6 +52,10 @@ const Dashboard = () => {
         <div className="animate-spin h-8 w-8 border-4 border-rose-500 rounded-full border-t-transparent" />
       </div>
     );
+  }
+
+  if (!token || (user && !user.roles.includes(["ROLE_ADMIN"]))) {
+    return <Unauthorized></Unauthorized>;
   }
 
   const StatCard = ({
@@ -123,7 +136,7 @@ const Dashboard = () => {
                   trend={stats.reviews.trend}
                 >
                   <p className={`mt-1 text-gray-700`}>
-                    Average rating : {stats.reviews.avgRating}
+                    Average rating : {stats.reviews.avgRating.toFixed(2)}
                   </p>
                 </StatCard>
                 <StatCard

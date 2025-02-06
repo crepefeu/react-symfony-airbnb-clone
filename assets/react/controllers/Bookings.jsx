@@ -4,14 +4,21 @@ import useAuth from "../hooks/useAuth";
 import BookingsSection from "../components/Booking/BookingsSection";
 import LoadingSpinner from "../components/UI/LoadingSpinner";
 import NoBookings from "../components/Booking/NoBookings";
+import Unauthorized from "../controllers/Unauthorized";
 
 const Bookings = () => {
   const breadcrumbs = [{ label: "Manage bookings" }];
-  const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [bookingsToValidate, setBookingsToValidate] = useState([]);
   const [upcomingBookings, setUpcomingBookings] = useState([]);
   const [pastBookings, setPastBookings] = useState([]);
+  const { fetchUser, user, token } = useAuth();
+
+  useEffect(() => {
+    if (token) {
+      fetchUser();
+    }
+  }, [token]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -76,6 +83,10 @@ const Bookings = () => {
     bookingsToValidate.length < 1 &&
     upcomingBookings.length < 1 &&
     pastBookings.length < 1;
+
+  if (!token || (user && !user.roles.includes(["ROLE_HOST"]))) {
+    return <Unauthorized></Unauthorized>;
+  }
 
   return (
     <Layout breadcrumbs={breadcrumbs}>

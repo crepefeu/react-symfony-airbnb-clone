@@ -3,6 +3,8 @@ import Layout from "../components/Layout";
 import LoadingSpinner from "../components/UI/LoadingSpinner";
 import NoTrips from "../components/Booking/NoTrips";
 import TripsSection from "../components/Booking/TripsSection";
+import Unauthorized from "../controllers/Unauthorized";
+import useAuth from "../hooks/useAuth";
 
 const Trips = () => {
   const breadcrumbs = [{ label: "Trips" }];
@@ -10,6 +12,13 @@ const Trips = () => {
   const [pastTrips, setPastTrips] = useState([]);
   const [canceledTrips, setCanceledTrips] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { fetchUser, user, token } = useAuth();
+
+  useEffect(() => {
+    if (token) {
+      fetchUser();
+    }
+  }, [token]);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -24,7 +33,9 @@ const Trips = () => {
           throw new Error("Failed to fetch bookings");
         }
         const data = await response.json();
-        const { upcomingTrips, pastTrips, canceledTrips } = splitTrips(data.trips);
+        const { upcomingTrips, pastTrips, canceledTrips } = splitTrips(
+          data.trips
+        );
         setUpcomingTrips(upcomingTrips);
         setPastTrips(pastTrips);
         setCanceledTrips(canceledTrips);
@@ -42,26 +53,35 @@ const Trips = () => {
   const splitTrips = (trips) => {
     const currentDate = new Date();
     const upcoming = trips.filter(
-      (trip) => 
-        new Date(trip.checkOutDate.date) >= currentDate && 
+      (trip) =>
+        new Date(trip.checkOutDate.date) >= currentDate &&
         trip.status !== "canceled"
     );
     const past = trips.filter(
-      (trip) => 
-        new Date(trip.checkOutDate.date) < currentDate && 
+      (trip) =>
+        new Date(trip.checkOutDate.date) < currentDate &&
         trip.status !== "canceled"
     );
-    const canceled = trips.filter(
-      (trip) => trip.status === "canceled"
-    );
-    return { upcomingTrips: upcoming, pastTrips: past, canceledTrips: canceled };
+    const canceled = trips.filter((trip) => trip.status === "canceled");
+    return {
+      upcomingTrips: upcoming,
+      pastTrips: past,
+      canceledTrips: canceled,
+    };
   };
 
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  const hasNoTrips = upcomingTrips.length === 0 && pastTrips.length === 0 && canceledTrips.length === 0;
+  if (!token || !user) {
+    return <Unauthorized></Unauthorized>;
+  }
+
+  const hasNoTrips =
+    upcomingTrips.length === 0 &&
+    pastTrips.length === 0 &&
+    canceledTrips.length === 0;
 
   return (
     <Layout breadcrumbs={breadcrumbs} needAuthentication={true}>
