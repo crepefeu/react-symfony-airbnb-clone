@@ -35,29 +35,7 @@ jobs:
           node-version: "18"
 
       - name: Install PHP Dependencies
-        env:
-          APP_ENV: prod
-          SYMFONY_ENV: prod
-        run: |
-          composer install --no-dev --optimize-autoloader --no-scripts
-          composer dump-env prod
-          # Create Webpack Encore configuration if it doesn't exist
-          mkdir -p config/packages
-          echo "webpack_encore:
-            output_path: '%kernel.project_dir%/public/build'
-            script_attributes:
-                defer: true
-
-          framework:
-            assets:
-                json_manifest_path: '%kernel.project_dir%/public/build/manifest.json'
-
-          twig:
-            stimulus:
-                controller_paths:
-                    - '%kernel.project_dir%/assets/controllers'
-                helper: true" > config/packages/webpack_encore.yaml
-          APP_ENV=prod composer run-script post-install-cmd
+        run: composer install --no-dev --optimize-autoloader
 
       - name: Install Node Dependencies and Build
         run: |
@@ -166,24 +144,11 @@ jobs:
             # Pull latest changes
             git pull origin main
 
-            # Install/update dependencies with proper environment
-            export APP_ENV=prod
-            export SYMFONY_ENV=prod
-            composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-            composer dump-env prod
-            
-            # Now run the scripts separately
-            composer run-script post-install-cmd --no-dev
-            
-            # Continue with deployment
+            # Install/update dependencies
+            composer install --no-dev --optimize-autoloader
             npm install
             npm run build
-            
-            # Ensure proper environment for Symfony commands
-            export APP_ENV=prod
-            php bin/console cache:clear --env=prod --no-debug
-            php bin/console cache:warmup --env=prod --no-debug
-            
+
             # Database migrations
             php bin/console doctrine:migrations:migrate --no-interaction
 
