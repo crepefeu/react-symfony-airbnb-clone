@@ -41,13 +41,16 @@ jobs:
         run: |
           composer install --no-dev --optimize-autoloader --no-scripts
           composer dump-env prod
-          # Create Stimulus configuration if it doesn't exist
+          # Create Webpack Encore configuration if it doesn't exist
           mkdir -p config/packages
-          echo "framework:
+          echo "webpack_encore:
+            output_path: '%kernel.project_dir%/public/build'
+            script_attributes:
+                defer: true
             stimulus:
-              controller_paths:
-                - '%kernel.project_dir%/assets/controllers'
-              helper: true" > config/packages/stimulus.yaml
+                controller_paths:
+                    - '%kernel.project_dir%/assets/controllers'
+                helper: true" > config/packages/webpack_encore.yaml
           APP_ENV=prod composer run-script post-install-cmd
 
       - name: Install Node Dependencies and Build
