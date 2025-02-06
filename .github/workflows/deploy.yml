@@ -169,7 +169,7 @@ jobs:
             # Install/update dependencies with proper environment
             export APP_ENV=prod
             export SYMFONY_ENV=prod
-            composer install --no-dev --optimize-autoloader --no-scripts
+            composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
             composer dump-env prod
             
             # Now run the scripts separately
