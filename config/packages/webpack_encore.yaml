@@ -34,10 +34,10 @@ webpack_encore:
     # Put in config/packages/prod/webpack_encore.yaml
     # cache: true
 
-    stimulus:
-        controller_paths:
-            - '%kernel.project_dir%/assets/controllers'
-        helper: true
+stimulus_webpack_encore:
+    controller_paths:
+        - '%kernel.project_dir%/assets/controllers'
+    helper: true
 
 framework:
     assets:
