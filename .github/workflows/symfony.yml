@@ -1,0 +1,80 @@
+# https://help.github.com/en/actions
+
+name: Symfony React CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  symfony-tests:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+
+    services:
+      postgres:
+        image: postgis/postgis:17-3.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: airbnb_clone_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        php-version: ['8.2']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Copy .env.test
+      run: cp .env.test .env.test.local
+
+    - name: Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_pgsql, dom, filter, gd, json, pdo
+        coverage: xdebug
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Create Database
+      run: |
+        source .env.test.local
+        echo "Creating database with URL: $DATABASE_URL"
+        sleep 10  # Give postgres a moment to fully start
+        APP_ENV=test php bin/console doctrine:database:drop --force --if-exists
+        APP_ENV=test php bin/console doctrine:database:create
+        # Create PostGIS extension on the test database
+        PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d airbnb_clone_test -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+        APP_ENV=test php bin/console doctrine:schema:create
+
+    - name: Execute PHP tests
+      run: |
+        source .env.test.local
+        APP_ENV=test php bin/phpunit
