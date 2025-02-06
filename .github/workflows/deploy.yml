@@ -11,6 +11,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: PROD  # Specify the environment name here
 
     steps:
       - uses: actions/checkout@v3
@@ -20,7 +21,8 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}  # Using environment variables for non-sensitive data
+          audience: 'sts.amazonaws.com'
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -44,7 +46,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ${{ vars.EC2_USERNAME }}  # Could be moved to variables if not sensitive
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             # Check and install required software
