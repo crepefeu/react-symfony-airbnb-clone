@@ -35,7 +35,16 @@ jobs:
           node-version: "18"
 
       - name: Install PHP Dependencies
-        run: composer install --no-dev --optimize-autoloader
+        env:
+          APP_ENV: prod
+          SYMFONY_ENV: prod
+        run: |
+          composer install --no-dev --optimize-autoloader --no-scripts
+          composer dump-env prod
+          echo "APP_ENV=prod" >> .env.local
+          echo "APP_DEBUG=0" >> .env.local
+          APP_ENV=prod php bin/console cache:clear --no-debug
+          APP_ENV=prod php bin/console cache:warmup --no-debug
 
       - name: Install Node Dependencies and Build
         run: |
@@ -144,10 +153,17 @@ jobs:
             # Pull latest changes
             git pull origin main
 
-            # Install/update dependencies
-            composer install --no-dev --optimize-autoloader
-            npm install
-            npm run build
+            # Install/update dependencies with proper environment
+            echo "APP_ENV=prod" > .env.local
+            echo "APP_DEBUG=0" >> .env.local
+            export APP_ENV=prod
+            export SYMFONY_ENV=prod
+            
+            composer install --no-dev --optimize-autoloader --no-scripts
+            composer dump-env prod
+            
+            # Now run the scripts separately with production environment
+            APP_ENV=prod composer run-script post-install-cmd --no-dev
 
             # Database migrations
             php bin/console doctrine:migrations:migrate --no-interaction
