@@ -34,13 +34,10 @@ webpack_encore:
     # Put in config/packages/prod/webpack_encore.yaml
     # cache: true
 
-stimulus:
-    # The default values
-    controller_paths:
-        - '%kernel.project_dir%/assets/controllers'
-    
-    # Enable the Stimulus helper
-    helper: true
+    stimulus:
+        controller_paths:
+            - '%kernel.project_dir%/assets/controllers'
+        helper: true
 
 framework:
     assets:

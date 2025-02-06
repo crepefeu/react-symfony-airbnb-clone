@@ -50,7 +50,10 @@ jobs:
             stimulus:
                 controller_paths:
                     - '%kernel.project_dir%/assets/controllers'
-                helper: true" > config/packages/webpack_encore.yaml
+                helper: true
+          framework:
+            assets:
+                json_manifest_path: '%kernel.project_dir%/public/build/manifest.json'" > config/packages/webpack_encore.yaml
           APP_ENV=prod composer run-script post-install-cmd
 
       - name: Install Node Dependencies and Build
