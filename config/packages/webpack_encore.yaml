@@ -2,7 +2,7 @@ webpack_encore:
     # The path where Encore is building the assets - i.e. Encore.setOutputPath()
     output_path: '%kernel.project_dir%/public/build'
     
-    # If multiple builds are defined (as shown below), you can disable the default build:
+    # If multiple builds are defined (as shown below, you can disable the default build:
     # output_path: false
 
     # Set attributes that will be rendered on all script and link tags
@@ -34,14 +34,16 @@ webpack_encore:
     # Put in config/packages/prod/webpack_encore.yaml
     # cache: true
 
-stimulus_webpack_encore:
-    controller_paths:
-        - '%kernel.project_dir%/assets/controllers'
-    helper: true
-
 framework:
     assets:
         json_manifest_path: '%kernel.project_dir%/public/build/manifest.json'
+
+# Stimulus configuration under twig bundle
+twig:
+    stimulus:
+        controller_paths:
+            - '%kernel.project_dir%/assets/controllers'
+        helper: true
 
 #when@prod:
 #    webpack_encore:
