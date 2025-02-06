@@ -1,7 +1,8 @@
-stimulus:
-    # The default values
-    controller_paths:
-        - '%kernel.project_dir%/assets/controllers'
-    
-    # Enable the Stimulus helper
-    helper: true
+framework:
+    stimulus:
+        # The default values
+        controller_paths:
+            - '%kernel.project_dir%/assets/controllers'
+        
+        # Enable the Stimulus helper
+        helper: true

@@ -43,10 +43,11 @@ jobs:
           composer dump-env prod
           # Create Stimulus configuration if it doesn't exist
           mkdir -p config/packages
-          echo "stimulus:
-            controller_paths:
-              - '%kernel.project_dir%/assets/controllers'
-            helper: true" > config/packages/stimulus.yaml
+          echo "framework:
+            stimulus:
+              controller_paths:
+                - '%kernel.project_dir%/assets/controllers'
+              helper: true" > config/packages/stimulus.yaml
           APP_ENV=prod composer run-script post-install-cmd
 
       - name: Install Node Dependencies and Build
