@@ -176,7 +176,7 @@ jobs:
             rm /home/ubuntu/deploy.tar.gz
 
             # Install and configure PostgreSQL
-            sudo apt-get install -y postgresql postgresql-contrib
+            sudo apt-get install -y postgresql postgresql-contrib postgis postgresql-*-postgis-* postgresql-*-postgis-scripts
             sudo systemctl start postgresql
             sudo systemctl status postgresql
 
@@ -218,6 +218,9 @@ jobs:
               sudo tail -n 50 /var/log/postgresql/postgresql-*.log
               exit 1
             }
+
+            # Enable PostGIS extension
+            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
             
             # Configure environment files with verified credentials
             cat > .env << 'EOL'
