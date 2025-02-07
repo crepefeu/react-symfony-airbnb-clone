@@ -313,10 +313,8 @@ jobs:
             php bin/console doctrine:migrations:migrate --no-interaction || true
 
             # Load fixtures only if explicitly requested
-            if [ "${LOAD_FIXTURES:-0}" = "1" ]; then
-                echo "Loading fixtures..."
-                php bin/console doctrine:fixtures:load --no-interaction --env=dev
-            fi
+            echo "Loading fixtures..."
+            php bin/console doctrine:fixtures:load --no-interaction --env=dev
             
             # Final permission adjustments
             sudo chown -R www-data:www-data var/
