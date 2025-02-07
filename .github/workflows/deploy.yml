@@ -77,7 +77,16 @@ jobs:
             # Update package list
             sudo apt-get update
             
-            # Install packages first (before any file operations)
+            # Function to check and install packages
+            install_if_missing() {
+              if ! command -v $1 &> /dev/null; then
+                echo "$1 is not installed. Installing..."
+                sudo apt-get install -y $2
+              else
+                echo "$1 is already installed"
+              fi
+            }
+            
             # Check and install PHP 8.4
             if ! command -v php &> /dev/null || ! php -v | grep -q "PHP 8.4"; then
               echo "Installing PHP 8.4..."
@@ -95,15 +104,8 @@ jobs:
               sudo apt-get install -y nodejs
             fi
             
-            # Install Caddy instead of Nginx
-            if ! command -v caddy &> /dev/null; then
-              echo "Installing Caddy..."
-              sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
-              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-              sudo apt-get update
-              sudo apt-get install -y caddy
-            fi
+            # Check and install Nginx
+            install_if_missing nginx nginx
             
             # Check and install Git
             install_if_missing git git
@@ -114,7 +116,7 @@ jobs:
               curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
             fi
             
-            # Check and install npm
+            # Check and install npm (if not installed with Node.js)
             install_if_missing npm npm
             
             # Verify installations
@@ -122,124 +124,77 @@ jobs:
             echo "Node Version: $(node -v)"
             echo "NPM Version: $(npm -v)"
             echo "Composer Version: $(composer -V)"
-            echo "Caddy Version: $(caddy version)"
+            echo "Nginx Version: $(nginx -v 2>&1)"
             
-            # Create project directory with proper initial permissions
+            # Create project directory if it doesn't exist
             sudo mkdir -p /var/www/html/airbnb-clone
             sudo chown -R ubuntu:ubuntu /var/www/html/airbnb-clone
             
-            # Deploy application files (using the working method from old deploy)
+            # Get public IP
+            PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+            echo "Server public IP: $PUBLIC_IP"
+
+            # Configure Nginx
+            if [ ! -f /etc/nginx/sites-available/airbnb-clone ]; then
+              echo "Setting up Nginx configuration..."
+              echo "server {
+                listen 80;
+                server_name $PUBLIC_IP;
+                root /var/www/html/airbnb-clone/public;
+
+                # CORS configuration
+                add_header 'Access-Control-Allow-Origin' '*' always;
+                add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, DELETE, PUT' always;
+                add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+                add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+
+                location / {
+                    try_files \$uri /index.php\$is_args\$args;
+
+                    # Handle CORS preflight requests
+                    if (\$request_method = 'OPTIONS') {
+                        add_header 'Access-Control-Allow-Origin' '*' always;
+                        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, DELETE, PUT' always;
+                        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
+                        add_header 'Access-Control-Max-Age' 1728000;
+                        add_header 'Content-Type' 'text/plain; charset=utf-8';
+                        add_header 'Content-Length' 0;
+                        return 204;
+                    }
+                }
+
+                location ~ ^/index\.php(/|$) {
+                    fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
+                    fastcgi_split_path_info ^(.+\.php)(/.*)$;
+                    include fastcgi_params;
+                    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+                    fastcgi_param DOCUMENT_ROOT \$realpath_root;
+                    internal;
+                }
+
+                location ~ \.php$ {
+                    return 404;
+                }
+            }" | sudo tee /etc/nginx/sites-available/airbnb-clone
+
+              if [ $? -eq 0 ]; then
+                echo "Nginx configuration created successfully"
+                sudo ln -sf /etc/nginx/sites-available/airbnb-clone /etc/nginx/sites-enabled/
+                sudo rm -f /etc/nginx/sites-enabled/default
+                sudo nginx -t && sudo systemctl restart nginx || {
+                  echo "Nginx configuration test failed"
+                  exit 1
+                }
+              else
+                echo "Failed to create Nginx configuration"
+                exit 1
+              fi
+            fi
+
+            # Deploy application
             cd /var/www/html/airbnb-clone
-            tar xzf /home/ubuntu/deploy.tar.gz || {
-              echo "Failed to extract deploy.tar.gz"
-              exit 1
-            }
-            rm -f /home/ubuntu/deploy.tar.gz
-            
-            # Stop any existing web servers and clean up Caddy config
-            sudo systemctl stop nginx || true
-            sudo systemctl stop caddy
-            sudo rm -f /etc/caddy/Caddyfile
-            
-            # Configure Caddy with HTTPS
-            sudo tee /etc/caddy/Caddyfile << EOF
-            35.180.140.46 {
-                # Enable debug logging
-                log {
-                    format console
-                    level DEBUG
-                }
-
-                # Root directory
-                root * /var/www/html/airbnb-clone/public
-                
-                # PHP FastCGI
-                php_fastcgi unix//var/run/php/php8.4-fpm.sock
-                
-                # Serve files
-                file_server
-                encode gzip
-                
-                # CORS headers
-                header {
-                    Access-Control-Allow-Origin "*"
-                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                    Access-Control-Allow-Headers "*"
-                }
-                
-                # Handle OPTIONS
-                @options {
-                    method OPTIONS
-                }
-                handle @options {
-                    header {
-                        Access-Control-Allow-Origin "*"
-                        Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                        Access-Control-Allow-Headers "*"
-                        Access-Control-Max-Age "1728000"
-                    }
-                    respond 204
-                }
-            }
-
-            :80 {
-                # Enable debug logging
-                log {
-                    format console
-                    level DEBUG
-                }
-
-                # Root directory
-                root * /var/www/html/airbnb-clone/public
-                
-                # PHP FastCGI
-                php_fastcgi unix//var/run/php/php8.4-fpm.sock
-                
-                # Serve files
-                file_server
-                encode gzip
-                
-                # CORS headers
-                header {
-                    Access-Control-Allow-Origin "*"
-                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                    Access-Control-Allow-Headers "*"
-                }
-                
-                # Handle OPTIONS
-                @options {
-                    method OPTIONS
-                }
-                handle @options {
-                    header {
-                        Access-Control-Allow-Origin "*"
-                        Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                        Access-Control-Allow-Headers "*"
-                        Access-Control-Max-Age "1728000"
-                    }
-                    respond 204
-                }
-            }
-            EOF
-
-            # Set permissions and restart Caddy
-            sudo chown -R caddy:caddy /etc/caddy
-            sudo chmod 644 /etc/caddy/Caddyfile
-            
-            # Ensure ports are open
-            sudo ufw allow 80
-            sudo ufw allow 443
-            
-            # Restart Caddy and verify
-            sudo systemctl restart caddy
-            sudo systemctl status caddy
-            
-            # Show logs for debugging
-            sudo journalctl -u caddy -n 50 --no-pager
-            
-            # Set proper permissions after deployment
-            sudo chown -R www-data:www-data var/
-            sudo chmod -R 777 var/
+            tar xzf /home/ubuntu/deploy.tar.gz
+            rm /home/ubuntu/deploy.tar.gz
 
             # Install and configure PostgreSQL
             sudo apt-get install -y postgresql postgresql-contrib postgis postgresql-*-postgis-* postgresql-*-postgis-scripts
@@ -369,4 +324,4 @@ jobs:
             # Restart services
             sudo systemctl restart postgresql
             sudo systemctl restart php8.4-fpm
-            sudo systemctl restart caddy
+            sudo systemctl restart nginx
