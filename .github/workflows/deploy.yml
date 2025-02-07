@@ -51,6 +51,19 @@ jobs:
           npm install
           npm run build
 
+      - name: Create deployment archive
+        run: |
+          tar -czf deploy.tar.gz * .env.local
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "deploy.tar.gz"
+          target: "/home/ubuntu"
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -154,22 +167,12 @@ jobs:
               fi
             fi
 
-            # Deploy application
-            cd /var/www/html/airbnb-clone || exit 1
-            
-            # Initialize git repository if it doesn't exist
-            if [ ! -d .git ]; then
-              git init
-              git remote add origin ${{ secrets.REPO_URL }}
-            fi
-            
-            git fetch origin main
-            git reset --hard origin/main
+            # Extract deployment archive
+            cd /var/www/html/airbnb-clone
+            tar xzf /home/ubuntu/deploy.tar.gz
+            rm /home/ubuntu/deploy.tar.gz
 
             # Configure environment
-            echo "APP_ENV=prod" > .env.local
-            echo "APP_DEBUG=0" >> .env.local
-
             export APP_ENV=prod
             export SYMFONY_ENV=prod
             
