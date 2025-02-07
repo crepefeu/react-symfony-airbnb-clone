@@ -130,8 +130,16 @@ jobs:
             sudo mkdir -p /var/www/html/airbnb-clone
             sudo chown -R ubuntu:ubuntu /var/www/html/airbnb-clone
             
-            # Get public IP
-            PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+            # Get public IP (try multiple methods)
+            PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || \
+                       curl -s http://checkip.amazonaws.com || \
+                       curl -s https://api.ipify.org || \
+                       curl -s http://whatismyip.akamai.com)
+
+            if [ -z "$PUBLIC_IP" ]; then
+                echo "Could not determine public IP, using hardcoded IP"
+                PUBLIC_IP="35.180.140.46"
+            fi
             echo "Server public IP: $PUBLIC_IP"
 
             # Configure Nginx
