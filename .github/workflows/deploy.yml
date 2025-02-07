@@ -289,6 +289,9 @@ jobs:
             
             # Run migrations
             php bin/console doctrine:migrations:migrate --no-interaction || true
+
+            # Load fixtures
+            php bin/console doctrine:fixtures:load --no-interaction
             
             # Final permission adjustments
             sudo chown -R www-data:www-data var/
