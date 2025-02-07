@@ -181,11 +181,19 @@ jobs:
               sudo apt-get install -y postgresql postgresql-contrib
               sudo systemctl start postgresql
               sudo systemctl enable postgresql
+            fi
               
-              # Create database user and database
-              sudo -u postgres psql -c "CREATE USER airbnb WITH PASSWORD your_password;"
-              sudo -u postgres psql -c "CREATE DATABASE airbnb_db OWNER airbnb;"
+            # Create database user and database if they don't exist
+            if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='airbnb'" | grep -q 1; then
+              echo "Creating PostgreSQL user..."
+              sudo -u postgres psql -c "CREATE USER airbnb WITH PASSWORD 'your_password';"
+            fi
+
+            if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw airbnb_db; then
+              echo "Creating PostgreSQL database..."
+              sudo -u postgres psql -c "CREATE DATABASE airbnb_db;"
               sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE airbnb_db TO airbnb;"
+              sudo -u postgres psql -c "ALTER DATABASE airbnb_db OWNER TO airbnb;"
             fi
 
             # Ensure environment files exist and are properly configured
