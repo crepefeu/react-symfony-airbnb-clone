@@ -58,9 +58,6 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Check and install required software
-            echo "Checking required software..."
-            
             # Update package list
             sudo apt-get update
             
@@ -116,16 +113,16 @@ jobs:
             # Configure Nginx if not already configured
             if [ ! -f /etc/nginx/sites-available/airbnb-clone ]; then
               echo "Setting up Nginx configuration..."
-              sudo tee /etc/nginx/sites-available/airbnb-clone << "EOF"
+              cat << 'EOF' | sudo tee /etc/nginx/sites-available/airbnb-clone
               server {
                   listen 80;
                   server_name _;
                   root /var/www/html/airbnb-clone/public;
-                  
+
                   location / {
                       try_files $uri /index.php$is_args$args;
                   }
-                  
+
                   location ~ ^/index\.php(/|$) {
                       fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
                       fastcgi_split_path_info ^(.+\.php)(/.*)$;
@@ -134,47 +131,54 @@ jobs:
                       fastcgi_param DOCUMENT_ROOT $realpath_root;
                       internal;
                   }
-                  
+
                   location ~ \.php$ {
                       return 404;
                   }
               }
               EOF
-              sudo ln -s /etc/nginx/sites-available/airbnb-clone /etc/nginx/sites-enabled/
-              sudo rm -f /etc/nginx/sites-enabled/default
-              sudo nginx -t && sudo systemctl restart nginx
+
+              if [ $? -eq 0 ]; then
+                echo "Nginx configuration created successfully"
+                sudo ln -sf /etc/nginx/sites-available/airbnb-clone /etc/nginx/sites-enabled/
+                sudo rm -f /etc/nginx/sites-enabled/default
+                sudo nginx -t && sudo systemctl restart nginx || {
+                  echo "Nginx configuration test failed"
+                  exit 1
+                }
+              else
+                echo "Failed to create Nginx configuration"
+                exit 1
+              fi
             fi
 
-            # Continue with deployment
-            # Navigate to project directory
-            cd /var/www/html/airbnb-clone
-
-            # Pull latest changes
+            # Deploy application
+            cd /var/www/html/airbnb-clone || exit 1
             git pull origin main
 
-            # Install/update dependencies with proper environment
-            echo "APP_ENV=prod" > .env.local
-            echo "APP_DEBUG=0" >> .env.local
+            # Configure environment
+            cat << 'EOF' > .env.local
+            APP_ENV=prod
+            APP_DEBUG=0
+            EOF
+
             export APP_ENV=prod
             export SYMFONY_ENV=prod
             
+            # Install dependencies and build
             composer install --no-dev --optimize-autoloader --no-scripts
             composer dump-env prod
-            
-            # Now run the scripts separately with production environment
             APP_ENV=prod composer run-script post-install-cmd --no-dev
-
-            # Database migrations
+            
+            # Database and cache
             php bin/console doctrine:migrations:migrate --no-interaction
-
-            # Clear and warm up cache
-            php bin/console cache:clear
-            php bin/console cache:warmup
-
-            # Set proper permissions
+            php bin/console cache:clear --no-debug
+            php bin/console cache:warmup --no-debug
+            
+            # Set permissions
             sudo chown -R www-data:www-data var/
             sudo chmod -R 775 var/
-
-            # Restart services if needed
+            
+            # Restart services
             sudo systemctl restart php8.2-fpm
             sudo systemctl restart nginx
