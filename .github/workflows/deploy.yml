@@ -175,6 +175,19 @@ jobs:
             tar xzf /home/ubuntu/deploy.tar.gz
             rm /home/ubuntu/deploy.tar.gz
 
+            # Install and configure PostgreSQL if not already installed
+            if ! command -v psql &> /dev/null; then
+              echo "Installing PostgreSQL..."
+              sudo apt-get install -y postgresql postgresql-contrib
+              sudo systemctl start postgresql
+              sudo systemctl enable postgresql
+              
+              # Create database user and database
+              sudo -u postgres psql -c "CREATE USER airbnb WITH PASSWORD your_password;"
+              sudo -u postgres psql -c "CREATE DATABASE airbnb_db OWNER airbnb;"
+              sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE airbnb_db TO airbnb;"
+            fi
+
             # Ensure environment files exist and are properly configured
             if [ ! -f .env ]; then
               echo "APP_ENV=prod" > .env
@@ -183,8 +196,15 @@ jobs:
             if [ ! -f .env.local ]; then
               echo "APP_ENV=prod" > .env.local
               echo "APP_DEBUG=0" >> .env.local
+              echo "DATABASE_URL=postgresql://airbnb:your_password@127.0.0.1:5432/airbnb_db" >> .env.local
             fi
 
+            # Set proper permissions before cache operations
+            sudo chown -R ubuntu:www-data .
+            sudo find . -type f -exec chmod 664 {} \;
+            sudo find . -type d -exec chmod 775 {} \;
+            sudo find var -type d -exec chmod 777 {} \;
+            
             export APP_ENV=prod
             export SYMFONY_ENV=prod
             
@@ -192,22 +212,19 @@ jobs:
             COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
             COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
             
-            # Create var directory with proper permissions
-            mkdir -p var
-            sudo chown -R www-data:www-data var/
-            sudo chmod -R 775 var/
+            # Clear cache with proper permissions
+            sudo -E php bin/console cache:clear --no-debug
+            sudo -E php bin/console cache:warmup --no-debug
             
-            # Clear and warmup cache
-            APP_ENV=prod php bin/console cache:clear --no-debug
-            APP_ENV=prod php bin/console cache:warmup --no-debug
-            
-            # Run migrations if needed
-            APP_ENV=prod php bin/console doctrine:migrations:migrate --no-interaction || true
+            # Run migrations
+            php bin/console doctrine:migrations:migrate --no-interaction || true
             
             # Final permission adjustments
             sudo chown -R www-data:www-data var/
-            sudo chmod -R 775 var/
+            sudo find var -type d -exec chmod 777 {} \;
+            sudo find var -type f -exec chmod 666 {} \;
             
             # Restart services
+            sudo systemctl restart postgresql
             sudo systemctl restart php8.4-fpm
             sudo systemctl restart nginx
