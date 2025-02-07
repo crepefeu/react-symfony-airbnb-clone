@@ -139,28 +139,51 @@ jobs:
 
             # Configure Caddy
             sudo tee /etc/caddy/Caddyfile << EOF
-            http://35.180.140.46 {
-                redir https://{host}{uri}
+            {
+                # Global options
+                admin off  # Disable admin interface
+                auto_https disable_redirects  # Handle redirects in site blocks
+            }
+
+            35.180.140.46 {
+                # Enable debug logging for troubleshooting
+                log {
+                    level DEBUG
+                }
+
+                # Handle HTTP traffic
+                handle {
+                    redir https://{host}{uri} permanent
+                }
             }
 
             https://35.180.140.46 {
+                # Enable debug logging
+                log {
+                    level DEBUG
+                }
+
                 root * /var/www/html/airbnb-clone/public
                 encode gzip
-                
+
                 # CORS headers
                 header {
                     Access-Control-Allow-Origin *
                     Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
                     Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
                     Access-Control-Expose-Headers "Content-Length,Content-Range"
+                    Strict-Transport-Security "max-age=31536000;"
                 }
-                
+
                 # Handle PHP processing
                 php_fastcgi unix//var/run/php/php8.4-fpm.sock
-                
+
+                # Serve static files first
+                file_server
+
                 # Try files and handle PHP
                 try_files {path} /index.php?{query}
-                
+
                 # Handle CORS preflight requests
                 @options {
                     method OPTIONS
@@ -174,7 +197,7 @@ jobs:
                     header Content-Length "0"
                     respond 204
                 }
-                
+
                 # Deny access to PHP files except index.php
                 @php {
                     path *.php
@@ -185,6 +208,26 @@ jobs:
                 }
             }
             EOF
+
+            # Ensure Caddy has proper permissions
+            sudo chown -R caddy:caddy /etc/caddy/
+            sudo chmod 755 /etc/caddy/
+            
+            # Create Caddy storage directory with proper permissions
+            sudo mkdir -p /var/lib/caddy/.local
+            sudo mkdir -p /var/lib/caddy/.config
+            sudo chown -R caddy:caddy /var/lib/caddy
+            
+            # Restart Caddy with verbose logging
+            sudo systemctl stop caddy
+            sudo caddy stop
+            sudo systemctl start caddy
+            
+            # Show Caddy logs for debugging
+            sudo journalctl -u caddy -n 50 --no-pager
+            
+            # Check if ports 80 and 443 are available
+            sudo lsof -i :80 -i :443
 
             # Remove Nginx if installed
             sudo apt-get remove -y nginx nginx-common
