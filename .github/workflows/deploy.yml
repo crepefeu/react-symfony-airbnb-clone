@@ -178,26 +178,54 @@ jobs:
             # Install and configure PostgreSQL
             sudo apt-get install -y postgresql postgresql-contrib
             sudo systemctl start postgresql
+            sudo systemctl status postgresql
 
-            echo "PostgreSQL Version: $(psql --version)"
+            # Backup original pg_hba.conf
+            sudo cp /etc/postgresql/*/main/pg_hba.conf /etc/postgresql/*/main/pg_hba.conf.bak
             
-            # Configure PostgreSQL with simple auth
-            sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
-            sudo -u postgres psql -c "CREATE USER airbnb WITH PASSWORD 'airbnb';"
-            sudo -u postgres psql -c "CREATE DATABASE airbnb_db;"
-            sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE airbnb_db TO airbnb;"
+            # Configure PostgreSQL authentication (trust method temporarily)
+            echo "local   all             postgres                                trust
+                  local   all             all                                     trust
+                  host    all             all             127.0.0.1/32            trust
+                  host    all             all             ::1/128                 trust" | sudo tee /etc/postgresql/*/main/pg_hba.conf
             
-            # Allow password authentication
-            echo "host all all all md5" | sudo tee /etc/postgresql/*/main/pg_hba.conf
             sudo systemctl restart postgresql
+            sleep 5  # Wait for PostgreSQL to restart
+
+            # Create user and database with trust authentication
+            sudo -u postgres createuser --createdb airbnb
+            sudo -u postgres createdb -O airbnb airbnb_db
             
-            # Configure environment files with simple credentials
+            # Set passwords
+            sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+            sudo -u postgres psql -c "ALTER USER airbnb WITH PASSWORD 'airbnb';"
+            
+            # Switch to md5 authentication
+            echo "local   all             postgres                                md5
+                  local   all             all                                     md5
+                  host    all             all             127.0.0.1/32            md5
+                  host    all             all             ::1/128                 md5" | sudo tee /etc/postgresql/*/main/pg_hba.conf
+            
+            sudo systemctl restart postgresql
+            sleep 5  # Wait for PostgreSQL to restart
+
+            # Test connection
+            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "SELECT 1;" || {
+              echo "Failed to connect to PostgreSQL"
+              echo "Checking PostgreSQL status..."
+              sudo systemctl status postgresql
+              echo "Checking PostgreSQL logs..."
+              sudo tail -n 50 /var/log/postgresql/postgresql-*.log
+              exit 1
+            }
+            
+            # Configure environment files with verified credentials
             echo "APP_ENV=prod" > .env
-            echo "DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db" >> .env
+            echo "DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8" >> .env
             
             echo "APP_ENV=prod" > .env.local
             echo "APP_DEBUG=0" >> .env.local
-            echo "DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db" >> .env.local
+            echo "DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8" >> .env.local
 
             # Set proper permissions before cache operations
             sudo chown -R ubuntu:www-data .
