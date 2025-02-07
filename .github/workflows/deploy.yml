@@ -202,7 +202,7 @@ jobs:
               cat > .env <<EOL
                 APP_ENV=prod
                 DATABASE_URL="postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8"
-              EOL
+                EOL
             fi
 
             if [ ! -f .env.local ]; then
@@ -210,7 +210,7 @@ jobs:
                 APP_ENV=prod
                 APP_DEBUG=0
                 DATABASE_URL="postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8"
-              EOL
+                EOL
             fi
 
             # Set proper permissions before cache operations
