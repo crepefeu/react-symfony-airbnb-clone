@@ -220,12 +220,36 @@ jobs:
             }
             
             # Configure environment files with verified credentials
-            echo "APP_ENV=prod" > .env
-            echo "DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8" >> .env
-            
-            echo "APP_ENV=prod" > .env.local
-            echo "APP_DEBUG=0" >> .env.local
-            echo "DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8" >> .env.local
+            cat > .env << 'EOL'
+            APP_ENV=prod
+            APP_SECRET=your_app_secret_here
+            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8
+            MESSENGER_TRANSPORT_DSN=doctrine://default
+            MAILER_DSN=smtp://localhost:1025
+            STRIPE_PUBLIC_KEY=pk_test_your_key
+            STRIPE_SECRET_KEY=sk_test_your_key
+            GOOGLE_MAPS_API_KEY=your_google_maps_key
+            JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+            JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+            JWT_PASSPHRASE=your_passphrase
+            CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+            EOL
+
+            cat > .env.local << 'EOL'
+            APP_ENV=prod
+            APP_DEBUG=0
+            APP_SECRET=your_app_secret_here
+            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8
+            MESSENGER_TRANSPORT_DSN=doctrine://default
+            MAILER_DSN=smtp://localhost:1025
+            STRIPE_PUBLIC_KEY=pk_test_your_key
+            STRIPE_SECRET_KEY=sk_test_your_key
+            GOOGLE_MAPS_API_KEY=your_google_maps_key
+            JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+            JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+            JWT_PASSPHRASE=your_passphrase
+            CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+            EOL
 
             # Set proper permissions before cache operations
             sudo chown -R ubuntu:www-data .
