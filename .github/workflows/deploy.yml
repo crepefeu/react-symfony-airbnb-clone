@@ -199,18 +199,14 @@ jobs:
 
             # Ensure environment files exist and are properly configured
             if [ ! -f .env ]; then
-              cat > .env <<EOL
-                APP_ENV=prod
-                DATABASE_URL="postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8"
-                EOL
+              echo "APP_ENV=prod" > .env
+              echo "DATABASE_URL=\"postgresql://airbnb:$DB_PASSWORD@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8\"" >> .env
             fi
 
             if [ ! -f .env.local ]; then
-              cat > .env.local <<EOL
-                APP_ENV=prod
-                APP_DEBUG=0
-                DATABASE_URL="postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8"
-                EOL
+              echo "APP_ENV=prod" > .env.local
+              echo "APP_DEBUG=0" >> .env.local
+              echo "DATABASE_URL=\"postgresql://airbnb:$DB_PASSWORD@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8\"" >> .env.local
             fi
 
             # Set proper permissions before cache operations
