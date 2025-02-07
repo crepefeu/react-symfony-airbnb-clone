@@ -219,8 +219,8 @@ jobs:
               exit 1
             }
 
-            # Enable PostGIS extension
-            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+            # Enable PostGIS extension using superuser
+            sudo -u postgres psql -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
             
             # Configure environment files with verified credentials
             cat > .env << 'EOL'
