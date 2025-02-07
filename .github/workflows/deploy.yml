@@ -208,10 +208,91 @@ jobs:
             }
             EOF
 
-            # Create log directory for Caddy
-            sudo mkdir -p /var/log/caddy
-            sudo chown -R caddy:caddy /var/log/caddy
-            sudo chmod 755 /var/log/caddy
+            # Clean up any existing certificates
+            sudo rm -rf /var/lib/caddy/.local/share/caddy/certificates
+            sudo rm -rf /var/lib/caddy/.config/caddy/pki
+
+            # Configure Caddy with fixed SSL settings
+            sudo tee /etc/caddy/Caddyfile << EOF
+            {
+                # Global options
+                admin off
+                persist_config off
+                default_sni 35.180.140.46
+                email erodriguez10@myges.fr
+                
+                # Set strict TLS options
+                servers {
+                    protocol {
+                        experimental_http3
+                        strict_sni_host insecure_off
+                    }
+                }
+            }
+
+            35.180.140.46 {
+                # TLS configuration
+                tls {
+                    protocols tls1.2 tls1.3
+                    ciphers TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+                    curves x25519 secp256r1 secp384r1
+                }
+
+                # Logging
+                log {
+                    output file /var/log/caddy/access.log
+                    format json
+                    level DEBUG  # Temporary debug level
+                }
+
+                # Root directory
+                root * /var/www/html/airbnb-clone/public
+
+                # Enable compression
+                encode gzip
+
+                # PHP FastCGI
+                php_fastcgi unix//var/run/php/php8.4-fpm.sock
+
+                # File server
+                file_server
+
+                # Security headers
+                header {
+                    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+                    X-Content-Type-Options "nosniff"
+                    X-Frame-Options "DENY"
+                    Referrer-Policy "strict-origin-when-cross-origin"
+                    # CORS headers
+                    Access-Control-Allow-Origin "*"
+                    Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+                    Access-Control-Allow-Headers "*"
+                }
+
+                # Handle 404
+                handle_errors {
+                    respond "{http.error.status_code} {http.error.status_text}" {http.error.status_code}
+                }
+            }
+            EOF
+
+            # Set proper permissions
+            sudo mkdir -p /var/lib/caddy/.local/share/caddy
+            sudo mkdir -p /var/lib/caddy/.config/caddy
+            sudo chown -R caddy:caddy /var/lib/caddy
+            sudo chmod -R 750 /var/lib/caddy
+            sudo chown -R caddy:caddy /etc/caddy
+            sudo chmod 644 /etc/caddy/Caddyfile
+
+            # Restart Caddy with debug output
+            sudo systemctl stop caddy
+            sudo -u caddy caddy run --config /etc/caddy/Caddyfile --debug &
+            sleep 10
+            sudo systemctl restart caddy
+
+            # Show detailed logs
+            echo "Showing Caddy logs..."
+            sudo journalctl -u caddy -n 50 --no-pager
 
             # Ensure all permissions are correct
             sudo chown -R caddy:caddy /etc/caddy /var/lib/caddy
