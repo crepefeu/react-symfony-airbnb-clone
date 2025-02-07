@@ -56,7 +56,7 @@ jobs:
       - name: Create deployment archive
         run: |
           # Ensure we include .env and .env.local
-          tar -czf deploy.tar.gz * .env .env.local .env.prod
+          tar -czf deploy.tar.gz * .env .env.local
 
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
