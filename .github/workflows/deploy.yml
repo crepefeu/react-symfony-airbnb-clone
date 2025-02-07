@@ -136,16 +136,35 @@ jobs:
             }
             rm -f /home/ubuntu/deploy.tar.gz
             
-            # Configure minimal Caddy test
+            # Stop any existing web servers and clean up Caddy config
+            sudo systemctl stop nginx || true
+            sudo systemctl stop caddy
+            sudo rm -f /etc/caddy/Caddyfile
+            
+            # Configure minimal Caddy test with explicit HTTP
             sudo tee /etc/caddy/Caddyfile << EOF
-            http://35.180.140.46 {
+            {
+                auto_https off  # Disable automatic HTTPS for testing
+                admin off  # Disable admin interface
+            }
+
+            :80 {
                 respond "Hello from Caddy!"
             }
             EOF
 
+            # Set permissions and restart Caddy
             sudo chown -R caddy:caddy /etc/caddy
             sudo chmod 644 /etc/caddy/Caddyfile
+            
+            # Verify Caddy config and restart
+            sudo caddy validate --config /etc/caddy/Caddyfile
             sudo systemctl restart caddy
+            sudo systemctl status caddy
+            
+            # Check if Caddy is listening on port 80
+            sudo lsof -i :80 || true
+            sudo systemctl status caddy --no-pager
             
             # Set proper permissions after deployment
             sudo chown -R www-data:www-data var/
