@@ -146,77 +146,79 @@ jobs:
 
             # Configure Caddy with simpler config
             sudo tee /etc/caddy/Caddyfile << EOF
-            # Global options
             {
-                erodriguez10@myges.fr  # Change this to your email
-                acme_ca https://acme-v02.api.letsencrypt.org/directory
+              # Global options block
+              email erodriguez10@myges.fr
+              http_port 80
+              https_port 443
             }
 
             35.180.140.46 {
-                root * /var/www/html/airbnb-clone/public
-                encode gzip
+              log {
+                output file /var/log/caddy/access.log
+                format json
+                level INFO
+              }
 
-                # CORS headers
-                header {
-                    Access-Control-Allow-Origin *
-                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                    Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
-                    Access-Control-Expose-Headers "Content-Length,Content-Range"
-                    Strict-Transport-Security "max-age=31536000;"
-                }
+              tls {
+                protocols tls1.2 tls1.3
+              }
+              
+              root * /var/www/html/airbnb-clone/public
+              encode gzip
+            }
 
-                # PHP handling
-                php_fastcgi unix//var/run/php/php8.4-fpm.sock
+            header {
+              Access-Control-Allow-Origin *
+              Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+              Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+              Access-Control-Expose-Headers "Content-Length,Content-Range"
+              Strict-Transport-Security "max-age=31536000;"
+            }
 
-                # Serve files
-                file_server
+            php_fastcgi unix//var/run/php/php8.4-fpm.sock {
+              try_files {path} /index.php?{query}
+            }
 
-                # Handle PHP files
-                handle {
-                    try_files {path} /index.php?{query}
-                }
+            # Serve static files
+            file_server
 
-                # Handle OPTIONS
-                @options {
-                    method OPTIONS
-                }
-                handle @options {
-                    header {
-                        Access-Control-Allow-Origin "*"
-                        Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                        Access-Control-Allow-Headers "*"
-                        Access-Control-Max-Age "1728000"
-                    }
-                    respond 204
-                }
+            # Handle OPTIONS preflight
+            @options {
+              method OPTIONS
+            }
+
+            handle @options {
+              header {
+                Access-Control-Allow-Origin "*"
+                Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                Access-Control-Allow-Headers "*"
+                Access-Control-Max-Age "1728000"
+              }
+              respond 204
             }
             EOF
 
-            # Set proper permissions for Caddy
-            sudo chown -R caddy:caddy /etc/caddy
-            sudo chmod 755 /etc/caddy
-            sudo chown -R caddy:caddy /var/lib/caddy
-            sudo chmod -R 755 /var/lib/caddy
-
-            # Create necessary directories with proper permissions
+            # Create log directory for Caddy
             sudo mkdir -p /var/log/caddy
             sudo chown -R caddy:caddy /var/log/caddy
-            sudo chmod -R 755 /var/log/caddy
+            sudo chmod 755 /var/log/caddy
 
-            # Ensure the web directory is accessible
-            sudo chown -R caddy:caddy /var/www/html/airbnb-clone
-            sudo chmod -R 755 /var/www/html/airbnb-clone
+            # Ensure all permissions are correct
+            sudo chown -R caddy:caddy /etc/caddy /var/lib/caddy
+            sudo chmod -R 755 /etc/caddy /var/lib/caddy
 
-            # Restart Caddy with proper error logging
+            # Stop any running web servers and start Caddy
+            sudo systemctl stop apache2 || true
+            sudo systemctl stop nginx || true
             sudo systemctl stop caddy
+            sleep 2
             sudo systemctl start caddy
             sudo systemctl status caddy
 
-            # Show Caddy logs and check for errors
-            sudo journalctl -u caddy -n 50 --no-pager
-
-            # Check if ports 80 and 443 are available
-            sudo lsof -i :80 -i :443
+            # Show logs for debugging
+            sudo journalctl -u caddy -f --no-pager &
+            sleep 5
 
             # Remove Nginx if installed
             sudo apt-get remove -y nginx nginx-common
