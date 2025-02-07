@@ -185,58 +185,33 @@ jobs:
               
             # Configure PostgreSQL authentication
             echo "Configuring PostgreSQL authentication..."
-            # Set postgres user password
-            POSTGRES_PASSWORD='postgresS3cur3P@ss!'
-            sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$POSTGRES_PASSWORD';"
+            sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres123';"
             
             # Update pg_hba.conf
-            sudo -u postgres cp /etc/postgresql/*/main/pg_hba.conf /etc/postgresql/*/main/pg_hba.conf.bak
             echo "local   all             postgres                                md5
-                  local   all             all                                     md5
-                  host    all             all             127.0.0.1/32            md5
-                  host    all             all             ::1/128                 md5" | sudo tee /etc/postgresql/*/main/pg_hba.conf
+            local   all             all                                     md5
+            host    all             all             127.0.0.1/32            md5
+            host    all             all             ::1/128                 md5" | sudo tee /etc/postgresql/*/main/pg_hba.conf
             
             sudo systemctl restart postgresql
-            sleep 5  # Wait for PostgreSQL to restart
-
-            # Set application database credentials
-            DB_PASSWORD='appS3cur3P@ssw0rd123!'
+            sleep 5
             
-            # Create database user and database if they don't exist
-            export PGPASSWORD="$POSTGRES_PASSWORD"
-            if ! psql -U postgres -h localhost -tAc "SELECT 1 FROM pg_roles WHERE rolname='airbnb'" | grep -q 1; then
-              echo "Creating PostgreSQL user..."
-              psql -U postgres -h localhost -c "CREATE USER airbnb WITH PASSWORD '$DB_PASSWORD';"
-            else
-              echo "Updating PostgreSQL user password..."
-              psql -U postgres -h localhost -c "ALTER USER airbnb WITH PASSWORD '$DB_PASSWORD';"
-            fi
-
-            if ! psql -U postgres -h localhost -lqt | cut -d \| -f 1 | grep -qw airbnb_db; then
-              echo "Creating PostgreSQL database..."
-              psql -U postgres -h localhost -c "CREATE DATABASE airbnb_db;"
-              psql -U postgres -h localhost -c "GRANT ALL PRIVILEGES ON DATABASE airbnb_db TO airbnb;"
-              psql -U postgres -h localhost -c "ALTER DATABASE airbnb_db OWNER TO airbnb;"
-            fi
-
+            # Create database user and database
+            PGPASSWORD=postgres123 psql -U postgres -h localhost -c "CREATE USER airbnb WITH PASSWORD 'airbnb123';"
+            PGPASSWORD=postgres123 psql -U postgres -h localhost -c "CREATE DATABASE airbnb_db;"
+            PGPASSWORD=postgres123 psql -U postgres -h localhost -c "GRANT ALL PRIVILEGES ON DATABASE airbnb_db TO airbnb;"
+            PGPASSWORD=postgres123 psql -U postgres -h localhost -c "ALTER DATABASE airbnb_db OWNER TO airbnb;"
+            
             # Verify database connection
-            export PGPASSWORD="$DB_PASSWORD"
-            if ! psql -U airbnb -h localhost -d airbnb_db -c '\q'; then
-              echo "Failed to connect to database"
-              exit 1
-            fi
-
+            PGPASSWORD=airbnb123 psql -U airbnb -h localhost -d airbnb_db -c '\q'
+            
             # Configure environment files
-            if [ ! -f .env ]; then
-              echo "APP_ENV=prod" > .env
-              echo "DATABASE_URL=postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8" >> .env
-            fi
-
-            if [ ! -f .env.local ]; then
-              echo "APP_ENV=prod" > .env.local
-              echo "APP_DEBUG=0" >> .env.local
-              echo "DATABASE_URL=postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8" >> .env.local
-            fi
+            echo "APP_ENV=prod" > .env
+            echo "DATABASE_URL=postgresql://airbnb:airbnb123@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8" >> .env
+            
+            echo "APP_ENV=prod" > .env.local
+            echo "APP_DEBUG=0" >> .env.local
+            echo "DATABASE_URL=postgresql://airbnb:airbnb123@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8" >> .env.local
 
             # Set proper permissions before cache operations
             sudo chown -R ubuntu:www-data .
