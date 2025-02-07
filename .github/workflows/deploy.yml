@@ -141,15 +141,84 @@ jobs:
             sudo systemctl stop caddy
             sudo rm -f /etc/caddy/Caddyfile
             
-            # Configure minimal Caddy test with explicit HTTP
+            # Configure Caddy with HTTPS
             sudo tee /etc/caddy/Caddyfile << EOF
-            {
-                auto_https off  # Disable automatic HTTPS for testing
-                admin off  # Disable admin interface
+            35.180.140.46 {
+                # Enable debug logging
+                log {
+                    format console
+                    level DEBUG
+                }
+
+                # Root directory
+                root * /var/www/html/airbnb-clone/public
+                
+                # PHP FastCGI
+                php_fastcgi unix//var/run/php/php8.4-fpm.sock
+                
+                # Serve files
+                file_server
+                encode gzip
+                
+                # CORS headers
+                header {
+                    Access-Control-Allow-Origin "*"
+                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                    Access-Control-Allow-Headers "*"
+                }
+                
+                # Handle OPTIONS
+                @options {
+                    method OPTIONS
+                }
+                handle @options {
+                    header {
+                        Access-Control-Allow-Origin "*"
+                        Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                        Access-Control-Allow-Headers "*"
+                        Access-Control-Max-Age "1728000"
+                    }
+                    respond 204
+                }
             }
 
             :80 {
-                respond "Hello from Caddy!"
+                # Enable debug logging
+                log {
+                    format console
+                    level DEBUG
+                }
+
+                # Root directory
+                root * /var/www/html/airbnb-clone/public
+                
+                # PHP FastCGI
+                php_fastcgi unix//var/run/php/php8.4-fpm.sock
+                
+                # Serve files
+                file_server
+                encode gzip
+                
+                # CORS headers
+                header {
+                    Access-Control-Allow-Origin "*"
+                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                    Access-Control-Allow-Headers "*"
+                }
+                
+                # Handle OPTIONS
+                @options {
+                    method OPTIONS
+                }
+                handle @options {
+                    header {
+                        Access-Control-Allow-Origin "*"
+                        Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                        Access-Control-Allow-Headers "*"
+                        Access-Control-Max-Age "1728000"
+                    }
+                    respond 204
+                }
             }
             EOF
 
@@ -157,14 +226,16 @@ jobs:
             sudo chown -R caddy:caddy /etc/caddy
             sudo chmod 644 /etc/caddy/Caddyfile
             
-            # Verify Caddy config and restart
-            sudo caddy validate --config /etc/caddy/Caddyfile
+            # Ensure ports are open
+            sudo ufw allow 80
+            sudo ufw allow 443
+            
+            # Restart Caddy and verify
             sudo systemctl restart caddy
             sudo systemctl status caddy
             
-            # Check if Caddy is listening on port 80
-            sudo lsof -i :80 || true
-            sudo systemctl status caddy --no-pager
+            # Show logs for debugging
+            sudo journalctl -u caddy -n 50 --no-pager
             
             # Set proper permissions after deployment
             sudo chown -R www-data:www-data var/
