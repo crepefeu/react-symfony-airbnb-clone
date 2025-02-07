@@ -184,9 +184,10 @@ jobs:
             fi
               
             # Create database user and database if they don't exist
+            DB_PASSWORD="S3cur3P@ssw0rd"  # Store this securely in GitHub secrets in production
             if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='airbnb'" | grep -q 1; then
               echo "Creating PostgreSQL user..."
-              sudo -u postgres psql -c "CREATE USER airbnb WITH PASSWORD 'your_password';"
+              sudo -u postgres psql -c "CREATE USER airbnb WITH PASSWORD '$DB_PASSWORD';"
             fi
 
             if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw airbnb_db; then
@@ -198,13 +199,18 @@ jobs:
 
             # Ensure environment files exist and are properly configured
             if [ ! -f .env ]; then
-              echo "APP_ENV=prod" > .env
+              cat > .env <<EOL
+                APP_ENV=prod
+                DATABASE_URL="postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8"
+              EOL
             fi
 
             if [ ! -f .env.local ]; then
-              echo "APP_ENV=prod" > .env.local
-              echo "APP_DEBUG=0" >> .env.local
-              echo "DATABASE_URL=postgresql://airbnb:your_password@127.0.0.1:5432/airbnb_db" >> .env.local
+              cat > .env.local <<EOL
+                APP_ENV=prod
+                APP_DEBUG=0
+                DATABASE_URL="postgresql://airbnb:${DB_PASSWORD}@127.0.0.1:5432/airbnb_db?serverVersion=17&charset=utf8"
+              EOL
             fi
 
             # Set proper permissions before cache operations
