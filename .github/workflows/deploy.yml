@@ -144,35 +144,44 @@ jobs:
             echo "caddy ALL=(ALL) NOPASSWD: /usr/bin/tee /usr/local/share/ca-certificates/*" | sudo EDITOR='tee -a' visudo
             echo "caddy ALL=(ALL) NOPASSWD: /usr/sbin/update-ca-certificates" | sudo EDITOR='tee -a' visudo
 
-            # Configure Caddy with simpler config
+            # Configure Caddy with proper SSL settings
             sudo tee /etc/caddy/Caddyfile << EOF
             {
               # Global options block
               email erodriguez10@myges.fr
               http_port 80
               https_port 443
+              auto_https disable_redirects  # Prevent automatic HTTPS redirects
             }
 
-            35.180.140.46 {
+            http://35.180.140.46 {
+              redir https://{host}{uri} permanent  # Explicit redirect to HTTPS
+            }
+
+            https://35.180.140.46 {
               log {
                 output file /var/log/caddy/access.log
                 format json
                 level INFO
               }
 
-              tls {
-                protocols tls1.2 tls1.3
-              }
-              
+              tls internal  # Use Caddy's automatic certificate management
+
               root * /var/www/html/airbnb-clone/public
               encode gzip
 
               header {
+                # Standard security headers
+                Strict-Transport-Security "max-age=31536000; includeSubDomains"
+                X-Content-Type-Options "nosniff"
+                X-Frame-Options "DENY"
+                Referrer-Policy "strict-origin-when-cross-origin"
+                
+                # CORS headers
                 Access-Control-Allow-Origin *
                 Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
                 Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
                 Access-Control-Expose-Headers "Content-Length,Content-Range"
-                Strict-Transport-Security "max-age=31536000;"
               }
 
               php_fastcgi unix//var/run/php/php8.4-fpm.sock {
@@ -226,6 +235,22 @@ jobs:
             # Start Caddy
             sudo systemctl enable caddy
             sudo systemctl restart caddy
+
+            # Additional SSL configuration
+            sudo ufw allow 80/tcp
+            sudo ufw allow 443/tcp
+            
+            # Ensure Caddy has proper permissions
+            sudo chown -R caddy:caddy /etc/caddy
+            sudo chmod 644 /etc/caddy/Caddyfile
+            
+            # Restart Caddy with new configuration
+            sudo systemctl restart caddy
+            sudo systemctl status caddy
+            
+            # Show Caddy logs for debugging
+            echo "Showing Caddy logs..."
+            sudo journalctl -u caddy -n 50 --no-pager
 
             # Deploy application
             cd /var/www/html/airbnb-clone
