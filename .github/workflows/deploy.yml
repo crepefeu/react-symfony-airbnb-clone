@@ -116,7 +116,7 @@ jobs:
             # Configure Nginx if not already configured
             if [ ! -f /etc/nginx/sites-available/airbnb-clone ]; then
               echo "Setting up Nginx configuration..."
-              sudo tee /etc/nginx/sites-available/airbnb-clone << 'EOF'
+              sudo tee /etc/nginx/sites-available/airbnb-clone << "EOF"
               server {
                   listen 80;
                   server_name _;
@@ -140,7 +140,6 @@ jobs:
                   }
               }
               EOF
-              
               sudo ln -s /etc/nginx/sites-available/airbnb-clone /etc/nginx/sites-enabled/
               sudo rm -f /etc/nginx/sites-enabled/default
               sudo nginx -t && sudo systemctl restart nginx
