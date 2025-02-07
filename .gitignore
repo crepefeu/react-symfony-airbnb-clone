@@ -34,3 +34,5 @@ yarn-error.log
 
 /public/uploads/*
 !/public/uploads/properties/.gitkeep
+
+/.github/workflows/old/*

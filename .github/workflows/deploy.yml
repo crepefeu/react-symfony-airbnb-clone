@@ -74,25 +74,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Update package list
+            # Update and install necessary packages
             sudo apt-get update
-            
-            # Install Caddy
-            sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
-            curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-            curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-            sudo apt-get update
-            sudo apt-get install -y caddy
-            
-            # Function to check and install packages
-            install_if_missing() {
-              if ! command -v $1 &> /dev/null; then
-                echo "$1 is not installed. Installing..."
-                sudo apt-get install -y $2
-              else
-                echo "$1 is already installed"
-              fi
-            }
             
             # Check and install PHP 8.4
             if ! command -v php &> /dev/null || ! php -v | grep -q "PHP 8.4"; then
@@ -111,6 +94,16 @@ jobs:
               sudo apt-get install -y nodejs
             fi
             
+            # Install Caddy instead of Nginx
+            if ! command -v caddy &> /dev/null; then
+              echo "Installing Caddy..."
+              sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
+              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+              sudo apt-get update
+              sudo apt-get install -y caddy
+            fi
+            
             # Check and install Git
             install_if_missing git git
             
@@ -120,7 +113,7 @@ jobs:
               curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
             fi
             
-            # Check and install npm (if not installed with Node.js)
+            # Check and install npm
             install_if_missing npm npm
             
             # Verify installations
@@ -128,246 +121,26 @@ jobs:
             echo "Node Version: $(node -v)"
             echo "NPM Version: $(npm -v)"
             echo "Composer Version: $(composer -V)"
+            echo "Caddy Version: $(caddy version)"
             
-            # Create project directory if it doesn't exist
-            sudo mkdir -p /var/www/html/airbnb-clone
-            sudo chown -R ubuntu:ubuntu /var/www/html/airbnb-clone
-            
-            # Get public IP
-            PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-            echo "Server public IP: $PUBLIC_IP"
-
-            # Install certutil for SSL certificate management
-            sudo apt-get install -y libnss3-tools
-
-            # Configure sudo permissions for Caddy
-            echo "caddy ALL=(ALL) NOPASSWD: /usr/bin/tee /usr/local/share/ca-certificates/*" | sudo EDITOR='tee -a' visudo
-            echo "caddy ALL=(ALL) NOPASSWD: /usr/sbin/update-ca-certificates" | sudo EDITOR='tee -a' visudo
-
-            # Configure Caddy with proper SSL settings
+            # Configure Caddy with basic HTTP setup
             sudo tee /etc/caddy/Caddyfile << EOF
-            {
-              # Global options block
-              email erodriguez10@myges.fr
-              http_port 80
-              https_port 443
-              auto_https disable_redirects  # Prevent automatic HTTPS redirects
-            }
-
             http://35.180.140.46 {
-              redir https://{host}{uri} permanent  # Explicit redirect to HTTPS
-            }
-
-            https://35.180.140.46 {
-              log {
-                output file /var/log/caddy/access.log
-                format json
-                level INFO
-              }
-
-              tls internal  # Use Caddy's automatic certificate management
-
-              root * /var/www/html/airbnb-clone/public
-              encode gzip
-
-              header {
-                # Standard security headers
-                Strict-Transport-Security "max-age=31536000; includeSubDomains"
-                X-Content-Type-Options "nosniff"
-                X-Frame-Options "DENY"
-                Referrer-Policy "strict-origin-when-cross-origin"
-                
-                # CORS headers
-                Access-Control-Allow-Origin *
-                Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
-                Access-Control-Expose-Headers "Content-Length,Content-Range"
-              }
-
-              php_fastcgi unix//var/run/php/php8.4-fpm.sock {
-                try_files {path} /index.php?{query}
-              }
-
-              # Serve static files
-              file_server
-
-              # Handle OPTIONS preflight
-              @options {
-                method OPTIONS
-              }
-
-              handle @options {
-                header {
-                  Access-Control-Allow-Origin "*"
-                  Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                  Access-Control-Allow-Headers "*"
-                  Access-Control-Max-Age "1728000"
-                }
-                respond 204
-              }
-            }
-            EOF
-
-            # Clean up any existing certificates
-            sudo rm -rf /var/lib/caddy/.local/share/caddy/certificates
-            sudo rm -rf /var/lib/caddy/.config/caddy/pki
-
-            # Configure Caddy with fixed SSL settings
-            sudo tee /etc/caddy/Caddyfile << EOF
-            {
-                # Global options
-                admin off
-                persist_config off
-                default_sni 35.180.140.46
-                email erodriguez10@myges.fr
-                
-                # Set strict TLS options
-                servers {
-                    protocol {
-                        experimental_http3
-                        strict_sni_host insecure_off
-                    }
-                }
-            }
-
-            35.180.140.46 {
-                # TLS configuration
-                tls {
-                    protocols tls1.2 tls1.3
-                    ciphers TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-                    curves x25519 secp256r1 secp384r1
-                }
-
-                # Logging
-                log {
-                    output file /var/log/caddy/access.log
-                    format json
-                    level DEBUG  # Temporary debug level
-                }
-
-                # Root directory
                 root * /var/www/html/airbnb-clone/public
-
-                # Enable compression
                 encode gzip
-
-                # PHP FastCGI
+                
                 php_fastcgi unix//var/run/php/php8.4-fpm.sock
-
-                # File server
                 file_server
-
-                # Security headers
+                
                 header {
-                    Strict-Transport-Security "max-age=31536000; includeSubDomains"
-                    X-Content-Type-Options "nosniff"
-                    X-Frame-Options "DENY"
-                    Referrer-Policy "strict-origin-when-cross-origin"
-                    # CORS headers
                     Access-Control-Allow-Origin "*"
-                    Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
                     Access-Control-Allow-Headers "*"
                 }
-
-                # Handle 404
-                handle_errors {
-                    respond "{http.error.status_code} {http.error.status_text}" {http.error.status_code}
-                }
-            }
-            EOF
-
-            # Set proper permissions
-            sudo mkdir -p /var/lib/caddy/.local/share/caddy
-            sudo mkdir -p /var/lib/caddy/.config/caddy
-            sudo chown -R caddy:caddy /var/lib/caddy
-            sudo chmod -R 750 /var/lib/caddy
-            sudo chown -R caddy:caddy /etc/caddy
-            sudo chmod 644 /etc/caddy/Caddyfile
-
-            # Restart Caddy with debug output
-            sudo systemctl stop caddy
-            sudo -u caddy caddy run --config /etc/caddy/Caddyfile --debug &
-            sleep 10
-            sudo systemctl restart caddy
-
-            # Show detailed logs
-            echo "Showing Caddy logs..."
-            sudo journalctl -u caddy -n 50 --no-pager
-
-            # Ensure all permissions are correct
-            sudo chown -R caddy:caddy /etc/caddy /var/lib/caddy
-            sudo chmod -R 755 /etc/caddy /var/lib/caddy
-
-            # Create required directories with proper permissions
-            sudo mkdir -p /etc/caddy/pki/authorities/local
-            sudo mkdir -p /var/lib/caddy/.local/share/caddy
-            sudo mkdir -p /var/lib/caddy/.config/caddy
-
-            # Set proper ownership and permissions
-            sudo chown -R caddy:caddy /etc/caddy/pki
-            sudo chown -R caddy:caddy /var/lib/caddy
-            sudo chmod 755 /etc/caddy/pki/authorities/local
-            sudo chmod -R 700 /var/lib/caddy/.local
-            sudo chmod -R 700 /var/lib/caddy/.config
-
-            # Give Caddy proper sudo permissions for certificate management
-            echo "caddy ALL=(ALL) NOPASSWD: /usr/sbin/update-ca-certificates" | sudo EDITOR='tee -a' visudo
-            echo "caddy ALL=(ALL) NOPASSWD: /usr/bin/tee /usr/local/share/ca-certificates/*" | sudo EDITOR='tee -a' visudo
-            echo "caddy ALL=(ALL) NOPASSWD: /usr/bin/rm -f /usr/local/share/ca-certificates/*" | sudo EDITOR='tee -a' visudo
-
-            # Configure Caddy with updated SSL settings
-            sudo tee /etc/caddy/Caddyfile << EOF
-            {
-                # Global options block (must be first)
-                email erodriguez10@myges.fr
-                http_port 80
-                https_port 443
-                auto_https disable_redirects
-                storage file_system {
-                    root /var/lib/caddy/.local/share/caddy
-                }
-            }
-
-            http://35.180.140.46 {
-                redir https://{host}{uri} permanent
-            }
-
-            https://35.180.140.46 {
-                log {
-                    output file /var/log/caddy/access.log
-                    format json
-                    level INFO
-                }
-
-                tls internal
-
-                root * /var/www/html/airbnb-clone/public
-                encode gzip
-
-                header {
-                    # Security headers
-                    Strict-Transport-Security "max-age=31536000; includeSubDomains"
-                    X-Content-Type-Options "nosniff"
-                    X-Frame-Options "DENY"
-                    Referrer-Policy "strict-origin-when-cross-origin"
-                    
-                    # CORS headers
-                    Access-Control-Allow-Origin *
-                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                    Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
-                    Access-Control-Expose-Headers "Content-Length,Content-Range"
-                }
-
-                php_fastcgi unix//var/run/php/php8.4-fpm.sock {
-                    try_files {path} /index.php?{query}
-                }
-
-                file_server
-
+                
                 @options {
                     method OPTIONS
                 }
-
                 handle @options {
                     header {
                         Access-Control-Allow-Origin "*"
@@ -380,58 +153,21 @@ jobs:
             }
             EOF
 
-            # Ensure SELinux context if enabled
-            if command -v semanage &> /dev/null; then
-                sudo semanage fcontext -a -t httpd_sys_content_t "/var/lib/caddy/.local/share/caddy(/.*)?"
-                sudo restorecon -Rv /var/lib/caddy/.local/share/caddy
-            fi
-
-            # Restart Caddy with proper environment
-            sudo -u caddy CADDYPATH=/var/lib/caddy/.local/share/caddy systemctl restart caddy
-            
-            # Wait for Caddy to start and check logs
-            sleep 5
-            sudo journalctl -u caddy -n 50 --no-pager
-
-            # Stop any running web servers and start Caddy
-            sudo systemctl stop apache2 || true
-            sudo systemctl stop nginx || true
-            sudo systemctl stop caddy
-            sleep 2
-            sudo systemctl start caddy
-            sudo systemctl status caddy
-
-            # Show logs for debugging
-            sudo journalctl -u caddy -f --no-pager &
-            sleep 5
-
-            # Remove Nginx if installed
-            sudo apt-get remove -y nginx nginx-common
-            
-            # Start Caddy
-            sudo systemctl enable caddy
-            sudo systemctl restart caddy
-
-            # Additional SSL configuration
-            sudo ufw allow 80/tcp
-            sudo ufw allow 443/tcp
-            
-            # Ensure Caddy has proper permissions
             sudo chown -R caddy:caddy /etc/caddy
             sudo chmod 644 /etc/caddy/Caddyfile
-            
-            # Restart Caddy with new configuration
-            sudo systemctl restart caddy
-            sudo systemctl status caddy
-            
-            # Show Caddy logs for debugging
-            echo "Showing Caddy logs..."
-            sudo journalctl -u caddy -n 50 --no-pager
 
-            # Deploy application
+            # Create and set up project directory
+            sudo mkdir -p /var/www/html/airbnb-clone
+            sudo chown -R www-data:www-data /var/www/html/airbnb-clone
+
+            # Deploy application files
             cd /var/www/html/airbnb-clone
             tar xzf /home/ubuntu/deploy.tar.gz
             rm /home/ubuntu/deploy.tar.gz
+
+            # Restart services
+            sudo systemctl restart php8.4-fpm
+            sudo systemctl restart caddy
 
             # Install and configure PostgreSQL
             sudo apt-get install -y postgresql postgresql-contrib postgis postgresql-*-postgis-* postgresql-*-postgis-scripts
