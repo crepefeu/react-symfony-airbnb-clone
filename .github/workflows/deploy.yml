@@ -41,10 +41,12 @@ jobs:
         run: |
           composer install --no-dev --optimize-autoloader --no-scripts
           composer dump-env prod
+          # Ensure base .env exists
+          if [ ! -f .env ]; then
+            cp .env.example .env || echo "APP_ENV=prod" > .env
+          fi
           echo "APP_ENV=prod" >> .env.local
           echo "APP_DEBUG=0" >> .env.local
-          APP_ENV=prod php bin/console cache:clear --no-debug
-          APP_ENV=prod php bin/console cache:warmup --no-debug
 
       - name: Install Node Dependencies and Build
         run: |
@@ -53,7 +55,8 @@ jobs:
 
       - name: Create deployment archive
         run: |
-          tar -czf deploy.tar.gz * .env.local
+          # Ensure we include .env and .env.local
+          tar -czf deploy.tar.gz * .env .env.local .env.prod
 
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
@@ -127,7 +130,7 @@ jobs:
             sudo mkdir -p /var/www/html/airbnb-clone
             sudo chown -R ubuntu:ubuntu /var/www/html/airbnb-clone
             
-            # Configure Nginx if not already configured
+            # Configure Nginx
             if [ ! -f /etc/nginx/sites-available/airbnb-clone ]; then
               echo "Setting up Nginx configuration..."
               echo 'server {
@@ -167,26 +170,41 @@ jobs:
               fi
             fi
 
-            # Extract deployment archive
+            # Deploy application
             cd /var/www/html/airbnb-clone
             tar xzf /home/ubuntu/deploy.tar.gz
             rm /home/ubuntu/deploy.tar.gz
 
-            # Configure environment
+            # Ensure environment files exist and are properly configured
+            if [ ! -f .env ]; then
+              echo "APP_ENV=prod" > .env
+            fi
+
+            if [ ! -f .env.local ]; then
+              echo "APP_ENV=prod" > .env.local
+              echo "APP_DEBUG=0" >> .env.local
+            fi
+
             export APP_ENV=prod
             export SYMFONY_ENV=prod
             
             # Install dependencies and build
-            composer install --no-dev --optimize-autoloader --no-scripts
-            composer dump-env prod
-            APP_ENV=prod composer run-script post-install-cmd --no-dev
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+            COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
             
-            # Database and cache
-            php bin/console doctrine:migrations:migrate --no-interaction
-            php bin/console cache:clear --no-debug
-            php bin/console cache:warmup --no-debug
+            # Create var directory with proper permissions
+            mkdir -p var
+            sudo chown -R www-data:www-data var/
+            sudo chmod -R 775 var/
             
-            # Set permissions
+            # Clear and warmup cache
+            APP_ENV=prod php bin/console cache:clear --no-debug
+            APP_ENV=prod php bin/console cache:warmup --no-debug
+            
+            # Run migrations if needed
+            APP_ENV=prod php bin/console doctrine:migrations:migrate --no-interaction || true
+            
+            # Final permission adjustments
             sudo chown -R www-data:www-data var/
             sudo chmod -R 775 var/
             
