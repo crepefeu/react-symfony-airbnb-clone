@@ -74,25 +74,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Create project directory with correct permissions first
-            sudo mkdir -p /var/www/html/airbnb-clone
-            sudo chown -R ubuntu:www-data /var/www/html/airbnb-clone
-            sudo chmod -R 775 /var/www/html/airbnb-clone
-            
-            # Deploy application files with proper ownership
-            cd /var/www/html/airbnb-clone
-            tar xzf /home/ubuntu/deploy.tar.gz
-            rm /home/ubuntu/deploy.tar.gz
-            
-            # Fix permissions after deploy
-            sudo find . -type f -exec chmod 664 {} \;
-            sudo find . -type d -exec chmod 775 {} \;
-            sudo find var -type d -exec chmod 777 {} \;
-            sudo chown -R ubuntu:www-data .
-
-            # Update and install necessary packages
+            # Update package list
             sudo apt-get update
             
+            # Install packages first (before any file operations)
             # Check and install PHP 8.4
             if ! command -v php &> /dev/null || ! php -v | grep -q "PHP 8.4"; then
               echo "Installing PHP 8.4..."
@@ -139,7 +124,19 @@ jobs:
             echo "Composer Version: $(composer -V)"
             echo "Caddy Version: $(caddy version)"
             
-            # Configure Caddy with minimal test setup
+            # Create project directory with proper initial permissions
+            sudo mkdir -p /var/www/html/airbnb-clone
+            sudo chown -R ubuntu:ubuntu /var/www/html/airbnb-clone
+            
+            # Deploy application files (using the working method from old deploy)
+            cd /var/www/html/airbnb-clone
+            tar xzf /home/ubuntu/deploy.tar.gz || {
+              echo "Failed to extract deploy.tar.gz"
+              exit 1
+            }
+            rm -f /home/ubuntu/deploy.tar.gz
+            
+            # Configure minimal Caddy test
             sudo tee /etc/caddy/Caddyfile << EOF
             http://35.180.140.46 {
                 respond "Hello from Caddy!"
@@ -149,19 +146,10 @@ jobs:
             sudo chown -R caddy:caddy /etc/caddy
             sudo chmod 644 /etc/caddy/Caddyfile
             sudo systemctl restart caddy
-
-            # Create and set up project directory
-            sudo mkdir -p /var/www/html/airbnb-clone
-            sudo chown -R www-data:www-data /var/www/html/airbnb-clone
-
-            # Deploy application files
-            cd /var/www/html/airbnb-clone
-            tar xzf /home/ubuntu/deploy.tar.gz
-            rm /home/ubuntu/deploy.tar.gz
-
-            # Restart services
-            sudo systemctl restart php8.4-fpm
-            sudo systemctl restart caddy
+            
+            # Set proper permissions after deployment
+            sudo chown -R www-data:www-data var/
+            sudo chmod -R 777 var/
 
             # Install and configure PostgreSQL
             sudo apt-get install -y postgresql postgresql-contrib postgis postgresql-*-postgis-* postgresql-*-postgis-scripts
