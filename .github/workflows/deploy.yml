@@ -237,76 +237,65 @@ jobs:
             # Configure Caddy with updated SSL settings
             sudo tee /etc/caddy/Caddyfile << EOF
             {
-                # Global options block
+                # Global options block (must be first)
                 email erodriguez10@myges.fr
                 http_port 80
                 https_port 443
-                # Specify certificate storage location
+                auto_https disable_redirects
                 storage file_system {
                     root /var/lib/caddy/.local/share/caddy
                 }
             }
-            
-            # Rest of your Caddy configuration...
-            {
-              # Global options block
-              email erodriguez10@myges.fr
-              http_port 80
-              https_port 443
-              auto_https disable_redirects  # Prevent automatic HTTPS redirects
-            }
 
             http://35.180.140.46 {
-              redir https://{host}{uri} permanent  # Explicit redirect to HTTPS
+                redir https://{host}{uri} permanent
             }
 
             https://35.180.140.46 {
-              log {
-                output file /var/log/caddy/access.log
-                format json
-                level INFO
-              }
-
-              tls internal  # Use Caddy's automatic certificate management
-
-              root * /var/www/html/airbnb-clone/public
-              encode gzip
-
-              header {
-                # Standard security headers
-                Strict-Transport-Security "max-age=31536000; includeSubDomains"
-                X-Content-Type-Options "nosniff"
-                X-Frame-Options "DENY"
-                Referrer-Policy "strict-origin-when-cross-origin"
-                
-                # CORS headers
-                Access-Control-Allow-Origin *
-                Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
-                Access-Control-Expose-Headers "Content-Length,Content-Range"
-              }
-
-              php_fastcgi unix//var/run/php/php8.4-fpm.sock {
-                try_files {path} /index.php?{query}
-              }
-
-              # Serve static files
-              file_server
-
-              # Handle OPTIONS preflight
-              @options {
-                method OPTIONS
-              }
-
-              handle @options {
-                header {
-                  Access-Control-Allow-Origin "*"
-                  Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                  Access-Control-Allow-Headers "*"
-                  Access-Control-Max-Age "1728000"
+                log {
+                    output file /var/log/caddy/access.log
+                    format json
+                    level INFO
                 }
-                respond 204
-              }
+
+                tls internal
+
+                root * /var/www/html/airbnb-clone/public
+                encode gzip
+
+                header {
+                    # Security headers
+                    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+                    X-Content-Type-Options "nosniff"
+                    X-Frame-Options "DENY"
+                    Referrer-Policy "strict-origin-when-cross-origin"
+                    
+                    # CORS headers
+                    Access-Control-Allow-Origin *
+                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                    Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+                    Access-Control-Expose-Headers "Content-Length,Content-Range"
+                }
+
+                php_fastcgi unix//var/run/php/php8.4-fpm.sock {
+                    try_files {path} /index.php?{query}
+                }
+
+                file_server
+
+                @options {
+                    method OPTIONS
+                }
+
+                handle @options {
+                    header {
+                        Access-Control-Allow-Origin "*"
+                        Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                        Access-Control-Allow-Headers "*"
+                        Access-Control-Max-Age "1728000"
+                    }
+                    respond 204
+                }
             }
             EOF
 
