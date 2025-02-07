@@ -166,36 +166,36 @@ jobs:
               
               root * /var/www/html/airbnb-clone/public
               encode gzip
-            }
 
-            header {
-              Access-Control-Allow-Origin *
-              Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-              Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
-              Access-Control-Expose-Headers "Content-Length,Content-Range"
-              Strict-Transport-Security "max-age=31536000;"
-            }
-
-            php_fastcgi unix//var/run/php/php8.4-fpm.sock {
-              try_files {path} /index.php?{query}
-            }
-
-            # Serve static files
-            file_server
-
-            # Handle OPTIONS preflight
-            @options {
-              method OPTIONS
-            }
-
-            handle @options {
               header {
-                Access-Control-Allow-Origin "*"
+                Access-Control-Allow-Origin *
                 Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                Access-Control-Allow-Headers "*"
-                Access-Control-Max-Age "1728000"
+                Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+                Access-Control-Expose-Headers "Content-Length,Content-Range"
+                Strict-Transport-Security "max-age=31536000;"
               }
-              respond 204
+
+              php_fastcgi unix//var/run/php/php8.4-fpm.sock {
+                try_files {path} /index.php?{query}
+              }
+
+              # Serve static files
+              file_server
+
+              # Handle OPTIONS preflight
+              @options {
+                method OPTIONS
+              }
+
+              handle @options {
+                header {
+                  Access-Control-Allow-Origin "*"
+                  Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                  Access-Control-Allow-Headers "*"
+                  Access-Control-Max-Age "1728000"
+                }
+                respond 204
+              }
             }
             EOF
 
