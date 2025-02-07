@@ -54,7 +54,7 @@ const Dashboard = () => {
     );
   }
 
-  if (!token || (user && !user.roles.includes(["ROLE_ADMIN"]))) {
+  if (!token || (user && !user.roles.includes("ROLE_ADMIN"))) {
     return <Unauthorized></Unauthorized>;
   }
 
