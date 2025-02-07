@@ -74,6 +74,22 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Create project directory with correct permissions first
+            sudo mkdir -p /var/www/html/airbnb-clone
+            sudo chown -R ubuntu:www-data /var/www/html/airbnb-clone
+            sudo chmod -R 775 /var/www/html/airbnb-clone
+            
+            # Deploy application files with proper ownership
+            cd /var/www/html/airbnb-clone
+            tar xzf /home/ubuntu/deploy.tar.gz
+            rm /home/ubuntu/deploy.tar.gz
+            
+            # Fix permissions after deploy
+            sudo find . -type f -exec chmod 664 {} \;
+            sudo find . -type d -exec chmod 775 {} \;
+            sudo find var -type d -exec chmod 777 {} \;
+            sudo chown -R ubuntu:www-data .
+
             # Update and install necessary packages
             sudo apt-get update
             
@@ -123,38 +139,16 @@ jobs:
             echo "Composer Version: $(composer -V)"
             echo "Caddy Version: $(caddy version)"
             
-            # Configure Caddy with basic HTTP setup
+            # Configure Caddy with minimal test setup
             sudo tee /etc/caddy/Caddyfile << EOF
             http://35.180.140.46 {
-                root * /var/www/html/airbnb-clone/public
-                encode gzip
-                
-                php_fastcgi unix//var/run/php/php8.4-fpm.sock
-                file_server
-                
-                header {
-                    Access-Control-Allow-Origin "*"
-                    Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                    Access-Control-Allow-Headers "*"
-                }
-                
-                @options {
-                    method OPTIONS
-                }
-                handle @options {
-                    header {
-                        Access-Control-Allow-Origin "*"
-                        Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
-                        Access-Control-Allow-Headers "*"
-                        Access-Control-Max-Age "1728000"
-                    }
-                    respond 204
-                }
+                respond "Hello from Caddy!"
             }
             EOF
 
             sudo chown -R caddy:caddy /etc/caddy
             sudo chmod 644 /etc/caddy/Caddyfile
+            sudo systemctl restart caddy
 
             # Create and set up project directory
             sudo mkdir -p /var/www/html/airbnb-clone
