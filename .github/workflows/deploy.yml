@@ -217,6 +217,112 @@ jobs:
             sudo chown -R caddy:caddy /etc/caddy /var/lib/caddy
             sudo chmod -R 755 /etc/caddy /var/lib/caddy
 
+            # Create required directories with proper permissions
+            sudo mkdir -p /etc/caddy/pki/authorities/local
+            sudo mkdir -p /var/lib/caddy/.local/share/caddy
+            sudo mkdir -p /var/lib/caddy/.config/caddy
+
+            # Set proper ownership and permissions
+            sudo chown -R caddy:caddy /etc/caddy/pki
+            sudo chown -R caddy:caddy /var/lib/caddy
+            sudo chmod 755 /etc/caddy/pki/authorities/local
+            sudo chmod -R 700 /var/lib/caddy/.local
+            sudo chmod -R 700 /var/lib/caddy/.config
+
+            # Give Caddy proper sudo permissions for certificate management
+            echo "caddy ALL=(ALL) NOPASSWD: /usr/sbin/update-ca-certificates" | sudo EDITOR='tee -a' visudo
+            echo "caddy ALL=(ALL) NOPASSWD: /usr/bin/tee /usr/local/share/ca-certificates/*" | sudo EDITOR='tee -a' visudo
+            echo "caddy ALL=(ALL) NOPASSWD: /usr/bin/rm -f /usr/local/share/ca-certificates/*" | sudo EDITOR='tee -a' visudo
+
+            # Configure Caddy with updated SSL settings
+            sudo tee /etc/caddy/Caddyfile << EOF
+            {
+                # Global options block
+                email erodriguez10@myges.fr
+                http_port 80
+                https_port 443
+                # Specify certificate storage location
+                storage file_system {
+                    root /var/lib/caddy/.local/share/caddy
+                }
+            }
+            
+            # Rest of your Caddy configuration...
+            {
+              # Global options block
+              email erodriguez10@myges.fr
+              http_port 80
+              https_port 443
+              auto_https disable_redirects  # Prevent automatic HTTPS redirects
+            }
+
+            http://35.180.140.46 {
+              redir https://{host}{uri} permanent  # Explicit redirect to HTTPS
+            }
+
+            https://35.180.140.46 {
+              log {
+                output file /var/log/caddy/access.log
+                format json
+                level INFO
+              }
+
+              tls internal  # Use Caddy's automatic certificate management
+
+              root * /var/www/html/airbnb-clone/public
+              encode gzip
+
+              header {
+                # Standard security headers
+                Strict-Transport-Security "max-age=31536000; includeSubDomains"
+                X-Content-Type-Options "nosniff"
+                X-Frame-Options "DENY"
+                Referrer-Policy "strict-origin-when-cross-origin"
+                
+                # CORS headers
+                Access-Control-Allow-Origin *
+                Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+                Access-Control-Expose-Headers "Content-Length,Content-Range"
+              }
+
+              php_fastcgi unix//var/run/php/php8.4-fpm.sock {
+                try_files {path} /index.php?{query}
+              }
+
+              # Serve static files
+              file_server
+
+              # Handle OPTIONS preflight
+              @options {
+                method OPTIONS
+              }
+
+              handle @options {
+                header {
+                  Access-Control-Allow-Origin "*"
+                  Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+                  Access-Control-Allow-Headers "*"
+                  Access-Control-Max-Age "1728000"
+                }
+                respond 204
+              }
+            }
+            EOF
+
+            # Ensure SELinux context if enabled
+            if command -v semanage &> /dev/null; then
+                sudo semanage fcontext -a -t httpd_sys_content_t "/var/lib/caddy/.local/share/caddy(/.*)?"
+                sudo restorecon -Rv /var/lib/caddy/.local/share/caddy
+            fi
+
+            # Restart Caddy with proper environment
+            sudo -u caddy CADDYPATH=/var/lib/caddy/.local/share/caddy systemctl restart caddy
+            
+            # Wait for Caddy to start and check logs
+            sleep 5
+            sudo journalctl -u caddy -n 50 --no-pager
+
             # Stop any running web servers and start Caddy
             sudo systemctl stop apache2 || true
             sudo systemctl stop nginx || true
