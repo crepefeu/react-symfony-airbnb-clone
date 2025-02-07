@@ -180,19 +180,33 @@ jobs:
             sudo systemctl start postgresql
             sudo systemctl status postgresql
 
-            # Backup original pg_hba.conf
-            sudo cp /etc/postgresql/*/main/pg_hba.conf /etc/postgresql/*/main/pg_hba.conf.bak
+            # Find PostgreSQL version and configuration directory
+            PG_VERSION=$(pg_config --version | awk '{print $2}' | cut -d. -f1)
+            PG_CONF_DIR="/etc/postgresql/$PG_VERSION/main"
+            echo "PostgreSQL version: $PG_VERSION"
+            echo "Configuration directory: $PG_CONF_DIR"
+
+            # Backup original pg_hba.conf if it exists
+            if [ -f "$PG_CONF_DIR/pg_hba.conf" ]; then
+                sudo cp "$PG_CONF_DIR/pg_hba.conf" "$PG_CONF_DIR/pg_hba.conf.bak"
+            fi
             
             # Configure PostgreSQL authentication (trust method temporarily)
-            echo "local   all             postgres                                trust
-                  local   all             all                                     trust
-                  host    all             all             127.0.0.1/32            trust
-                  host    all             all             ::1/128                 trust" | sudo tee /etc/postgresql/*/main/pg_hba.conf
+            sudo tee "$PG_CONF_DIR/pg_hba.conf" > /dev/null << EOL
+            local   all             postgres                                trust
+            local   all             all                                     trust
+            host    all             all             127.0.0.1/32            trust
+            host    all             all             ::1/128                 trust
+            EOL
             
             sudo systemctl restart postgresql
             sleep 5  # Wait for PostgreSQL to restart
 
-            # Create user and database with trust authentication
+            # Drop existing database and user if they exist
+            sudo -u postgres psql -c "DROP DATABASE IF EXISTS airbnb_db;"
+            sudo -u postgres psql -c "DROP USER IF EXISTS airbnb;"
+            
+            # Create user and database
             sudo -u postgres createuser --createdb airbnb
             sudo -u postgres createdb -O airbnb airbnb_db
             
@@ -201,15 +215,17 @@ jobs:
             sudo -u postgres psql -c "ALTER USER airbnb WITH PASSWORD 'airbnb';"
             
             # Switch to md5 authentication
-            echo "local   all             postgres                                md5
-                  local   all             all                                     md5
-                  host    all             all             127.0.0.1/32            md5
-                  host    all             all             ::1/128                 md5" | sudo tee /etc/postgresql/*/main/pg_hba.conf
+            sudo tee "$PG_CONF_DIR/pg_hba.conf" > /dev/null << EOL
+            local   all             postgres                                md5
+            local   all             all                                     md5
+            host    all             all             127.0.0.1/32            md5
+            host    all             all             ::1/128                 md5
+            EOL
             
             sudo systemctl restart postgresql
             sleep 5  # Wait for PostgreSQL to restart
 
-            # Test connection
+            # Test connection with password
             PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "SELECT 1;" || {
               echo "Failed to connect to PostgreSQL"
               echo "Checking PostgreSQL status..."
@@ -219,8 +235,8 @@ jobs:
               exit 1
             }
 
-            # Enable PostGIS extension using superuser
-            sudo -u postgres psql -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+            # Enable PostGIS extension using superuser with password
+            PGPASSWORD=postgres psql -U postgres -h 127.0.0.1 -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
             
             # Configure environment files with verified credentials
             cat > .env << 'EOL'
