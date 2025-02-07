@@ -110,31 +110,35 @@ jobs:
             echo "Composer Version: $(composer -V)"
             echo "Nginx Version: $(nginx -v 2>&1)"
             
+            # Create project directory if it doesn't exist
+            sudo mkdir -p /var/www/html/airbnb-clone
+            sudo chown -R ubuntu:ubuntu /var/www/html/airbnb-clone
+            
             # Configure Nginx if not already configured
             if [ ! -f /etc/nginx/sites-available/airbnb-clone ]; then
               echo "Setting up Nginx configuration..."
-              echo "server { \
-                listen 80; \
-                server_name _; \
-                root /var/www/html/airbnb-clone/public; \
-                \
-                location / { \
-                    try_files \$uri /index.php\$is_args\$args; \
-                } \
-                \
-                location ~ ^/index\\.php(/|$) { \
-                    fastcgi_pass unix:/var/run/php/php8.4-fpm.sock; \
-                    fastcgi_split_path_info ^(.+\\.php)(/.*)$; \
-                    include fastcgi_params; \
-                    fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name; \
-                    fastcgi_param DOCUMENT_ROOT \$realpath_root; \
-                    internal; \
-                } \
-                \
-                location ~ \\.php$ { \
-                    return 404; \
-                } \
-              }" | sudo tee /etc/nginx/sites-available/airbnb-clone
+              echo 'server {
+                listen 80;
+                server_name _;
+                root /var/www/html/airbnb-clone/public;
+
+                location / {
+                    try_files $uri /index.php$is_args$args;
+                }
+
+                location ~ ^/index\.php(/|$) {
+                    fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
+                    fastcgi_split_path_info ^(.+\.php)(/.*)$;
+                    include fastcgi_params;
+                    fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+                    fastcgi_param DOCUMENT_ROOT $realpath_root;
+                    internal;
+                }
+
+                location ~ \.php$ {
+                    return 404;
+                }
+            }' | sudo tee /etc/nginx/sites-available/airbnb-clone
 
               if [ $? -eq 0 ]; then
                 echo "Nginx configuration created successfully"
@@ -152,7 +156,15 @@ jobs:
 
             # Deploy application
             cd /var/www/html/airbnb-clone || exit 1
-            git pull origin main
+            
+            # Initialize git repository if it doesn't exist
+            if [ ! -d .git ]; then
+              git init
+              git remote add origin ${{ secrets.REPO_URL }}
+            fi
+            
+            git fetch origin main
+            git reset --hard origin/main
 
             # Configure environment
             echo "APP_ENV=prod" > .env.local
