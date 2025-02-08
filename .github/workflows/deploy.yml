@@ -241,6 +241,10 @@ jobs:
             tar xzf /home/ubuntu/deploy.tar.gz
             rm /home/ubuntu/deploy.tar.gz
 
+            # Install Doctrine Fixtures Bundle
+            echo "Installing Doctrine Fixtures Bundle..."
+            COMPOSER_ALLOW_SUPERUSER=1 composer require --dev doctrine/doctrine-fixtures-bundle
+
             # Create JWT directory and keys with a default passphrase
             mkdir -p config/jwt
             echo "Creating JWT keys..."
@@ -387,10 +391,6 @@ jobs:
             # Install dependencies and build
             COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader
             COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
-
-            # Install Doctrine Fixtures Bundle
-            echo "Installing Doctrine Fixtures Bundle..."
-            COMPOSER_ALLOW_SUPERUSER=1 composer require --dev doctrine/doctrine-fixtures-bundle
 
             # Clear cache with proper permissions
             sudo -E php bin/console cache:clear --no-debug
