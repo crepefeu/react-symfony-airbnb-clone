@@ -441,3 +441,39 @@ jobs:
             sudo systemctl restart postgresql
             sudo systemctl restart php8.4-fpm
             sudo systemctl restart nginx
+
+            # Add these debugging commands after deployment
+            echo "Enabling error logging..."
+            sudo sed -i 's/error_reporting = .*/error_reporting = E_ALL/' /etc/php/8.4/fpm/php.ini
+            sudo sed -i 's/display_errors = .*/display_errors = On/' /etc/php/8.4/fpm/php.ini
+            sudo sed -i 's/log_errors = .*/log_errors = On/' /etc/php/8.4/fpm/php.ini
+            sudo sed -i 's/error_log = .*/error_log = \/var\/log\/php\/error.log/' /etc/php/8.4/fpm/php.ini
+
+            # Create PHP log directory
+            sudo mkdir -p /var/log/php
+            sudo chown www-data:www-data /var/log/php
+            sudo chmod 755 /var/log/php
+
+            # Verify JWT setup
+            echo "Verifying JWT configuration..."
+            ls -la /var/www/html/airbnb-clone/config/jwt/
+            sudo chmod 644 /var/www/html/airbnb-clone/config/jwt/private.pem
+            sudo chmod 644 /var/www/html/airbnb-clone/config/jwt/public.pem
+            sudo chown www-data:www-data /var/www/html/airbnb-clone/config/jwt/*
+
+            # Clear cache and check JWT config
+            cd /var/www/html/airbnb-clone
+            php bin/console cache:clear
+            php bin/console lexik:jwt:check-config
+
+            # Restart services
+            sudo systemctl restart php8.4-fpm
+            sudo systemctl restart nginx
+
+            # Tail logs for immediate debugging
+            echo "Recent PHP errors:"
+            sudo tail -n 50 /var/log/php/error.log || true
+            echo "Recent Nginx errors:"
+            sudo tail -n 50 /var/log/nginx/error.log || true
+            echo "Recent Symfony logs:"
+            sudo tail -n 50 /var/www/html/airbnb-clone/var/log/prod.log || true
