@@ -245,6 +245,10 @@ jobs:
             echo "Installing Doctrine Fixtures Bundle..."
             COMPOSER_ALLOW_SUPERUSER=1 composer require --dev doctrine/doctrine-fixtures-bundle
 
+            # Install dependencies and build
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader
+            COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
+
             # Create JWT directory and keys with a default passphrase
             mkdir -p config/jwt
             echo "Creating JWT keys..."
@@ -387,10 +391,6 @@ jobs:
 
             export APP_ENV=prod
             export SYMFONY_ENV=prod
-
-            # Install dependencies and build
-            COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader
-            COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
 
             # Clear cache with proper permissions
             sudo -E php bin/console cache:clear --no-debug
