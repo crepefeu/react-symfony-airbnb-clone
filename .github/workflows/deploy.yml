@@ -241,10 +241,16 @@ jobs:
             tar xzf /home/ubuntu/deploy.tar.gz
             rm /home/ubuntu/deploy.tar.gz
 
-            # Create JWT directory and keys
+            # Create JWT directory and keys with a default passphrase
             mkdir -p config/jwt
-            openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
-            openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
+            echo "Creating JWT keys..."
+            JWT_PASSPHRASE=your_secure_passphrase
+            openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:$JWT_PASSPHRASE
+            openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout -passin pass:$JWT_PASSPHRASE
+
+            # Update JWT passphrase in environment files
+            sed -i "s/JWT_PASSPHRASE=/JWT_PASSPHRASE=$JWT_PASSPHRASE/" .env
+            sed -i "s/JWT_PASSPHRASE=/JWT_PASSPHRASE=$JWT_PASSPHRASE/" .env.local
 
             # Set proper permissions for JWT keys
             sudo chown -R www-data:www-data config/jwt
@@ -379,20 +385,25 @@ jobs:
             export SYMFONY_ENV=prod
 
             # Install dependencies and build
-            COMPOSER_ALLOW_SUPERUSER=1 composer require doctrine/doctrine-fixtures-bundle
             COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader
             COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
+
+            # Install Doctrine Fixtures Bundle
+            echo "Installing Doctrine Fixtures Bundle..."
+            COMPOSER_ALLOW_SUPERUSER=1 composer require --dev doctrine/doctrine-fixtures-bundle
 
             # Clear cache with proper permissions
             sudo -E php bin/console cache:clear --no-debug
             sudo -E php bin/console cache:warmup --no-debug
 
-            # Run migrations
+            # Run migrations and load fixtures
             php bin/console doctrine:migrations:migrate --no-interaction || true
-
-            # Load fixtures only if explicitly requested
             echo "Loading fixtures..."
-            php bin/console doctrine:fixtures:load --no-interaction --env=dev
+            php bin/console doctrine:fixtures:load --no-interaction
+
+            # Remove Doctrine Fixtures Bundle after loading fixtures
+            echo "Removing Doctrine Fixtures Bundle..."
+            COMPOSER_ALLOW_SUPERUSER=1 composer remove --dev doctrine/doctrine-fixtures-bundle
 
             # Final permission adjustments
             sudo chown -R www-data:www-data var/
