@@ -154,7 +154,7 @@ jobs:
             echo "server {
                 listen 80;
                 listen [::]:80;
-                server_name symfony-airbnb-clone.3st3ban.dev;
+                server_name hostme.3st3ban.dev;
                 root /var/www/html/airbnb-clone/public;
 
                 location / {
@@ -186,31 +186,31 @@ jobs:
             echo "Obtaining SSL certificate..."
             sudo certbot --nginx --non-interactive --agree-tos \
                         -m erodriguez10@myges.fr \
-                        -d symfony-airbnb-clone.3st3ban.dev \
+                        -d hostme.3st3ban.dev \
                         --redirect || {
                 echo "Failed to obtain SSL certificate. Trying manual installation..."
                 sudo certbot certonly --nginx \
                                     --non-interactive \
                                     --agree-tos \
                                     -m erodriguez10@myges.fr \
-                                    -d symfony-airbnb-clone.3st3ban.dev
+                                    -d hostme.3st3ban.dev
                 
                 # Update Nginx configuration with SSL
                 echo "server {
                     listen 80;
                     listen [::]:80;
-                    server_name symfony-airbnb-clone.3st3ban.dev;
+                    server_name hostme.3st3ban.dev;
                     return 301 https://\$host\$request_uri;
                 }
 
                 server {
                     listen 443 ssl http2;
                     listen [::]:443 ssl http2;
-                    server_name symfony-airbnb-clone.3st3ban.dev;
+                    server_name hostme.3st3ban.dev;
                     root /var/www/html/airbnb-clone/public;
 
-                    ssl_certificate /etc/letsencrypt/live/symfony-airbnb-clone.3st3ban.dev/fullchain.pem;
-                    ssl_certificate_key /etc/letsencrypt/live/symfony-airbnb-clone.3st3ban.dev/privkey.pem;
+                    ssl_certificate /etc/letsencrypt/live/hostme.3st3ban.dev/fullchain.pem;
+                    ssl_certificate_key /etc/letsencrypt/live/hostme.3st3ban.dev/privkey.pem;
                     ssl_protocols TLSv1.2 TLSv1.3;
                     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
                     
