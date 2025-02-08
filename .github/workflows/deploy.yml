@@ -250,40 +250,41 @@ jobs:
             COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
 
             # Create JWT directory and keys with a default passphrase
-            mkdir -p config/jwt
+            JWT_DIR="/var/www/html/airbnb-clone/config/jwt"
+            mkdir -p "$JWT_DIR"
             echo "Creating JWT keys..."
-            JWT_PASSPHRASE=$(openssl rand -hex 32)  # Using hex instead of base64 to avoid special characters
+            JWT_PASSPHRASE=$(openssl rand -hex 32)
             
             # Update environment files first
             sed -i "/JWT_PASSPHRASE=/c\JWT_PASSPHRASE=$JWT_PASSPHRASE" .env
-            sed -i "/JWT_PASSPHRASE=/c\JWT_PASSPHRASE=$JWT_PASSPHRASE" .env.local
+            sed -i "/JWT_SECRET_KEY=/c\JWT_SECRET_KEY=$JWT_DIR/private.pem" .env
+            sed -i "/JWT_PUBLIC_KEY=/c\JWT_PUBLIC_KEY=$JWT_DIR/public.pem" .env
             
             # Generate the keys with proper permissions
-            openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:"$JWT_PASSPHRASE"
-            openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout -passin pass:"$JWT_PASSPHRASE"
+            openssl genpkey -out "$JWT_DIR/private.pem" -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:"$JWT_PASSPHRASE"
+            openssl pkey -in "$JWT_DIR/private.pem" -out "$JWT_DIR/public.pem" -pubout -passin pass:"$JWT_PASSPHRASE"
 
-            # Set proper permissions
-            sudo chown -R www-data:www-data config/jwt
-            sudo chmod 644 config/jwt/public.pem
-            sudo chmod 600 config/jwt/private.pem
+            # Set more permissive ownership and permissions
+            sudo chown -R ubuntu:ubuntu "$JWT_DIR"
+            sudo chmod 755 "$JWT_DIR"
+            sudo chmod 644 "$JWT_DIR/private.pem"
+            sudo chmod 644 "$JWT_DIR/public.pem"
 
-            # Clear Symfony cache to ensure new config is picked up
-            APP_ENV=prod php bin/console cache:clear
+            # Clear cache and check configuration
+            APP_ENV=prod SYMFONY_DEPRECATIONS_HELPER=disabled php bin/console cache:clear
             
-            # Verify JWT configuration
             echo "Checking JWT configuration..."
-            APP_ENV=prod php bin/console lexik:jwt:check-config || {
+            APP_ENV=prod SYMFONY_DEPRECATIONS_HELPER=disabled php bin/console lexik:jwt:check-config || {
                 echo "JWT configuration failed. Debugging info:"
-                ls -la config/jwt/
+                ls -la "$JWT_DIR"
+                echo "Current working directory: $(pwd)"
+                echo "JWT directory permissions:"
+                namei -l "$JWT_DIR/private.pem"
                 echo "JWT Passphrase from environment:"
-                grep JWT_PASSPHRASE .env.local
-                echo "Testing key read access:"
-                sudo -u www-data test -r config/jwt/private.pem && echo "Private key readable" || echo "Private key NOT readable"
-                sudo -u www-data test -r config/jwt/public.pem && echo "Public key readable" || echo "Public key NOT readable"
-                
+                grep JWT_ .env
                 # Try to generate a test token
                 echo "Attempting to generate a test token..."
-                APP_ENV=prod php bin/console lexik:jwt:generate-token test || true
+                APP_ENV=prod php bin/console lexik:jwt:generate-token test@example.com || true
             }
 
             # Install and configure PostgreSQL
