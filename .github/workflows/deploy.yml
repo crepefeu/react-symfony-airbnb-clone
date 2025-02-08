@@ -241,6 +241,39 @@ jobs:
             tar xzf /home/ubuntu/deploy.tar.gz
             rm /home/ubuntu/deploy.tar.gz
 
+            # Create JWT directory and keys
+            mkdir -p config/jwt
+            openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
+            openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
+
+            # Set proper permissions for JWT keys
+            sudo chown -R www-data:www-data config/jwt
+            sudo chmod 644 config/jwt/public.pem
+            sudo chmod 600 config/jwt/private.pem
+
+            # Verify JWT configuration
+            echo "Checking JWT files and permissions..."
+            ls -la config/jwt/
+            
+            # Check if files exist and are readable
+            if [ ! -f config/jwt/private.pem ] || [ ! -f config/jwt/public.pem ]; then
+                echo "ERROR: JWT key files are missing!"
+                exit 1
+            fi
+
+            # Test JWT configuration with Symfony
+            echo "Testing JWT configuration..."
+            bin/console lexik:jwt:check-config || {
+                echo "JWT configuration check failed!"
+                echo "Checking permissions and contents..."
+                sudo -u www-data test -r config/jwt/private.pem || echo "private.pem is not readable by www-data"
+                sudo -u www-data test -r config/jwt/public.pem || echo "public.pem is not readable by www-data"
+                echo "Environment variables:"
+                grep -E "JWT_" .env
+                grep -E "JWT_" .env.local
+                exit 1
+            }
+
             # Install and configure PostgreSQL
             sudo apt-get install -y postgresql postgresql-contrib postgis postgresql-*-postgis-* postgresql-*-postgis-scripts
             sudo systemctl start postgresql
@@ -269,12 +302,12 @@ jobs:
             sleep 5  # Wait for PostgreSQL to restart
 
             # Drop existing database and user if they exist
-            sudo -u postgres psql -c "DROP DATABASE IF EXISTS airbnb_db;"
+            sudo -u postgres psql -c "DROP DATABASE IF EXISTS host_me;"
             sudo -u postgres psql -c "DROP USER IF EXISTS airbnb;"
 
             # Create user and database
             sudo -u postgres createuser --createdb airbnb
-            sudo -u postgres createdb -O airbnb airbnb_db
+            sudo -u postgres createdb -O airbnb host_me
 
             # Set passwords
             sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
@@ -292,7 +325,7 @@ jobs:
             sleep 5  # Wait for PostgreSQL to restart
 
             # Test connection with password
-            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "SELECT 1;" || {
+            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d host_me -c "SELECT 1;" || {
               echo "Failed to connect to PostgreSQL"
               echo "Checking PostgreSQL status..."
               sudo systemctl status postgresql
@@ -302,21 +335,21 @@ jobs:
             }
 
             # Enable PostGIS extension using superuser with password
-            PGPASSWORD=postgres psql -U postgres -h 127.0.0.1 -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+            PGPASSWORD=postgres psql -U postgres -h 127.0.0.1 -d host_me -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 
             # Configure environment files with verified credentials
             cat > .env << 'EOL'
             APP_ENV=prod
             APP_SECRET=your_app_secret_here
-            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8
+            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/host_me?serverVersion=15&charset=utf8
             MESSENGER_TRANSPORT_DSN=doctrine://default
             MAILER_DSN=smtp://localhost:1025
             STRIPE_PUBLIC_KEY=pk_test_your_key
             STRIPE_SECRET_KEY=sk_test_your_key
-            GOOGLE_MAPS_API_KEY=your_google_maps_key
+            GOOGLE_MAPS_API_KEY=AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA
             JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
             JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
-            JWT_PASSPHRASE=your_passphrase
+            JWT_PASSPHRASE=
             CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
             EOL
 
@@ -324,15 +357,15 @@ jobs:
             APP_ENV=prod
             APP_DEBUG=0
             APP_SECRET=your_app_secret_here
-            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8
+            DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/host_me?serverVersion=15&charset=utf8"
             MESSENGER_TRANSPORT_DSN=doctrine://default
             MAILER_DSN=smtp://localhost:1025
             STRIPE_PUBLIC_KEY=pk_test_your_key
             STRIPE_SECRET_KEY=sk_test_your_key
-            GOOGLE_MAPS_API_KEY=your_google_maps_key
+            GOOGLE_MAPS_API_KEY=AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA
             JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
             JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
-            JWT_PASSPHRASE=your_passphrase
+            JWT_PASSPHRASE=
             CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
             EOL
 
