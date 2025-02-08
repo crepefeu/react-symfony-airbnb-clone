@@ -1,4 +1,6 @@
 const Encore = require('@symfony/webpack-encore');
+const Dotenv = require('dotenv-webpack');
+const webpack = require('webpack');
 
 // Manually configure the runtime environment if not already configured yet by the "encore" command.
 // It's useful when you use tools that rely on webpack.config.js file.
@@ -62,19 +64,15 @@ Encore
     .enableSassLoader()
 
     .enablePostCssLoader()
-
-    // uncomment if you use TypeScript
-    //.enableTypeScriptLoader()
-
-    // uncomment if you use React
-    //.enableReactPreset()
-
-    // uncomment to get integrity="..." attributes on your script & link tags
-    // requires WebpackEncoreBundle 1.4 or higher
-    //.enableIntegrityHashes(Encore.isProduction())
-
-    // uncomment if you're having problems with a jQuery plugin
-    //.autoProvidejQuery()
 ;
+
+// Use only one method to define environment variables
+Encore.addPlugin(new Dotenv({
+    path: './.env',
+    systemvars: true,
+    // Explicitly define which env vars you want to expose to your app
+    safe: false, // Change this to false to avoid requiring .env.example
+    allowedKeys: ['GOOGLE_MAPS_API_KEY']
+}));
 
 module.exports = Encore.getWebpackConfig();

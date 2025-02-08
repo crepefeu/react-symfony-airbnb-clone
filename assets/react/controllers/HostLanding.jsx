@@ -275,7 +275,7 @@ const HostLanding = () => {
       {/* Hero Section with Earnings Calculator */}
       <section className="relative bg-white min-h-screen pt-8">
         <LoadScript
-          googleMapsApiKey={"AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA"}
+          googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY}
           mapIds={["43f679ecd42ba96e"]}
           libraries={["places"]}
         >

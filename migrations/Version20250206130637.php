@@ -20,6 +20,7 @@ final class Version20250206130637 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE EXTENSION IF NOT EXISTS postgis');
         $this->addSql('CREATE TABLE address (id SERIAL NOT NULL, street_number VARCHAR(255) NOT NULL, street_name VARCHAR(255) NOT NULL, city VARCHAR(255) NOT NULL, state VARCHAR(255) NOT NULL, zipcode VARCHAR(20) NOT NULL, country VARCHAR(255) NOT NULL, location geometry(GEOMETRY, 0) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE TABLE amenity (id SERIAL NOT NULL, name VARCHAR(255) NOT NULL, category VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE TABLE booking (id SERIAL NOT NULL, property_id INT NOT NULL, guest_id INT NOT NULL, check_in_date DATE NOT NULL, check_out_date DATE NOT NULL, number_of_guests INT NOT NULL, total_price INT NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, status VARCHAR(255) NOT NULL, PRIMARY KEY(id))');

@@ -143,7 +143,7 @@ const Map = () => {
     <div className="w-full h-full">
       <div className="h-full">
         <LoadScript
-          googleMapsApiKey={"AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA"}
+          googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY}
           mapIds={["43f679ecd42ba96e"]}
         >
           {isLoading && <LoadingSpinner />}
