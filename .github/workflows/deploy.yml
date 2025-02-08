@@ -249,6 +249,47 @@ jobs:
             COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader
             COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod
 
+            # Configure environment files with verified credentials
+            cat > .env << 'EOL'
+            APP_ENV=prod
+            APP_SECRET=your_app_secret_here
+            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/host_me?serverVersion=15&charset=utf8
+            MESSENGER_TRANSPORT_DSN=doctrine://default
+            MAILER_DSN=smtp://localhost:1025
+            STRIPE_PUBLIC_KEY=pk_test_your_key
+            STRIPE_SECRET_KEY=sk_test_your_key
+            GOOGLE_MAPS_API_KEY=AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA
+            JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+            JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+            JWT_PASSPHRASE=
+            CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+            EOL
+
+            cat > .env.local << 'EOL'
+            APP_ENV=prod
+            APP_DEBUG=0
+            APP_SECRET=your_app_secret_here
+            DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/host_me?serverVersion=15&charset=utf8"
+            MESSENGER_TRANSPORT_DSN=doctrine://default
+            MAILER_DSN=smtp://localhost:1025
+            STRIPE_PUBLIC_KEY=pk_test_your_key
+            STRIPE_SECRET_KEY=sk_test_your_key
+            GOOGLE_MAPS_API_KEY=AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA
+            JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+            JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+            JWT_PASSPHRASE=
+            CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
+            EOL
+
+            # Set proper permissions before cache operations
+            sudo chown -R ubuntu:www-data .
+            sudo find . -type f -exec chmod 664 {} \;
+            sudo find . -type d -exec chmod 775 {} \;
+            sudo find var -type d -exec chmod 777 {} \;
+
+            export APP_ENV=prod
+            export SYMFONY_ENV=prod
+
             # Install and configure PostgreSQL
             sudo apt-get install -y postgresql postgresql-contrib postgis postgresql-*-postgis-* postgresql-*-postgis-scripts
             sudo systemctl start postgresql
@@ -350,51 +391,6 @@ jobs:
                 APP_ENV=prod php bin/console lexik:jwt:generate-token test@example.com || true
             }
 
-            # Configure environment files with verified credentials
-            cat > .env << 'EOL'
-            APP_ENV=prod
-            APP_SECRET=your_app_secret_here
-            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/host_me?serverVersion=15&charset=utf8
-            MESSENGER_TRANSPORT_DSN=doctrine://default
-            MAILER_DSN=smtp://localhost:1025
-            STRIPE_PUBLIC_KEY=pk_test_your_key
-            STRIPE_SECRET_KEY=sk_test_your_key
-            GOOGLE_MAPS_API_KEY=AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA
-            JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
-            JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
-            JWT_PASSPHRASE=
-            CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
-            EOL
-
-            cat > .env.local << 'EOL'
-            APP_ENV=prod
-            APP_DEBUG=0
-            APP_SECRET=your_app_secret_here
-            DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/host_me?serverVersion=15&charset=utf8"
-            MESSENGER_TRANSPORT_DSN=doctrine://default
-            MAILER_DSN=smtp://localhost:1025
-            STRIPE_PUBLIC_KEY=pk_test_your_key
-            STRIPE_SECRET_KEY=sk_test_your_key
-            GOOGLE_MAPS_API_KEY=AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA
-            JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
-            JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
-            JWT_PASSPHRASE=
-            CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
-            EOL
-
-            # Set proper permissions before cache operations
-            sudo chown -R ubuntu:www-data .
-            sudo find . -type f -exec chmod 664 {} \;
-            sudo find . -type d -exec chmod 775 {} \;
-            sudo find var -type d -exec chmod 777 {} \;
-
-            export APP_ENV=prod
-            export SYMFONY_ENV=prod
-
-            # Clear cache with proper permissions
-            sudo -E php bin/console cache:clear --no-debug
-            sudo -E php bin/console cache:warmup --no-debug
-
             # Run migrations and load fixtures
             php bin/console doctrine:migrations:migrate --no-interaction || true
             echo "Loading fixtures..."
@@ -403,6 +399,10 @@ jobs:
             # Remove Doctrine Fixtures Bundle after loading fixtures
             echo "Removing Doctrine Fixtures Bundle..."
             COMPOSER_ALLOW_SUPERUSER=1 composer remove --dev doctrine/doctrine-fixtures-bundle
+
+            # Clear cache with proper permissions
+            sudo -E php bin/console cache:clear --no-debug
+            sudo -E php bin/console cache:warmup --no-debug
 
             # Final permission adjustments
             sudo chown -R www-data:www-data var/
