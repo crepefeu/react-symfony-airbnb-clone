@@ -252,9 +252,29 @@ jobs:
             # Create JWT directory and keys with a default passphrase
             mkdir -p config/jwt
             echo "Creating JWT keys..."
-            JWT_PASSPHRASE=your_secure_passphrase
+            JWT_PASSPHRASE=$(openssl rand -base64 32)
+            echo "JWT_PASSPHRASE=$JWT_PASSPHRASE" >> .env.local
+            
+            # Generate the keys with proper permissions
             openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:$JWT_PASSPHRASE
             openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout -passin pass:$JWT_PASSPHRASE
+
+            # Set proper permissions
+            sudo chown -R www-data:www-data config/jwt
+            sudo chmod 644 config/jwt/public.pem
+            sudo chmod 600 config/jwt/private.pem
+
+            # Verify JWT configuration
+            echo "Checking JWT configuration..."
+            php bin/console lexik:jwt:check-config || {
+                echo "JWT configuration failed. Debugging info:"
+                ls -la config/jwt/
+                echo "JWT Passphrase from .env.local:"
+                grep JWT_PASSPHRASE .env.local
+                echo "Testing key read access:"
+                sudo -u www-data cat config/jwt/public.pem > /dev/null && echo "Public key readable" || echo "Public key NOT readable"
+                sudo -u www-data cat config/jwt/private.pem > /dev/null && echo "Private key readable" || echo "Private key NOT readable"
+            }
 
             # Update JWT passphrase in environment files
             sed -i "s/JWT_PASSPHRASE=/JWT_PASSPHRASE=$JWT_PASSPHRASE/" .env
