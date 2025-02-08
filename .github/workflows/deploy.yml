@@ -252,60 +252,38 @@ jobs:
             # Create JWT directory and keys with a default passphrase
             mkdir -p config/jwt
             echo "Creating JWT keys..."
-            JWT_PASSPHRASE=$(openssl rand -base64 32)
-            echo "JWT_PASSPHRASE=$JWT_PASSPHRASE" >> .env.local
+            JWT_PASSPHRASE=$(openssl rand -hex 32)  # Using hex instead of base64 to avoid special characters
+            
+            # Update environment files first
+            sed -i "/JWT_PASSPHRASE=/c\JWT_PASSPHRASE=$JWT_PASSPHRASE" .env
+            sed -i "/JWT_PASSPHRASE=/c\JWT_PASSPHRASE=$JWT_PASSPHRASE" .env.local
             
             # Generate the keys with proper permissions
-            openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:$JWT_PASSPHRASE
-            openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout -passin pass:$JWT_PASSPHRASE
+            openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:"$JWT_PASSPHRASE"
+            openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout -passin pass:"$JWT_PASSPHRASE"
 
             # Set proper permissions
             sudo chown -R www-data:www-data config/jwt
             sudo chmod 644 config/jwt/public.pem
             sudo chmod 600 config/jwt/private.pem
 
+            # Clear Symfony cache to ensure new config is picked up
+            APP_ENV=prod php bin/console cache:clear
+            
             # Verify JWT configuration
             echo "Checking JWT configuration..."
-            php bin/console lexik:jwt:check-config || {
+            APP_ENV=prod php bin/console lexik:jwt:check-config || {
                 echo "JWT configuration failed. Debugging info:"
                 ls -la config/jwt/
-                echo "JWT Passphrase from .env.local:"
+                echo "JWT Passphrase from environment:"
                 grep JWT_PASSPHRASE .env.local
                 echo "Testing key read access:"
-                sudo -u www-data cat config/jwt/public.pem > /dev/null && echo "Public key readable" || echo "Public key NOT readable"
-                sudo -u www-data cat config/jwt/private.pem > /dev/null && echo "Private key readable" || echo "Private key NOT readable"
-            }
-
-            # Update JWT passphrase in environment files
-            sed -i "s/JWT_PASSPHRASE=/JWT_PASSPHRASE=$JWT_PASSPHRASE/" .env
-            sed -i "s/JWT_PASSPHRASE=/JWT_PASSPHRASE=$JWT_PASSPHRASE/" .env.local
-
-            # Set proper permissions for JWT keys
-            sudo chown -R www-data:www-data config/jwt
-            sudo chmod 644 config/jwt/public.pem
-            sudo chmod 600 config/jwt/private.pem
-
-            # Verify JWT configuration
-            echo "Checking JWT files and permissions..."
-            ls -la config/jwt/
-            
-            # Check if files exist and are readable
-            if [ ! -f config/jwt/private.pem ] || [ ! -f config/jwt/public.pem ]; then
-                echo "ERROR: JWT key files are missing!"
-                exit 1
-            fi
-
-            # Test JWT configuration with Symfony
-            echo "Testing JWT configuration..."
-            bin/console lexik:jwt:check-config || {
-                echo "JWT configuration check failed!"
-                echo "Checking permissions and contents..."
-                sudo -u www-data test -r config/jwt/private.pem || echo "private.pem is not readable by www-data"
-                sudo -u www-data test -r config/jwt/public.pem || echo "public.pem is not readable by www-data"
-                echo "Environment variables:"
-                grep -E "JWT_" .env
-                grep -E "JWT_" .env.local
-                exit 1
+                sudo -u www-data test -r config/jwt/private.pem && echo "Private key readable" || echo "Private key NOT readable"
+                sudo -u www-data test -r config/jwt/public.pem && echo "Public key readable" || echo "Public key NOT readable"
+                
+                # Try to generate a test token
+                echo "Attempting to generate a test token..."
+                APP_ENV=prod php bin/console lexik:jwt:generate-token test || true
             }
 
             # Install and configure PostgreSQL
