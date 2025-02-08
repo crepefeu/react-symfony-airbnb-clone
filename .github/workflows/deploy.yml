@@ -361,6 +361,26 @@ jobs:
             echo "Loading fixtures..."
             php bin/console doctrine:fixtures:load --no-interaction --env=dev
 
+            # Setup JWT keys
+            echo "Setting up JWT keys..."
+            mkdir -p ./config/jwt
+            
+            # Generate private key
+            openssl genpkey -out ./config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass pass:your_passphrase
+
+            # Generate public key from private key
+            openssl pkey -in ./config/jwt/private.pem -out ./config/jwt/public.pem -pubout -passin pass:your_passphrase
+
+            # Set proper permissions for JWT keys
+            sudo chown root:staff ./config/jwt/private.pem
+            sudo chown root:staff ./config/jwt/public.pem
+            sudo chmod 644 ./config/jwt/private.pem
+            sudo chmod 644 ./config/jwt/public.pem
+
+            # Check JWT config and permissions
+            ls -l ./config/jwt
+            php bin/console lexik:jwt:check-config
+
             # Final permission adjustments
             sudo chown -R www-data:www-data var/
             sudo find var -type d -exec chmod 777 {} \;
