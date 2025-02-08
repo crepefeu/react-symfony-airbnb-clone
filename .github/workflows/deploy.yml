@@ -253,7 +253,7 @@ jobs:
             cat > .env << 'EOL'
             APP_ENV=prod
             APP_SECRET=your_app_secret_here
-            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/hostme?serverVersion=15&charset=utf8
+            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8
             MESSENGER_TRANSPORT_DSN=doctrine://default
             MAILER_DSN=smtp://localhost:1025
             STRIPE_PUBLIC_KEY=pk_test_your_key
@@ -269,7 +269,7 @@ jobs:
             APP_ENV=prod
             APP_DEBUG=0
             APP_SECRET=your_app_secret_here
-            DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/hostme?serverVersion=15&charset=utf8"
+            DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8"
             MESSENGER_TRANSPORT_DSN=doctrine://default
             MAILER_DSN=smtp://localhost:1025
             STRIPE_PUBLIC_KEY=pk_test_your_key
@@ -318,12 +318,12 @@ jobs:
             sleep 5  # Wait for PostgreSQL to restart
 
             # Drop existing database and user if they exist
-            sudo -u postgres psql -c "DROP DATABASE IF EXISTS hostme;"
+            sudo -u postgres psql -c "DROP DATABASE IF EXISTS airbnb_db;"
             sudo -u postgres psql -c "DROP USER IF EXISTS airbnb;"
 
             # Create user and database
             sudo -u postgres createuser --createdb airbnb
-            sudo -u postgres createdb -O airbnb hostme
+            sudo -u postgres createdb -O airbnb airbnb_db
 
             # Set passwords
             sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
@@ -341,7 +341,7 @@ jobs:
             sleep 5  # Wait for PostgreSQL to restart
 
             # Test connection with password
-            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d hostme -c "SELECT 1;" || {
+            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "SELECT 1;" || {
               echo "Failed to connect to PostgreSQL"
               echo "Checking PostgreSQL status..."
               sudo systemctl status postgresql
@@ -351,7 +351,7 @@ jobs:
             }
 
             # Enable PostGIS extension using superuser with password
-            PGPASSWORD=postgres psql -U postgres -h 127.0.0.1 -d hostme -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+            PGPASSWORD=postgres psql -U postgres -h 127.0.0.1 -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 
             # Create JWT directory and keys with a default passphrase
             JWT_DIR="/var/www/html/airbnb-clone/config/jwt"
