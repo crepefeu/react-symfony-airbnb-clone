@@ -253,7 +253,7 @@ jobs:
             cat > .env << 'EOL'
             APP_ENV=prod
             APP_SECRET=your_app_secret_here
-            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8
+            DATABASE_URL=postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=16&charset=utf8
             MESSENGER_TRANSPORT_DSN=doctrine://default
             MAILER_DSN=smtp://localhost:1025
             STRIPE_PUBLIC_KEY=pk_test_your_key
@@ -269,7 +269,7 @@ jobs:
             APP_ENV=prod
             APP_DEBUG=0
             APP_SECRET=your_app_secret_here
-            DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=15&charset=utf8"
+            DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=16&charset=utf8"
             MESSENGER_TRANSPORT_DSN=doctrine://default
             MAILER_DSN=smtp://localhost:1025
             STRIPE_PUBLIC_KEY=pk_test_your_key
@@ -317,17 +317,58 @@ jobs:
             sudo systemctl restart postgresql
             sleep 5  # Wait for PostgreSQL to restart
 
-            # Drop existing database and user if they exist
-            sudo -u postgres psql -c "DROP DATABASE IF EXISTS airbnb_db;"
-            sudo -u postgres psql -c "DROP USER IF EXISTS airbnb;"
+            # PostgreSQL setup
+            echo "Setting up PostgreSQL..."
+            sudo -u postgres psql << EOF
+            -- Drop all existing connections to the databases
+            SELECT pg_terminate_backend(pid) 
+            FROM pg_stat_activity 
+            WHERE datname IN ('host_me', 'hostme', 'airbnb_db');
 
-            # Create user and database
-            sudo -u postgres createuser --createdb airbnb
-            sudo -u postgres createdb -O airbnb airbnb_db
+            -- Drop existing databases
+            DROP DATABASE IF EXISTS host_me;
+            DROP DATABASE IF EXISTS hostme;
+            DROP DATABASE IF EXISTS airbnb_db;
+
+            -- Drop and recreate user
+            DROP USER IF EXISTS airbnb;
+            CREATE USER airbnb WITH PASSWORD 'airbnb' CREATEDB;
+
+            -- Create fresh database
+            CREATE DATABASE airbnb_db OWNER airbnb;
+            \c airbnb_db
+            CREATE EXTENSION IF NOT EXISTS postgis;
+            EOF
+
+            # Update environment files with correct database URL
+            sed -i 's|DATABASE_URL=.*|DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=16\&charset=utf8"|g' .env
+            sed -i 's|DATABASE_URL=.*|DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=16\&charset=utf8"|g' .env.local
+
+            # Test database connection
+            echo "Testing database connection..."
+            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "\dt" || {
+                echo "Database connection failed. Debugging info:"
+                echo "PostgreSQL status:"
+                sudo systemctl status postgresql
+                echo "Database connection settings:"
+                grep DATABASE_URL .env
+                echo "PostgreSQL logs:"
+                sudo tail -n 50 /var/log/postgresql/postgresql-*.log
+                exit 1
+            }
+
+            # Run migrations with proper environment variables
+            echo "Running database migrations..."
+            export DATABASE_URL="postgresql://airbnb:airbnb@127.0.0.1:5432/airbnb_db?serverVersion=16&charset=utf8"
+            php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration || {
+                echo "Migration failed. Debugging info:"
+                php bin/console doctrine:migrations:status
+                php bin/console debug:config doctrine
+                exit 1
+            }
 
             # Set passwords
             sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
-            sudo -u postgres psql -c "ALTER USER airbnb WITH PASSWORD 'airbnb';"
 
             # Switch to md5 authentication
             sudo tee "$PG_CONF_DIR/pg_hba.conf" > /dev/null << EOL
@@ -339,20 +380,7 @@ jobs:
 
             sudo systemctl restart postgresql
             sleep 5  # Wait for PostgreSQL to restart
-
-            # Test connection with password
-            PGPASSWORD=airbnb psql -U airbnb -h 127.0.0.1 -d airbnb_db -c "SELECT 1;" || {
-              echo "Failed to connect to PostgreSQL"
-              echo "Checking PostgreSQL status..."
-              sudo systemctl status postgresql
-              echo "Checking PostgreSQL logs..."
-              sudo tail -n 50 /var/log/postgresql/postgresql-*.log
-              exit 1
-            }
-
-            # Enable PostGIS extension using superuser with password
-            PGPASSWORD=postgres psql -U postgres -h 127.0.0.1 -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
-
+            
             # Create JWT directory and keys with a default passphrase
             JWT_DIR="/var/www/html/airbnb-clone/config/jwt"
             mkdir -p "$JWT_DIR"
