@@ -67,7 +67,7 @@ jobs:
           source: "deploy.tar.gz"
           target: "/home/ubuntu"
 
-      - name: Install and configure dependencies on the EC2 instance
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -125,14 +125,7 @@ jobs:
             echo "NPM Version: $(npm -v)"
             echo "Composer Version: $(composer -V)"
             echo "Nginx Version: $(nginx -v 2>&1)"
-          
-      - name: Configure Nginx
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
+
             # Create project directory if it doesn't exist
             sudo mkdir -p /var/www/html/airbnb-clone
             sudo chown -R ubuntu:ubuntu /var/www/html/airbnb-clone
@@ -188,14 +181,7 @@ jobs:
             
             # Test and reload Nginx
             sudo nginx -t && sudo systemctl restart nginx
-            
-      - name: Obtain SSL certificates and configure HTTPS
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
+
             # Obtain SSL certificate
             echo "Obtaining SSL certificate..."
             sudo certbot --nginx --non-interactive --agree-tos \
@@ -249,25 +235,12 @@ jobs:
 
             # Final Nginx reload
             sudo nginx -t && sudo systemctl reload nginx
-      
-      - name: Unzip app package
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
+
+            # Deploy application
             cd /var/www/html/airbnb-clone
             tar xzf /home/ubuntu/deploy.tar.gz
             rm /home/ubuntu/deploy.tar.gz
 
-      - name: Initialize and configure PostgreSQL database
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
             # Install and configure PostgreSQL
             sudo apt-get install -y postgresql postgresql-contrib postgis postgresql-*-postgis-* postgresql-*-postgis-scripts
             sudo systemctl start postgresql
@@ -331,13 +304,6 @@ jobs:
             # Enable PostGIS extension using superuser with password
             PGPASSWORD=postgres psql -U postgres -h 127.0.0.1 -d airbnb_db -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 
-      - name: Configure environment
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
             # Configure environment files with verified credentials
             cat > .env << 'EOL'
             APP_ENV=prod
@@ -379,13 +345,6 @@ jobs:
             export APP_ENV=prod
             export SYMFONY_ENV=prod
 
-      - name: Install and configure dependencies
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
             # Install dependencies and build
             COMPOSER_ALLOW_SUPERUSER=1 composer require doctrine/doctrine-fixtures-bundle
             COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader
@@ -395,13 +354,6 @@ jobs:
             sudo -E php bin/console cache:clear --no-debug
             sudo -E php bin/console cache:warmup --no-debug
 
-      - name: Run migrations and load fixtures
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
             # Run migrations
             php bin/console doctrine:migrations:migrate --no-interaction || true
 
@@ -409,13 +361,6 @@ jobs:
             echo "Loading fixtures..."
             php bin/console doctrine:fixtures:load --no-interaction --env=dev
 
-      - name: Set up JWT
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
             # Setup JWT keys
             echo "Setting up JWT keys..."
             mkdir -p ./config/jwt
@@ -436,13 +381,6 @@ jobs:
             ls -l ./config/jwt
             php bin/console lexik:jwt:check-config
 
-      - name: Finalize permissions and restart services
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
             # Final permission adjustments
             sudo chown -R www-data:www-data var/
             sudo find var -type d -exec chmod 777 {} \;
