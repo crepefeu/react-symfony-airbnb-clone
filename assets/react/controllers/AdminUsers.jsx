@@ -32,7 +32,6 @@ const UsersAdmin = () => {
           throw new Error("Failed to fetch amenities");
         }
         const data = await response.json();
-        console.log(data.users[0]);
         setUsers(data.users);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -94,10 +93,6 @@ const UsersAdmin = () => {
 
           <div className="flex justify-between items-center mb-6 mt-8">
             <h1 className="text-3xl font-medium">Users Management</h1>
-            <button className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md flex items-center">
-              <Plus className="w-4 h-4 mr-2" />
-              Add User
-            </button>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6">
@@ -162,9 +157,6 @@ const UsersAdmin = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex space-x-2">
-                          <button className="p-1 hover:bg-gray-100 rounded-md">
-                            <Pencil className="w-4 h-4 text-gray-500" />
-                          </button>
                           <button
                             className="p-1 hover:bg-gray-100 rounded-md text-red-600"
                             onClick={() => handleDelete(user.id)}

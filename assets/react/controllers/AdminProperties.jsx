@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import Layout from "../components/Layout";
 import Toast from "../components/UI/Toast";
 
@@ -87,16 +87,18 @@ const PropertiesAdmin = () => {
 
           <div className="flex justify-between items-center mb-6 mt-8">
             <h1 className="text-3xl font-medium">Properties Management</h1>
-            <button className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md flex items-center">
+            <a
+              href="/become-a-host"
+              className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md flex items-center"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Property
-            </button>
+            </a>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="mb-6">
-              {/* Search */}
-              {/* <div className="relative">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
@@ -105,7 +107,7 @@ const PropertiesAdmin = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-full md:w-96 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
-              </div> */}
+              </div>
             </div>
 
             {error && (
@@ -162,9 +164,6 @@ const PropertiesAdmin = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex space-x-2">
-                            <button className="p-1 hover:bg-gray-100 rounded-md">
-                              <Pencil className="w-4 h-4 text-gray-500" />
-                            </button>
                             <button
                               className="p-1 hover:bg-gray-100 rounded-md text-red-600"
                               onClick={() => handleDelete(property.id)}
