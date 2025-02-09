@@ -74,7 +74,7 @@ final class BookingController extends AbstractController
     }
 
     #[Route('/create', name: 'create-booking', methods: ['POST'])]
-    public function createBooking(Request $request, Security $security, PropertyRepository $propertyRepository, EntityManagerInterface $entityManager, MailerInterface $mailer): JsonResponse
+    public function createBooking(Request $request, Security $security, PropertyRepository $propertyRepository, BookingRepository $bookingRepository, EntityManagerInterface $entityManager, MailerInterface $mailer): JsonResponse
     {
         $user = $security->getUser();
         if (!$user) {
@@ -93,9 +93,34 @@ final class BookingController extends AbstractController
             return new JsonResponse(['error' => 'Property not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        $checkInDate = new \DateTime($data['checkInDate']);
+        $checkOutDate = new \DateTime($data['checkOutDate']);
+
+        if ($checkInDate >= $checkOutDate) {
+            return new JsonResponse(
+                ['error' => 'Check-in date must be before check-out date'],
+                JsonResponse::HTTP_BAD_REQUEST
+            );
+        }
+
+        if ($checkInDate < new \DateTime('today')) {
+            return new JsonResponse(
+                ['error' => 'Check-in date cannot be in the past'],
+                JsonResponse::HTTP_BAD_REQUEST
+            );
+        }
+
+        $existingBookings = $bookingRepository->getExistingBookingsForGivenDates($property, $checkInDate, $checkOutDate);
+        if (!empty($existingBookings)) {
+            return new JsonResponse(
+                ['error' => 'Property is not available for the selected dates'],
+                JsonResponse::HTTP_BAD_REQUEST
+            );
+        }
+
         $booking = new Booking();
-        $booking->setCheckInDate(new \DateTime($data['checkInDate']));
-        $booking->setCheckOutDate(new \DateTime($data['checkOutDate']));
+        $booking->setCheckInDate($checkInDate);
+        $booking->setCheckOutDate($checkOutDate);
         $booking->setNumberOfGuests($data['numberOfGuests']);
         $booking->setTotalPrice($data['totalPrice']);
         $booking->setCreatedAt(new \DateTimeImmutable());

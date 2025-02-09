@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Booking;
+use App\Entity\Property;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -46,6 +47,23 @@ class BookingRepository extends ServiceEntityRepository
             ->setParameter('status', 'pending')
             ->getQuery()
             ->getResult();
+    }
+
+    public function getExistingBookingsForGivenDates(Property $property, \DateTime $checkIn, \DateTime $checkOut) {
+        return $this->createQueryBuilder('b')
+        ->where('b.Property = :property')
+        ->andWhere('b.Status != :canceled')
+        ->andWhere(
+            '(b.checkInDate BETWEEN :checkIn AND :checkOut) OR
+            (b.checkOutDate BETWEEN :checkIn AND :checkOut) OR
+            (:checkIn BETWEEN b.checkInDate AND b.checkOutDate)'
+        )
+        ->setParameter('property', $property)
+        ->setParameter('canceled', 'canceled')
+        ->setParameter('checkIn', $checkIn)
+        ->setParameter('checkOut', $checkOut)
+        ->getQuery()
+        ->getResult();
     }
 
     public function getNewBookingsTrend(): array
