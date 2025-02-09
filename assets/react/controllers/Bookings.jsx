@@ -84,7 +84,7 @@ const Bookings = () => {
     upcomingBookings.length < 1 &&
     pastBookings.length < 1;
 
-  if (!token || (user && !user.roles.includes(["ROLE_HOST"]))) {
+  if (!token || (user && !user.roles.includes("ROLE_HOST"))) {
     return <Unauthorized></Unauthorized>;
   }
 

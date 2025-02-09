@@ -172,7 +172,8 @@ const Location = ({ formData, setFormData }) => {
     <div className="space-y-6">
       <div className="space-y-4">
         <LoadScript 
-          googleMapsApiKey="AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA"
+          googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY}
+          mapIds={["43f679ecd42ba96e"]}
           libraries={["places"]}
         >
           <Autocomplete

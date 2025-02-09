@@ -426,7 +426,8 @@ const HeaderContent = () => {
                     </div>
                     <div className="w-full">
                       <LoadScript
-                        googleMapsApiKey="AIzaSyB1Tdhuiy1tk6QluPWGU7pwMZyotQqbcQA"
+                        googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY}
+                        mapIds={["43f679ecd42ba96e"]}
                         libraries={["places"]}
                       >
                         <Autocomplete
