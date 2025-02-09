@@ -27,6 +27,27 @@ class BookingRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findBookingsBetweenDates(\DateTime $start, \DateTime $end)
+    {
+        return $this->createQueryBuilder('b')
+            ->where('b.checkInDate BETWEEN :start AND :end')
+            ->andWhere('b.Status != :canceled')
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->setParameter('canceled', 'canceled')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findPendingBookings()
+    {
+        return $this->createQueryBuilder('b')
+            ->where('b.Status = :status')
+            ->setParameter('status', 'pending')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getNewBookingsTrend(): array
     {
         $now = new \DateTime();

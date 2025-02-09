@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Your Upcoming Trip Reminder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-xl font-bold text-gray-800">Your Trip is Coming Up!</h1>
+        <p class="text-gray-700 mt-2">Hello {{ firstName }},</p>
+        <p class="text-gray-700">This is a friendly reminder that your stay at <strong>{{ propertyName }}</strong> is approaching.</p>
+
+        <p class="text-gray-700 mt-4">Need to view your booking details or contact the host?</p>
+        <a href="http://localhost:8000/trips" class="block bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-md mt-4 text-center mx-auto w-1/2">View Booking Details</a>
+
+        <div class="text-center text-gray-500 text-sm mt-6">
+            <p>We hope you have a wonderful stay!</p>
+            <p>&copy; {{ 'now'|date('Y') }} HostMe.com</p>
+        </div>
+    </div>
+</body>
+</html>

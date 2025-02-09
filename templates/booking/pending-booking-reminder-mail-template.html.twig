@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Pending Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-xl font-bold text-gray-800">Action Required: Confirm Your Booking</h1>
+        <p class="text-gray-700 mt-2">Hello {{ firstName }},</p>
+        <p class="text-gray-700">You have a pending booking request that needs your confirmation for your property <strong>{{propertyName}}</strong>.</p>
+
+        <p class="text-gray-700 mt-4">Please confirm the bookings as soon as possible.</p>
+        
+        <a href="http://localhost:8000/bookings" class="block bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-md mt-4 text-center mx-auto w-1/2">View Booking Details</a>
+
+        <div class="mt-6 p-4 bg-rose-50 rounded-md">
+            <p class="text-sm text-rose-800">Have questions? Contact the guest directly through our messaging system.</p>
+        </div>
+
+        <div class="text-center text-gray-500 text-sm mt-6">
+            <p>Thank you for choosing HostMe!</p>
+            <p>&copy; {{ 'now'|date('Y') }} HostMe.com</p>
+        </div>
+    </div>
+</body>
+</html>
