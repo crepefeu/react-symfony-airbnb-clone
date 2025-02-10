@@ -64,8 +64,8 @@ class BookingControllerTest extends WebTestCase
         $this->setEntities(1, $user, $host, $address, $property);
 
         $requestData = [
-            'checkInDate' => '2024-03-01',
-            'checkOutDate' => '2024-03-05',
+            'checkInDate' => '2025-03-01',
+            'checkOutDate' => '2025-03-05',
             'numberOfGuests' => 2,
             'totalPrice' => 500,
             'propertyId' => $property->getId()
