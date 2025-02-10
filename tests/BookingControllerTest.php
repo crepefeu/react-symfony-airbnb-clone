@@ -79,6 +79,7 @@ class BookingControllerTest extends WebTestCase
             $request,
             $this->security,
             $this->propertyRepository,
+            $this->bookingRepository,
             $this->entityManager,
             $this->mailer
         );
@@ -99,6 +100,7 @@ class BookingControllerTest extends WebTestCase
             $request,
             $this->security,
             $this->propertyRepository,
+            $this->bookingRepository,
             $this->entityManager,
             $this->mailer
         );
