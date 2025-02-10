@@ -9,6 +9,7 @@ use App\Entity\Property;
 use App\Entity\User;
 use App\Enum\BookingStatus;
 use App\Repository\PropertyRepository;
+use App\Repository\BookingRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,6 +25,7 @@ class BookingControllerTest extends WebTestCase
 {
     private BookingController $bookingController;
     private Security $security;
+    private BookingRepository $bookingRepository;
     private PropertyRepository $propertyRepository;
     private EntityManagerInterface $entityManager;
     private MailerInterface $mailer;
@@ -42,6 +44,7 @@ class BookingControllerTest extends WebTestCase
         $container = static::getContainer();
         
         $this->security = $container->get(Security::class);
+        $this->bookingRepository = $container->get(BookingRepository::class);
         $this->propertyRepository = $container->get(PropertyRepository::class);
         $this->entityManager = $container->get('doctrine')->getManager();
         $this->mailer = $container->get(MailerInterface::class);
